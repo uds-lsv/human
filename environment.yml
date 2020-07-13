@@ -1,0 +1,15 @@
+name: human
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7.3
+  - flask
+  - flask-login
+  - flask-cors
+  - gunicorn
+  - pandas
+  - pip
+  - pip:
+    - Bootstrap-Flask
+    - requests-toolbelt

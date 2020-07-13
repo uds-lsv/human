@@ -1,0 +1,41 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="{{url_for('.static', filename='css/bootstrap.css')}}">
+</head>
+
+<body>
+    {% if error%}
+    <p style="color:red">{{ error }}</p>
+    {% endif %}
+    <div class="card align-middle" style="width:600px;margin:auto;vertical-align: middle">
+        <div class="card-body">
+            <form action="/register_user" method="POST" class="form-group form-signin">
+                <p class="h2 text-center">Signup</p>
+                First name: <input type="text" name="fname" class="form-control" placeholder="Enter First-name here"
+                    required autofocus /><br />
+                Last name: <input type="text" name="lname" class="form-control" placeholder="Enter Last-name here"
+                    required /><br />
+                Email-id: <input type="text" name="email" class="form-control" placeholder="Enter email here"
+                    required /><br />
+                Username: <input type="text" name="username" class="form-control" placeholder="Enter username here"
+                    required /><br />
+                <small class="form-text text-muted">Username must be atleast 4 characters long.</small><br />
+                Password: <input type="password" name="password" class="form-control" placeholder="Enter password here"
+                    required />
+                <small class="form-text text-muted">Password must be atleast 4 characters long.</small><br />
+                Re-enter password: <input type="password" name="confirm_password" class="form-control"
+                    placeholder="Re-enter password here" required />
+
+                <br />
+                <input type="checkbox" class="form-check-input" id="acceptCondition" required>
+                <label class="form-check-label" for="acceptCondition">I confirm that I have provided my own details and
+                    verify that they are right.</label>
+                <p class="text-center"><input type="submit" value="register" class="btn btn-primary" /></p>
+                <p> Already have an account? <a href="/login">Click here to login.</a></p>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

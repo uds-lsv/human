@@ -1,0 +1,39 @@
+{
+    "name": "annotator",
+    "version": "1.0.0",
+    "description": "An annotator to annotate text or pictures using a state machine",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "gulp"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/RainbowRevenge/Annotator.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/RainbowRevenge/Annotator/issues"
+    },
+    "homepage": "https://github.com/RainbowRevenge/Annotator#readme",
+    "devDependencies": {
+        "@types/jquery": "^3.3.34",
+        "browserify": "^16.5.1",
+        "fancy-log": "^1.3.3",
+        "gulp": "^4.0.2",
+        "gulp-concat": "^2.6.1",
+        "gulp-postcss": "8.0.0",
+        "cssnano": "4.1.10",
+        "autoprefixer": "9.8.0",
+        "gulp-sourcemaps": "^2.6.5",
+        "gulp-typescript": "^6.0.0-alpha.1",
+        "gulp-uglify": "^3.0.2",
+        "tsify": "^4.0.1",
+        "typescript": "^3.8.3",
+        "vinyl-buffer": "^1.0.1",
+        "vinyl-source-stream": "^2.0.0",
+        "watchify": "^3.11.1"
+    },
+    "dependencies": {}
+}

@@ -1,0 +1,32 @@
+{
+    "start": {
+        "type": "loadingFile",
+        "transitions": [ [ "onDone", "0" ] ]
+    },
+    "0": {
+        "type": "bbox",
+        "question": "Carefully read the comment and its context below.",
+        "api_call": "paragraph_segmentation",
+        "transitions": [ [ "NEXT", "1" ] ]
+    },
+    "1": {
+        "type": "bbox",
+        "question": "Is this a hateful comment?",
+        "api_call": "line_segmentation",
+        "saveAll": true,
+        "transitions": [ [ "NEXT", "2" ] ]
+    },
+    "2": {
+        "type": "bbox",
+        "question": "Who is the target?",
+        "api_call": "word_segmentation",
+        "saveAll": true,
+        "transitions": [ [ "NEXT", "3" ] ]
+    },
+    "3": {
+        "type": "bboxLabel",
+        "question": "Check all targets.",
+        "api_call": "classify_words",
+        "transitions": [ [ "NEXT", "end", [ "save" ] ] ]
+    }
+}

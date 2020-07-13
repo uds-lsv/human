@@ -1,0 +1,96 @@
+html {
+    height: 100%;
+}
+body {
+    height: 100%;
+}
+
+.contentContainer {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    width: 100%;
+    /* height: 80%; */
+    height: calc(100% - 70px);
+}
+
+.mainContainer {
+    display: flex;
+    flex-direction: column;
+    width: 70%;
+    border-top: 1px solid black;
+}
+
+.bottomContainer {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    width: 100%;
+    /* height: 20%; */
+    border-top: 1px solid black;
+}
+.sidebarContainer {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    width: 30%;
+    height: 100%;
+    border-left: 1px solid black;
+    border-top: 1px solid black;
+}
+
+.pictureContainer {
+    height: 100%;
+    width: 100%;
+}
+.comment-content {
+    overflow: scroll;
+    height: 100%;
+}
+.textContainer {
+    height: 100%;
+}
+
+.context-content {
+    overflow: scroll;
+    height: 100%;
+}
+
+.page-count-container {
+    display: flex;
+    float: right;
+}
+.pdf-current-page {
+    padding: 0 3px;
+}
+.pdf-total-page {
+    padding: 0 3px;
+}
+
+::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 7px;
+}
+::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, .5);
+    -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+}
+
+.question {
+    font-weight: bolder;
+}
+
+.answer {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.list-group-item {
+    min-height: 50px;
+}
+
+.word-list-item {
+    text-align: left;
+}

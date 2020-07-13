@@ -1,0 +1,98 @@
+{% extends "layout.html"%}
+
+{% block scripts %}
+{{super()}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.min.js">
+</script>
+<script src="https://unpkg.com/xstate@4/dist/xstate.js"></script>
+<script src="https://unpkg.com/konva@4.0.0/konva.min.js"></script>
+
+<script src="{{url_for('.static', filename='dist/bundle.js')}}"></script>
+<style>
+    .contentContainer,
+    .bottomContainer,
+    .sidebarContainer {
+        border: 2px solid;
+        overflow-x: scroll
+    }
+
+    .gutter {
+        color: #afafff
+    }
+
+    .gutter-vertical {
+        cursor: row-resize
+    }
+
+    .gutter-horizontal {
+        cursor: col-resize
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div id="bodyContainer" style="display:flex; height: 100vh" class="container-fluid">
+    <div id="mainContainer" class="mainContainer">
+        <div id="contentContainer" class="contentContainer">
+            <h3 class="card-subtitle">Content</h3>
+            <div class="pictureContainer">
+                <div id="pdf-contents" style="height: 100%;display: flex;justify-content: center;">
+                    <canvas id="pdf-canvas" style="height: 100%; box-shadow: -3px 5px 9px 0px grey;"></canvas>
+                    <div id="page-loader">Loading page ...</div>
+                </div>
+                <div id="picture_content" style="height: 100%;     justify-content: center;
+                display: flex;">
+                    <canvas id="picture-canvas" style="width: 100%;"></canvas>
+                </div>
+            </div>
+            <div class="textContainer  card-resizable-vertical">
+                <div id="color-bar"></div>
+                <div class="comment-content"></div>
+            </div>
+        </div>
+        <div id="bottomContainer" class="bottomContainer ">
+            <h3 class="card-subtitle">Context</h3>
+
+            <div class="context-content " style="color:#505080">
+            </div>
+
+            <!-- pdf controls -->
+            <div id="pdf-meta" style="height: 10% ;padding: 10px">
+                <div id="pdf-buttons" style="height: 10%; float: left">
+                    <button id="pdf-prev">Previous</button>
+                    <button id="pdf-next">Next</button>
+                </div>
+                <div class="page-count-container">Page <div class="pdf-current-page"></div> of <div
+                        class="pdf-total-pages"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="sidebarContainer" class="sidebarContainer">
+        <div class="">
+            <div id="question" class="question"></div>
+            <input id="text-input" class="form-control" type="text">
+            <ul style="overflow: scroll; height: 100%; margin-top: 10px; -webkit-overflow-scrolling: touch;"
+                id="word-list" class="list-group">
+                <button id="input-item" class="list-group-item" style="text-align: left;"></button>
+            </ul>
+            <div id="answer" class="answer"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/split.js/dist/split.min.js"></script>
+<script>
+    Split(['#mainContainer', '#sidebarContainer'], {
+        gutterSize: 8,
+        cursor: 'col-resize'
+    })
+
+    Split(['#contentContainer', '#bottomContainer'], {
+        direction: 'vertical',
+        gutterSize: 8,
+        cursor: 'row-resize'
+    })
+</script>
+{% endblock %}

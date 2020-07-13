@@ -1,0 +1,120 @@
+{% extends "layout.html"%}
+{{super()}}
+
+{% block content %}
+{% if success%}
+<p style="color:green"> {{ success }} by {{user}}</p>
+{% endif %}
+{% if error %}
+<p style="color:red"> {{ error }}</p>
+{% endif %}
+<br />
+<div class='container'>
+    <div class="row ">
+        <div class="col card-body">
+            <p  class="h2 text-center">Admin Console</h3>
+        </div>
+    </div>
+    <div class='row'>
+        <div class="col card">
+            <div class="card-body">
+                <form action="/api/activate_user" method="POST" class="form-group form-signin">
+                    <p class="h3 text-center">Activate user</p>
+                    <select name="user_select" class="form-control" required>
+                        <option disabled selected value> -- select user -- </option>
+                        {% for i in inactive_users %}
+                        <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                    <br />
+                    <p class="text-center"><input type="submit" value="Activate" class="btn btn-success" /></p>
+                </form>
+            </div>
+        </div>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        <div class="col card">
+            <div class="card-body">
+                <form action="/api/deactivate_user" method="POST" class="form-group form-signin">
+                    <p class="h3 text-center">Deactivate user</p>
+                    <select name="user_select" class="form-control" required>
+                        <option disabled selected value> -- select user -- </option>
+                        {% for i in active_users %}
+                        <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                    <br />
+                    <p class="text-center"><input type="submit" value="Deactivate" class="btn btn-danger" /></p>
+                </form>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class='row'>
+        <div class="col card">
+            <div class="card-body">
+                <form action="/adminConsole" method="POST" class="form-group form-signin">
+                    <p class="h3 text-center">Get user details</p>
+                    <select name="user_select" class="form-control" required>
+                        <option disabled selected value> -- select user -- </option>
+                        {% for i in all_users %}
+                        <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                    <br />
+                    <p class="text-center"><input type="submit" value="Details" class="btn btn-info" /></p>
+                </form>
+                {% if username %}
+                <p class="h3 centre"> User Details:</p>
+                <b>Username :</b> {{ username }}<br/>
+                <b>Full name :</b> {{ fname }} {{ lname }}<br/>
+                <b>Email:</b> {{ email }}<br />
+                <b>Account type :</b> {{ user_type }} <br/>
+                <b>Active account:</b> {{ active_account}}<br/>
+                <b>Annotations performed:</b> {{annotation_by_individual_user}}
+                <br />
+                {% endif %}
+
+            </div>
+        </div>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        <div class="col card">
+            <div class="card-body">
+                <form action="/api/change_password_admin" method="POST" class="form-group form-signin">
+                    <p class="h3 text-center">Change user password</p>
+                    <select name="user_select" class="form-control" required>
+                        <option disabled selected value> -- select user -- </option>
+                        {% for i in all_users %}
+                        <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select> <br />
+                    New password: <input type="password" name="password" class="form-control"
+                        placeholder="Enter password here" required /><br />
+                    Re-enter new password: <input type="password" name="confirm_password" class="form-control"
+                        placeholder="Enter password here" required /><br />
+                    Enter your (admin) password: <input type="password" name="admin_password" class="form-control"
+                        placeholder="Enter password here" required /><br />
+                    <input type="checkbox" class="form-check-input" id="acceptCondition" required>
+                    <label class="form-check-label" for="acceptCondition">I confirm that I am changing the password
+                        based on user consent.</label>
+                    <br />
+                    <p class="text-center"><input type="submit" value="Change password" class="btn btn-danger" /></p>
+                </form>
+            </div>
+        </div>
+    </div>
+    <br/>
+    <div class='row'>
+        <div class="col card text-center">
+            <div class="card-body">
+            
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                        <a class="btn btn-info btn-sx " href="/options">Click here for options</a>
+                    </li>
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

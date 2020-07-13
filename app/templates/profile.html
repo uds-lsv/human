@@ -1,0 +1,27 @@
+{% extends "layout.html"%}
+{{super()}}
+
+{% block content %}
+    {% if success%}
+    <p style="color:green"> {{ success }} by {{user}}</p>
+    {% endif %}
+    {% if error %}
+    <p style="color:red"> {{ error }}</p>
+    {% endif %}
+    <div class="row ">
+        <div class="col card-body">
+            <p  class="h2 text-center">Profile</h3>
+        </div>
+    </div>
+    <div class="card align-middle" style="width:600px;margin:auto;vertical-align: middle">
+        <div class="card-body">
+                <b>Username :</b> {{ username }}<br />
+                <b>Full name :</b> {{ fname }} {{ lname }}<br />
+                <b>Email :</b> {{ email }}<br />
+                <b>Account type :</b> {{ user_type }}<br/>
+                <b>Annotations performed:</b> {{ annotation_by_individual_user }}
+                <br/>
+                <a href="api/changePassword">Click here to change password</a>
+        </div>
+    </div>
+{% endblock %}

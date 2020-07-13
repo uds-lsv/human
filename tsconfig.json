@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+      "target": "es5",
+      "module": "commonjs",
+       "lib": ["es2016", "dom"],
+       "outDir": "./output",
+      "strict": false,
+      "esModuleInterop": true,
+      "resolveJsonModule": true
+    },
+    "include": [
+      "./app/**/*.ts"
+      ],
+    "exclude": ["node_modules", "output"]
+  }
