@@ -88,9 +88,15 @@ Text Annotation:
 
 # Full Documentation
 
-Visit the wiki for full documentation.
+Visit the [wiki](https://github.com/uds-lsv/human/wiki) for full documentation.
 
 # Authors
+
+https://github.com/RainbowRevenge
+
+https://github.com/ruitedk6
+
+https://github.com/GeetDsa
 
 # Licence
 HUMAN is licensed under GPL-3.
