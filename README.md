@@ -5,14 +5,14 @@ HUMAN is an annotation server that stands for...
 * **Modular**: Various question types (labeling questions, multiple-choice, yes-no, setting bounding boxes etc.) that are self-contained and can be arranged in any order needed. This also makes it easy to implement new custom question types and features.
 * **ANnotator**: Comes with an easy to use GUI interface for your annotators and project manager.
 
-# Demopage
+# Demo
 See our Demo on http://human.lsv.uni-saarland.de
 
 # Installation and Setup
 
 ## Prerequisites
 The only requirements are a working version of node and python 3.7. Using anaconda or miniconda for a python environment is highly recommended.
-To make it easier to install, update and remove Node, especially if you plan to maybe use it in other projects we suggest using the Node version manager https://github.com/nvm-sh/nvm.
+To make it easier to install, update and remove node, especially if you plan to maybe use it in other projects we suggest using the node version manager https://github.com/nvm-sh/nvm.
 
 ## Installation
 First install the python environment.
@@ -38,7 +38,7 @@ npm install
 
 ## Setup
 
-Write your custom annotation protocol into protocol.json. Refer to the wiki for documentation on how to do this and see our example protocols for inspiration.
+Write your custom annotation protocol into protocol.json. Refer to the [wiki](https://github.com/uds-lsv/human/wiki) for documentation on how to do this and see our example protocols (under `/examples`) for inspiration.
 
 Then customize the variables inside of settings.json e.g.:
 
