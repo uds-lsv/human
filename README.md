@@ -65,7 +65,8 @@ When debugging and changing things client side run let gulp watch changes and do
 
 ## Adding data
 To add a file with data, start the server, log in with your admin account, and go to "Data Console". There you can upload the file.
-Be sure that it is a tab separated file with the three columns "content", "context" and "meta"
+Be sure that it is a tab separated file with the three columns "content", "context" and "meta".
+
 When you want to display files you can use "Upload Folder" in "Data Console" and then upload a file with ```<folder-name>/<file-name>``` in the content fields for every file in the folder.
 
 # Try our Examples!
