@@ -5,27 +5,27 @@
     },
     "0": {
         "type": "bbox",
-        "question": "Carefully read the comment and its context below.",
+        "question": "Draw a bounding box around the paragraph with english animal names.",
         "api_call": "paragraph_segmentation",
         "transitions": [ [ "NEXT", "1" ] ]
     },
     "1": {
         "type": "bbox",
-        "question": "Is this a hateful comment?",
+        "question": "Draw a bounding box around each line.",
         "api_call": "line_segmentation",
         "saveAll": true,
         "transitions": [ [ "NEXT", "2" ] ]
     },
     "2": {
         "type": "bbox",
-        "question": "Who is the target?",
+        "question": "Draw a bounding box around each line.",
         "api_call": "word_segmentation",
         "saveAll": true,
         "transitions": [ [ "NEXT", "3" ] ]
     },
     "3": {
         "type": "bboxLabel",
-        "question": "Check all targets.",
+        "question": "Transcribe each word.",
         "api_call": "classify_words",
         "transitions": [ [ "NEXT", "end", [ "save" ] ] ]
     }
