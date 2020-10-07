@@ -65,9 +65,11 @@ export class Automaton {
         },
         choosePage: (_, event, actionMeta) => {
             console.log('choosepage')
+
             setTimeout(() => {
-                loadPDF()
-                showPDF(Data.pdf)
+                loadPDF().then(() => {
+                    showPDF(Data.pdf)
+                })
             }, 500) // timeout until pdf worker is fully loaded
         },
         chooseWords: (_, event, actionMeta) => {
