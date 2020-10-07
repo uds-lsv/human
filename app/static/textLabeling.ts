@@ -29,7 +29,7 @@ export function showRead(data, question) {
 
     $('#question').append(question)
     let yes = $('<button class="btn btn-primary">Next</button>')
-    yes.click((event) => {
+    yes.on('click', (event) => {
         automaton.next('NEXT')
     })
     $('#answer').append(yes)
@@ -69,7 +69,7 @@ export function showLabeling(meta, options) {
         '<button type="button" class="btn btn-primary">Next</button>'
     ) // next button
     button.on('click', (event) => {
-        $('.comment-content').unbind('click tap')
+        $('.comment-content').off('click tap')
         let markers2 = JSON.stringify(markers)
         $('#color-bar').empty()
         automaton.next('NEXT', { annotation: markers2 })
@@ -88,7 +88,7 @@ export function showLabeling(meta, options) {
 }
 
 function activateOnClick(meta, option, color) {
-    var onclick = $('.comment-content').unbind('click tap')
+    $('.comment-content').off('click tap')
     $('.comment-content').on('click tap', $('.comment-content'), function(
         e
     ) {

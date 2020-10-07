@@ -188,11 +188,11 @@ async function setupChooseWords(index) {
             animals_filtered = animals.filter((element) => {
                 return element.toLowerCase().startsWith(inp.toLowerCase())
             })
-            $('#input-item').empty().click(activeOnClick).append(inp)
+            $('#input-item').empty().on('click', activeOnClick).append(inp)
         }
         console.log(animals_filtered)
         listController(animals_filtered)
-        $('#input-item').click()
+        $('#input-item').trigger('click')
     })
     // build initial list
     $('#word-list').empty()
@@ -205,16 +205,16 @@ async function setupChooseWords(index) {
         let item = $(
             '<button class="list-group-item word-list-item"></button>'
         )
-            .click(activeOnClick)
+            .on('click', activeOnClick)
             .append(animal)
         if (i === 0) item.addClass('active')
         $('#word-list').append(item)
     })
 
-    $('#input-item, .word-list-item, #text-input').keydown(function(e) {
+    $('#input-item, .word-list-item, #text-input').on('keydown',function(e) {
         if (
             ($(this).val() != '' || $(this).text() != '') &&
-            e.which === 9
+            e.key === "Tab"
         ) {
             // $('#input-item').click();
             e.preventDefault()
@@ -223,11 +223,11 @@ async function setupChooseWords(index) {
         }
     })
 
-    $('#input-item, .word-list-item, #text-input').keyup(function(e) {
-        console.log(e.which)
+    $('#input-item, .word-list-item, #text-input').on('keydown', function(e) {
+        console.log(e.key)
         if (
             ($(this).val() != '' || $(this).text() != '') &&
-            e.which === 9
+            e.key === "Tab"
         ) {
             // $('#input-item').click();
             e.preventDefault()
@@ -239,7 +239,7 @@ async function setupChooseWords(index) {
 
     if (index < Data.predicted_words.length - 1) {
         yes.append('Next')
-        yes.click(() => {
+        yes.on('click', () => {
             $('#input-item, .word-list-item').each(function() {
                 if ($(this).hasClass('active')) {
                     Data.annotations['words'][index] = $(this).text()
@@ -253,7 +253,7 @@ async function setupChooseWords(index) {
         })
     } else {
         yes.append('Finish')
-        yes.click(() =>
+        yes.on('click', () =>
             automaton.next('NEXT', { words: Data.annotations['words'] })
         )
     }
@@ -299,7 +299,7 @@ export function showAnnotatePicture(src, bboxs, question, answer) {
         $('#question').append(question)
         let yes = $('<button class="btn btn-primary"></button>')
         yes.append(answer)
-        yes.click(() => {
+        yes.on('click', () => {
             const scaledbboxes = extractBboxes(layer).map((bbox) => {
                 return scaleToDefault(new BBox(bbox)).toArray()
             })
@@ -423,7 +423,7 @@ function onClickPicture(stage, layer, Kimage) {
         tr.attachTo(e.target)
         layer.draw()
         document.onkeydown = (keyev) => {
-            if (keyev.key == 'Backspace') {
+            if (keyev.key == 'r') {
                 e.target.destroy()
                 stage.find('Transformer').destroy()
                 layer.draw()

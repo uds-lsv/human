@@ -129,7 +129,7 @@ export function showCheck(question, options) {
 export function showChoosePage(question) {
     $('#question').append(question)
     let yes = $('<button class="btn btn-primary">Correct Page</button>')
-    yes.click((e) => {
+    yes.on('click', (e) => {
         automaton.next(
             'NEXT',
             new Promise((resolve, reject) => {
