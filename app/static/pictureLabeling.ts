@@ -1,7 +1,7 @@
 import { automaton } from './start'
 import { Data } from './data'
 // import settings from './settings.json';
-import animals from './data/animals_fr.json'
+import animals from '../data/animals_fr.json'
 
 declare var Split
 
@@ -34,8 +34,10 @@ export async function loadPDF() {
     await $('.textContainer').hide()
     await $('.pictureContainer').show()
     await $('#picture_content').hide()
-    await $('.context-content').show()
+    await $('.context-content').hide()
     await $('.gutter-vertical').remove()
+    await $('#pdf-meta').show()
+
     Split([ '#contentContainer', '#bottomContainer' ], {
         sizes: [ 90, 10 ],
         direction: 'vertical',

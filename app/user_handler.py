@@ -79,7 +79,7 @@ def register_user(username,email,fname,lname,password,confirm_password):
         error_message += " Enter valid email address!"
 
     if error_message != "":
-        app.logger.debug("Error message present: {}".format(message))
+        app.logger.debug("Error: {}".format(error_message))
         return None, error_message
 
     db = get_db()
