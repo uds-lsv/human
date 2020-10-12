@@ -33,11 +33,11 @@ export async function loadPDF() {
     await $('#word-list').hide()
     await $('.textContainer').hide()
     await $('.pictureContainer').show()
+    await $('#pdf-meta').show()
+    await $('#pdf-contents').show()
     await $('#picture_content').hide()
     await $('.context-content').hide()
     await $('.gutter-vertical').remove()
-    await $('#pdf-meta').show()
-
     Split([ '#contentContainer', '#bottomContainer' ], {
         sizes: [ 90, 10 ],
         direction: 'vertical',
@@ -441,16 +441,16 @@ function onClickPicture(stage, layer, Kimage) {
 function onClickPictureWords(stage, layer, Kimage) {
     stage.off('click tap')
     stage.on('click tap', function(e) {
-        console.log(e.target)
         if (!e.target.hasName('rect')) {
             return
         }
         Data.konvabboxes.forEach((bbox) => {
-            bbox.stroke('black')
+            if (bbox.attrs.stroke != 'green') {
+                bbox.stroke('black')
+            }
         })
         e.target.stroke('red')
         layer.draw()
-        console.log(Data.konvabboxes.indexOf(e.target))
         setupChooseWords(Data.konvabboxes.indexOf(e.target))
         window['clicked'] = e.target
         window['stage'] = stage
