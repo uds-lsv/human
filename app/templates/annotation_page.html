@@ -37,8 +37,10 @@
         <div id="contentContainer" class="contentContainer">
             <h3 class="card-subtitle">Content</h3>
             <div class="pictureContainer">
-                <div id="pdf-contents" style="height: 100%;display: flex;justify-content: center;">
-                    <canvas id="pdf-canvas" style="height: 100%; box-shadow: -3px 5px 9px 0px grey;"></canvas>
+                <div id="pdf-contents" style="height: 100%;display: flex;justify-content: space-between;">
+                    <div id="pdf-preview" style="height: 100%; width: 25%; overflow: scroll;"></div>
+                    <canvas id="pdf-canvas"
+                        style="height: 100%; max-width: 75%; box-shadow: -3px 5px 9px 0px grey;"></canvas>
                     <div id="page-loader">Loading page ...</div>
                 </div>
                 <div id="picture_content" style="height: 100%;     justify-content: center;

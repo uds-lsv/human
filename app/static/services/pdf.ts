@@ -31,6 +31,7 @@ export function showPDF(pdf_url): Promise<void> {
 
             // Show the first page
             showPage(1)
+            loadPreviews()
         })
         .catch(function(error) {
             // If error re-show the upload button
@@ -117,6 +118,31 @@ $('#pdf-prev').on('click', function() {
 $('#pdf-next').on('click', function() {
     if (__CURRENT_PAGE != __TOTAL_PAGES) showPage(++__CURRENT_PAGE)
 })
+
+export function loadPreviews() {
+    console.log(__TOTAL_PAGES)
+    const previewList = $('#pdf-preview')
+    const listWidth = previewList.width()
+    for (let n = 1; n <= __TOTAL_PAGES; n++) {
+        const canvas = document.createElement('canvas')
+        __PDF_DOC.getPage(n).then((page) => {
+            const ratio = (listWidth - 15) / page.getViewport(1).width
+            const viewport = page.getViewport(ratio)
+            canvas.height = viewport.height
+            canvas.width = viewport.width
+            $(canvas).css('box-shadow', '-3px 5px 9px 0px grey')
+            $(canvas).on('click', () => {
+                showPage(n)
+            })
+            const renderContext = {
+                canvasContext: canvas.getContext('2d'),
+                viewport: viewport,
+            }
+            page.render(renderContext)
+            previewList.append($(canvas))
+        })
+    }
+}
 
 export function loadFullSizePDF(): Promise<HTMLCanvasElement> {
     return new Promise((resolve, reject) => {
