@@ -382,7 +382,7 @@ def upload_folder():
     app.logger.debug("from upload_file current User:{}".format(current_user.fname))
     return render_template('data_console.html', user=current_user.fname, admin=current_user.admin)
 
-@app.route('/data_download', methods=["GET", "POST"])
+@app.route('/data_download', methods=["GET"])
 @login_required
 def data_download():
     """
@@ -396,50 +396,22 @@ def data_download():
         app.logger.info("data_downloaded requested by non-admin user")
         return render_template('login.html',error="login as admin to proceed")
 
-    if request.method == 'POST':
+    try:
+        annotation_df = get_annotations()
         try:
-            os.makedirs('download_data/', exist_ok=False)
-        except Exception as e:
-            app.logger.info("Folder already exists")
-        try:
-            db = get_db()
-            df = pd.read_sql_query("SELECT * FROM annotations", db)
-            df.to_json('download_data/Annotation_comparisons.json')
-            df.to_csv('download_data/annotations.csv', index_label='index', sep=";")
-            df = pd.read_sql_query("SELECT * FROM user", db)
-            print(df)
-            df.to_csv('download_data/user.csv', index_label='index', sep=";")
-            df = pd.read_sql_query("SELECT * FROM data", db)
-            print(df)
-            df.to_csv('download_data/data.csv', index_label='index', sep=";")
-        except Exception as e:
-            app.logger.error("Database Error:"+str(e))
-            raise error_handler.DatabaseError(str(e))
-        try:
-            annotation_df = pd.read_csv('download_data/annotations.csv',sep=';',encoding='utf-8',header=0)
-            users_df = pd.read_csv('download_data/user.csv',sep=';',encoding='utf-8',header=0)
-            data_df = pd.read_csv('download_data/data.csv',sep=';',encoding='utf-8',header=0)
-
-            users_dict = pd.Series(users_df.given_name.values,index=users_df.id).to_dict()
-            comments_dict = pd.Series(data_df.content.values,index=data_df.id).to_dict()
-
-            annotation_df.insert(loc=1,column='Name',value=annotation_df['user'].map(users_dict))
-            annotation_df.insert(loc=1,column='Instance',value=annotation_df['id'].map(comments_dict))
-
-            annotation_df = annotation_df.sort_values(by=['id','Name'])
-            annotation_df.drop(['user'],inplace=True,axis=1)
-
-            try:
-                annotation_df.to_excel('download_data/Annotation_comparisions.xlsx')
-                return send_file('../download_data/Annotation_comparisions.xlsx',as_attachment=True)
-
-            except ImportError as e:
-                annotation_df.to_csv('download_data/Annotation_comparisions.csv')
-                return send_file('../download_data/Annotation_comparisions.csv',as_attachment=True)
-        except Exception as e:
-            app.logger.error("Error:"+str(e))
-            raise error_handler.UnknownError(str(e))
-    return render_template('data_console.html', user=current_user.fname, admin=current_user.admin)
+            annotation_df.to_excel('download_data/Annotation_comparisions.xlsx')
+            return send_file('../download_data/Annotation_comparisions.xlsx',as_attachment=True)
+            # def gen():
+            #     yield annotation_df.to_excel()
+            # return Response(gen(), mimetype='text/xlsx')
+        # catch if excel lib is not installed
+        except ImportError as e:
+            def gen():
+                yield annotation_df.to_csv(sep="\t")
+            return Response(gen(), mimetype='text/csv')
+    except Exception as e:
+        app.logger.error("Error:"+str(e))
+        raise error_handler.UnknownError(str(e))
 
 
 @app.route('/profile', methods=["GET"])
