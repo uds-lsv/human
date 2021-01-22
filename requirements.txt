@@ -1,0 +1,23 @@
+Bootstrap-Flask==1.5
+certifi==2020.12.5
+chardet==3.0.4
+click==7.1.2
+Flask==1.1.2
+Flask-Cors==3.0.8
+Flask-Login==0.5.0
+gunicorn==20.0.4
+idna==2.10
+itsdangerous==1.1.0
+Jinja2==2.11.2
+MarkupSafe @ file:///Users/runner/miniforge3/conda-bld/markupsafe_1600368314248/work
+numpy @ file:///Users/runner/miniforge3/conda-bld/numpy_1597938419070/work
+olefile==0.46
+pandas @ file:///Users/runner/miniforge3/conda-bld/pandas_1601982008167/work
+Pillow @ file:///opt/concourse/worker/volumes/live/95e97a5f-0d90-45c8-4080-207143da6ebf/volume/pillow_1603822285720/work
+python-dateutil==2.8.1
+pytz==2020.1
+requests==2.24.0
+requests-toolbelt==0.9.1
+six @ file:///home/conda/feedstock_root/build_artifacts/six_1590081179328/work
+urllib3==1.25.10
+Werkzeug==1.0.1
