@@ -10,6 +10,7 @@ dependencies:
   - gunicorn
   - pandas
   - pip
+  - pillow
   - pip:
     - Bootstrap-Flask
     - requests-toolbelt

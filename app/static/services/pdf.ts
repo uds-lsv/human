@@ -119,28 +119,42 @@ $('#pdf-next').on('click', function() {
     if (__CURRENT_PAGE != __TOTAL_PAGES) showPage(++__CURRENT_PAGE)
 })
 
-export function loadPreviews() {
+/**
+ * Displays previews of all pages of the pdf in a list.
+ */
+async function loadPreviews() {
     console.log(__TOTAL_PAGES)
     const previewList = $('#pdf-preview')
     const listWidth = previewList.width()
-    for (let n = 1; n <= __TOTAL_PAGES; n++) {
-        const canvas = document.createElement('canvas')
-        __PDF_DOC.getPage(n).then((page) => {
-            const ratio = (listWidth - 15) / page.getViewport(1).width
-            const viewport = page.getViewport(ratio)
-            canvas.height = viewport.height
-            canvas.width = viewport.width
-            $(canvas).css('box-shadow', '-3px 5px 9px 0px grey')
-            $(canvas).on('click', () => {
-                showPage(n)
+    const display_preview = (n) =>
+        new Promise((resolve, reject) => {
+            const canvas = document.createElement('canvas')
+            __PDF_DOC.getPage(n).then((page) => {
+                // calculate ratio of list container to pdf page
+                const ratio = (listWidth - 15) / page.getViewport(1).width
+                // get pdf viewport in that ratio
+                const viewport = page.getViewport(ratio)
+                // set canvas height and width according to ratio
+                canvas.height = viewport.height
+                canvas.width = viewport.width
+                $(canvas).css('box-shadow', '-3px 5px 9px 0px grey')
+                // add on click listener to jump to page
+                $(canvas).on('click', () => {
+                    showPage(n)
+                })
+                const renderContext = {
+                    canvasContext: canvas.getContext('2d'),
+                    viewport: viewport,
+                }
+                // render the page and then append to the list container
+                page.render(renderContext).then(() => {
+                    previewList.append($(canvas))
+                    resolve()
+                })
             })
-            const renderContext = {
-                canvasContext: canvas.getContext('2d'),
-                viewport: viewport,
-            }
-            page.render(renderContext)
-            previewList.append($(canvas))
         })
+    for (let n = 1; n <= __TOTAL_PAGES; n++) {
+        await display_preview(n)
     }
 }
 
