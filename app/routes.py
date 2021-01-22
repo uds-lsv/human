@@ -235,8 +235,10 @@ def data_console():
     if not current_user.admin:
         app.logger.info("upload_file requested by non-admin user")
         return render_template('login.html',error="login as admin to proceed")
+    annotations=get_annotations()
+    annotations = annotations.to_dict(orient='list')
     return render_template('data_console.html',success=request.args.get('success'),
-                           error=request.args.get('error'),admin=current_user.admin,user=current_user.fname)
+                    error=request.args.get('error'),admin=current_user.admin,user=current_user.fname, annotations=annotations)
 
 @app.route('/upload_file', methods=["GET", "POST"])
 @login_required
@@ -402,10 +404,13 @@ def data_download():
         try:
             db = get_db()
             df = pd.read_sql_query("SELECT * FROM annotations", db)
+            df.to_json('download_data/Annotation_comparisons.json')
             df.to_csv('download_data/annotations.csv', index_label='index', sep=";")
             df = pd.read_sql_query("SELECT * FROM user", db)
+            print(df)
             df.to_csv('download_data/user.csv', index_label='index', sep=";")
             df = pd.read_sql_query("SELECT * FROM data", db)
+            print(df)
             df.to_csv('download_data/data.csv', index_label='index', sep=";")
         except Exception as e:
             app.logger.error("Database Error:"+str(e))
@@ -419,18 +424,21 @@ def data_download():
             comments_dict = pd.Series(data_df.content.values,index=data_df.id).to_dict()
 
             annotation_df.insert(loc=1,column='Name',value=annotation_df['user'].map(users_dict))
-            annotation_df.insert(loc=1,column='comment',value=annotation_df['id'].map(comments_dict))
+            annotation_df.insert(loc=1,column='Instance',value=annotation_df['id'].map(comments_dict))
 
             annotation_df = annotation_df.sort_values(by=['id','Name'])
-            annotation_df.drop(['index','user'],inplace=True,axis=1)
+            annotation_df.drop(['user'],inplace=True,axis=1)
 
-            annotation_df.to_excel('download_data/Annotation_comparisions.xlsx')
-            return send_file('../download_data/Annotation_comparisions.xlsx',as_attachment=True)
+            try:
+                annotation_df.to_excel('download_data/Annotation_comparisions.xlsx')
+                return send_file('../download_data/Annotation_comparisions.xlsx',as_attachment=True)
+
+            except ImportError as e:
+                annotation_df.to_csv('download_data/Annotation_comparisions.csv')
+                return send_file('../download_data/Annotation_comparisions.csv',as_attachment=True)
         except Exception as e:
             app.logger.error("Error:"+str(e))
             raise error_handler.UnknownError(str(e))
-
-
     return render_template('data_console.html', user=current_user.fname, admin=current_user.admin)
 
 
@@ -674,3 +682,33 @@ def row2dict(row):
     for column in row.keys():
         dic[column] = row[column]
     return dic
+
+
+
+def get_annotations() -> pd.DataFrame:
+    """
+    Read annotations in database and return them as a Dataframe
+    """
+    try:
+        db = get_db()
+        df_annotations = pd.read_sql_query("SELECT * FROM annotations", db)
+        df_user = pd.read_sql_query("SELECT * FROM user", db)
+        df_data = pd.read_sql_query("SELECT * FROM data", db)
+    except Exception as e:
+        app.logger.error("Database Error:"+str(e))
+        raise error_handler.DatabaseError(str(e))
+    try:
+
+        users_dict = pd.Series(df_user.given_name.values,index=df_user.id).to_dict()
+        comments_dict = pd.Series(df_data.content.values,index=df_data.id).to_dict()
+
+        df_annotations.insert(loc=1,column='Name',value=df_annotations['user'].map(users_dict))
+        df_annotations.insert(loc=1,column='comment',value=df_annotations['id'].map(comments_dict))
+
+        df_annotations = df_annotations.sort_values(by=['id','Name'])
+        df_annotations.drop(['user'],inplace=True,axis=1)
+        return df_annotations
+    except Exception as e:
+        app.logger.error("Error:"+str(e))
+        raise error_handler.UnknownError(str(e))
+

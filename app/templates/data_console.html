@@ -79,6 +79,31 @@
       </div>
     </div>
   </div>
+  <div class='row'>
+    <div class="col card text-center">
+      <div class="card-body">
+        <h3>Annotations</h3>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              {% for header in annotations %}
+              <th>{{header}}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for key in annotations %}
+            <tr>
+              {% for element in annotations[key] %}
+              <td>{{element}}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
   <br />
 </div>
 {% endblock %}
