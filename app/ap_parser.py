@@ -26,7 +26,7 @@ LOADING_TEMPLATE = """
             Service.get('/api/getdata').then((res) => {{
                 Data.reset()
                 Data.data = res
-                Data.annotations['id'] = Data.data.id
+                Data.annotations['data_id'] = Data.data.id
                 console.log(res)
             }}),
         {transitions}
@@ -68,7 +68,7 @@ LOADING_FILE_TEMPLATE = """
                     .then((fd) => {{
                         const file = fd.get('file') as File
                         Data.data = JSON.parse(fd.get('data').toString())
-                        Data.annotations['id'] = Data.data.id
+                        Data.annotations['data_id'] = Data.data.id
                         file.arrayBuffer().then(async (buffer) => {{
                             const blob = new Blob([ buffer ], {{
                                 type: 'octet/stream',

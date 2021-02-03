@@ -149,9 +149,9 @@ def write_to_db():
     if not request.is_json:
         return "Unexpected Parameters"
     data = request.get_json()
-    data['user'] = current_user.get_id()
+    data['user_id'] = current_user.get_id()
     print(data)
-    if str(data['id']) in current_user.get_annotated().split():
+    if str(data['data_id']) in current_user.get_annotated().split():
         raise  error_handler.DatabaseError("Already annotated", 500)
     # try:
     db = get_db()
@@ -171,7 +171,7 @@ def write_to_db():
     )
     db.execute(
         'UPDATE user set annotated = ? WHERE id = ?',
-        (" ".join([current_user.get_annotated(), str(data['id'])]), current_user.get_id())
+        (" ".join([current_user.get_annotated(), str(data['user_id'])]), current_user.get_id())
     )
     
     db.commit()
