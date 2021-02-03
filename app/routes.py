@@ -1,3 +1,4 @@
+import ipdb
 from flask import request, jsonify, render_template, redirect, url_for, flash, Response, send_file, send_from_directory
 from flask.logging import create_logger
 from requests_toolbelt import MultipartEncoder
@@ -224,9 +225,9 @@ def register_user_frontend():
     return render_template('register_user.html', error = failure)
 
 
-@app.route('/data_console', methods=["GET"])
+@app.route('/upload_console', methods=["GET"])
 @login_required
-def data_console():
+def upload_console():
     """
     Function to load upload console, contains options to upload files and folders.
     """
@@ -236,9 +237,29 @@ def data_console():
         app.logger.info("upload_file requested by non-admin user")
         return render_template('login.html',error="login as admin to proceed")
     annotations=get_annotations()
-    annotations = annotations.to_dict(orient='list')
+    annotations = annotations.to_dict(orient='records')
+    data = get_data()
+    data = data.to_dict(orient="records")
+    return render_template('upload_console.html',success=request.args.get('success'),
+                    error=request.args.get('error'),admin=current_user.admin,user=current_user.fname, annotations=annotations, data=data)
+
+@app.route("/data_console", methods=["GET"])
+@login_required
+def data_console():
+    "Function to display data such as annotations and 'data'"
+
+    app.logger.debug("Requested data view")
+
+    ## Verify if the logged in user is admin
+    if not current_user.admin:
+        app.logger.info("upload_file requested by non-admin user")
+        return render_template('login.html',error="login as admin to proceed")
+    annotations=get_annotations()
+    annotations = annotations.to_dict(orient='records')
+    data = get_data()
+    data = data.to_dict(orient="records")
     return render_template('data_console.html',success=request.args.get('success'),
-                    error=request.args.get('error'),admin=current_user.admin,user=current_user.fname, annotations=annotations)
+                    error=request.args.get('error'), admin=current_user.admin, user=current_user.fname, annotations=annotations, data=data)
 
 @app.route('/upload_file', methods=["GET", "POST"])
 @login_required
@@ -262,7 +283,7 @@ def upload_file():
         if len(files) == 1:
             if files[0].filename == '':
                 app.logger.info("Submitted 0 (zero) files")
-                return render_template('data_console.html', error=str("Upload atleast one file"), 
+                return render_template('upload_console.html', error=str("Upload atleast one file"), 
                                        user=current_user.fname, admin=current_user.admin)
         
         # Save the files on the server.
@@ -307,18 +328,18 @@ def upload_file():
         if failed_files != "":
             app.logger.error("Failed to upload one or more files:"+str(failed_files))
             if success_files == 0:
-                return render_template('data_console.html', error=str("Error uploading the files: "+failed_files), 
+                return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files), 
                                        user=current_user.fname, admin=current_user.admin)
             else:
-                return render_template('data_console.html', error=str("Error uploading the files: "+failed_files), 
+                return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files), 
                                        success=str(success_files)+" files uploaded successfully", user=current_user.fname, admin=current_user.admin)
 
         app.logger.info("Files uploaded successfully:" + str(success_files))
-        return render_template('data_console.html', success=str(success_files)+" files uploaded successfully", 
+        return render_template('upload_console.html', success=str(success_files)+" files uploaded successfully", 
                                user=current_user.fname, admin=current_user.admin)
     else:
         app.logger.debug("from upload_file current User:{}".format(current_user.fname))
-        return render_template('data_console.html', user=current_user.fname, admin=current_user.admin)
+        return render_template('upload_console.html', user=current_user.fname, admin=current_user.admin)
 
 @app.route('/upload_folder', methods=["GET", "POST"])
 @login_required
@@ -351,7 +372,7 @@ def upload_folder():
         except Exception as e:
             app.logger.info("Folder already exists")
             app.logger.info("Error: "+str(e))
-            return render_template('data_console.html', error=str("Folder already exists"), user=current_user.fname, admin=current_user.admin)
+            return render_template('upload_console.html', error=str("Folder already exists"), user=current_user.fname, admin=current_user.admin)
 
         failed_files = ""
         success_files = 0
@@ -371,18 +392,18 @@ def upload_folder():
         if failed_files != "":
             app.logger.error("Failed to upload one or more files:"+str(failed_files))
             if success_files == 0:
-                return render_template('data_console.html', error=str("Error uploading the files: "+failed_files), user=current_user.fname, admin=current_user.admin)
+                return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files), user=current_user.fname, admin=current_user.admin)
             else:
-                return render_template('data_console.html', error=str("Error uploading the files: "+failed_files), success=str(success_files)+" files uploaded successfully", user=current_user.fname, admin=current_user.admin)
+                return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files), success=str(success_files)+" files uploaded successfully", user=current_user.fname, admin=current_user.admin)
 
         app.logger.info("Files uploaded successfully:" + str(success_files))
-        return render_template('data_console.html', success=str(success_files)+" files uploaded successfully",user=current_user.fname, admin=current_user.admin)
+        return render_template('upload_console.html', success=str(success_files)+" files uploaded successfully",user=current_user.fname, admin=current_user.admin)
     
     ## GET request
     app.logger.debug("from upload_file current User:{}".format(current_user.fname))
-    return render_template('data_console.html', user=current_user.fname, admin=current_user.admin)
+    return render_template('upload_console.html', user=current_user.fname, admin=current_user.admin)
 
-@app.route('/data_download', methods=["GET"])
+@app.route('/data_download', methods=["GET", "POST"])
 @login_required
 def data_download():
     """
@@ -396,22 +417,50 @@ def data_download():
         app.logger.info("data_downloaded requested by non-admin user")
         return render_template('login.html',error="login as admin to proceed")
 
-    try:
-        annotation_df = get_annotations()
+    if request.method == 'POST':
         try:
-            annotation_df.to_excel('download_data/Annotation_comparisions.xlsx')
-            return send_file('../download_data/Annotation_comparisions.xlsx',as_attachment=True)
-            # def gen():
-            #     yield annotation_df.to_excel()
-            # return Response(gen(), mimetype='text/xlsx')
-        # catch if excel lib is not installed
-        except ImportError as e:
-            def gen():
-                yield annotation_df.to_csv(sep="\t")
-            return Response(gen(), mimetype='text/csv')
-    except Exception as e:
-        app.logger.error("Error:"+str(e))
-        raise error_handler.UnknownError(str(e))
+            os.makedirs('download_data/', exist_ok=False)
+        except Exception as e:
+            app.logger.info("Folder already exists")
+        try:
+            db = get_db()
+            df = pd.read_sql_query("SELECT * FROM annotations", db)
+            df.to_json('download_data/Annotation_comparisons.json')
+            df.to_csv('download_data/annotations.csv', index_label='index', sep=";")
+            df = pd.read_sql_query("SELECT * FROM user", db)
+            print(df)
+            df.to_csv('download_data/user.csv', index_label='index', sep=";")
+            df = pd.read_sql_query("SELECT * FROM data", db)
+            print(df)
+            df.to_csv('download_data/data.csv', index_label='index', sep=";")
+        except Exception as e:
+            app.logger.error("Database Error:"+str(e))
+            raise error_handler.DatabaseError(str(e))
+        try:
+            annotation_df = pd.read_csv('download_data/annotations.csv',sep=';',encoding='utf-8',header=0)
+            users_df = pd.read_csv('download_data/user.csv',sep=';',encoding='utf-8',header=0)
+            data_df = pd.read_csv('download_data/data.csv',sep=';',encoding='utf-8',header=0)
+
+            users_dict = pd.Series(users_df.given_name.values,index=users_df.id).to_dict()
+            comments_dict = pd.Series(data_df.content.values,index=data_df.id).to_dict()
+
+            annotation_df.insert(loc=1,column='Name',value=annotation_df['user'].map(users_dict))
+            annotation_df.insert(loc=1,column='Instance',value=annotation_df['id'].map(comments_dict))
+
+            annotation_df = annotation_df.sort_values(by=['id','Name'])
+            annotation_df.drop(['user'],inplace=True,axis=1)
+
+            try:
+                annotation_df.to_excel('download_data/Annotation_comparisions.xlsx')
+                return send_file('../download_data/Annotation_comparisions.xlsx',as_attachment=True)
+
+            except ImportError as e:
+                annotation_df.to_csv('download_data/Annotation_comparisions.csv')
+                return send_file('../download_data/Annotation_comparisions.csv',as_attachment=True)
+        except Exception as e:
+            app.logger.error("Error:"+str(e))
+            raise error_handler.UnknownError(str(e))
+    return render_template('upload_console.html', user=current_user.fname, admin=current_user.admin)
 
 
 @app.route('/profile', methods=["GET"])
@@ -664,23 +713,44 @@ def get_annotations() -> pd.DataFrame:
     try:
         db = get_db()
         df_annotations = pd.read_sql_query("SELECT * FROM annotations", db)
-        df_user = pd.read_sql_query("SELECT * FROM user", db)
         df_data = pd.read_sql_query("SELECT * FROM data", db)
     except Exception as e:
         app.logger.error("Database Error:"+str(e))
         raise error_handler.DatabaseError(str(e))
     try:
 
-        users_dict = pd.Series(df_user.given_name.values,index=df_user.id).to_dict()
         comments_dict = pd.Series(df_data.content.values,index=df_data.id).to_dict()
 
-        df_annotations.insert(loc=1,column='Name',value=df_annotations['user'].map(users_dict))
-        df_annotations.insert(loc=1,column='comment',value=df_annotations['id'].map(comments_dict))
+        df_annotations.insert(loc=1,column='comment',value=df_annotations['data_id'].map(comments_dict))
 
-        df_annotations = df_annotations.sort_values(by=['id','Name'])
-        df_annotations.drop(['user'],inplace=True,axis=1)
+        df_annotations = df_annotations.sort_values(by=['id'])
+        #df_annotations.drop(['user'],inplace=True,axis=1)
         return df_annotations
     except Exception as e:
         app.logger.error("Error:"+str(e))
         raise error_handler.UnknownError(str(e))
 
+def get_data() -> pd.DataFrame:
+    """
+    Read data in database and return them as a DataFrame
+    """
+
+    try:
+        db = get_db()
+        df_data = pd.read_sql_query("SELECT * FROM data", db)
+
+        df_annotations_per_data = pd.read_sql_query("SELECT data_id, COUNT(*) FROM annotations GROUP BY data_id", db)
+    except Exception as e:
+        app.logger.error("Database Error:" + str(e))
+        raise error_handler.DatabaseError(str(e))
+
+    try:
+        annotations_per_data_dict = pd.Series(df_annotations_per_data.get("COUNT(*)").values, index = df_annotations_per_data.data_id).to_dict()
+        df_data.insert(loc=1, column="annotations", value=df_data["id"].map(annotations_per_data_dict))
+        df_data.fillna({"annotations": 0}, inplace=True) #TODO restrict to annotations column
+        df_data.annotations = df_data.annotations.astype(int)
+        df_data = df_data.sort_values(by=['id'])
+        return df_data
+    except Exception as e:
+        app.logger.error("Error:" + str(e))
+        raise error_handler.UnknownError(str(e))
