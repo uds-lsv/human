@@ -646,7 +646,8 @@ class AP_Parser():
                               "(\nid integer primary key autoincrement not null,\n" +\
                               "data_id integer not null,\n" +\
                               "user_id integer not null,\n" +\
-                              "timestamp TIMESTAMP DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime')) NOT NULL,\n" +\
+                              "timestamp timestamp default (strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime')) not null,\n" +\
+                              "timings,\n" +\
                               ",\n".join(columns) +\
                               "\n);\n")
             out.write('\n')

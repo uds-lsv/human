@@ -23,6 +23,7 @@ export class Automaton {
     CURRENTSTATE: any
     currentannotation
     machine: any
+    timestamp = new Date().getTime()
 
     constructor() {}
 
@@ -131,6 +132,10 @@ export class Automaton {
             })
         },
         showUI: (_, event, actionMeta) => {
+            const timestamp2 = new Date().getTime()
+            Data.annotations['timings'].push(timestamp2 - this.timestamp)
+            this.timestamp = timestamp2
+
             let meta =
                 actionMeta.state.meta[
                     'annotation.' + actionMeta.state.value
