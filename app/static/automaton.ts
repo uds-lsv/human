@@ -1,5 +1,4 @@
-declare var XState: any
-
+import { Machine, interpret, assign, State } from 'xstate'
 import {
     loadPDF,
     loadPicture,
@@ -17,7 +16,6 @@ import { protocol } from './protocol'
 import { textProtocol } from './example_protocol2'
 import { pictureProtocol } from './example_protocol1'
 import { showPDF } from './services/pdf'
-const { Machine, interpret, assign, State } = XState // global variable: window.XState
 
 export class Automaton {
     CURRENTSTATE: any
@@ -42,7 +40,6 @@ export class Automaton {
             .onTransition((state) => {
                 console.log('currentstate', state.value, state)
                 const meta = state.meta['annotation.' + state.value]
-                console.log(meta)
                 if (meta && meta.column) {
                     Data.current_column = meta.column
                 }
