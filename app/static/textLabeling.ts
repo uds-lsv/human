@@ -3,7 +3,14 @@ import { automaton } from './start'
 
 declare var Split
 
-export function showRead(data, question) {
+/**
+ * Displays content and context field for reading tasks. This is used for loading the text before annotations.
+ * @param meta meta object for question and answer strings
+ */
+export function showRead(meta) {
+    const question = meta.question
+    const answer = meta.answer
+
     $('.card-subtitle').show()
     $('#text-input').hide()
     $('#word-list').hide()
@@ -23,19 +30,30 @@ export function showRead(data, question) {
         gutterSize: 8,
         cursor: 'row-resize',
     })
-    let text = add_spans(data['content'])
+    let text = add_spans(Data.data['content'])
     $('.comment-content').append(text)
-    $('.context-content').append(data['context'])
+    $('.context-content').append(Data.data['context'])
 
     $('#question').append(question)
-    let yes = $('<button class="btn btn-primary">Next</button>')
-    yes.on('click', (event) => {
+    let answer_button = $(
+        '<button class="btn btn-primary">' + answer + '</button>'
+    )
+    answer_button.on('click', (event) => {
         automaton.next('NEXT')
     })
-    $('#answer').append(yes)
+    $('#answer').append(answer_button)
 }
 
-export function showLabeling(meta, options) {
+/**
+ * Setup for text labeling.
+ * 
+ * Each option to label the text gets a button in a specific color to switch between them. 
+ * By clicking words in the content field, the word is then labeled with the activated option.
+ * This is handled by {@link activateOnClick}
+ * @param meta meta object for question, answer and column
+ * @param options array containing labels for each labeling option
+ */
+export function showLabeling(meta, options: string[]) {
     $('.card-subtitle').show()
     if (Array.isArray(Data.annotations[meta.column])) {
         Data.annotations[meta.column] = {}
@@ -58,7 +76,7 @@ export function showLabeling(meta, options) {
         $('#color-bar').append(
             $(
                 "<button style='background-color: {0}; width: {1}%'>{2}</button>".format(
-                    [ colors[i], width, options[i] ]
+                    [ colors[i], width.toString(), options[i] ]
                 )
             ).on('click', (ev) => {
                 activateOnClick(meta, options[i], colors[i])
@@ -66,14 +84,15 @@ export function showLabeling(meta, options) {
         )
     }
     let button = $(
-        '<button type="button" class="btn btn-primary">Next</button>'
+        '<button type="button" class="btn btn-primary">' +
+            meta.answer +
+            '</button>'
     ) // next button
     button.on('click', (event) => {
         $('.comment-content').off('click tap')
         let markers2 = JSON.stringify(markers)
         $('#color-bar').empty()
         automaton.next('NEXT', { annotation: markers2 })
-        console.log('Clicked Next')
         let word_elements = $('.individual_word')
         let i = 0
         for (i; i < word_elements.length; i++) {
@@ -87,6 +106,12 @@ export function showLabeling(meta, options) {
     $('#answer').append(button)
 }
 
+/**
+ * 
+ * @param meta 
+ * @param option 
+ * @param color 
+ */
 function activateOnClick(meta, option, color) {
     $('.comment-content').off('click tap')
     $('.comment-content').on('click tap', $('.comment-content'), function(
@@ -119,12 +144,16 @@ function activateOnClick(meta, option, color) {
 
 var markers = {}
 
-function add_spans(text) {
-    text = text.split(' ')
+/**
+ * Converts a string to a html string with <span></span> tags around each word separated by a space.
+ * @param text string containing text
+ */
+function add_spans(text: string): string {
+    const split_text = text.split(' ')
     let spans = []
     let i = 0
-    for (i; i < text.length; i++) {
-        let word = text[i]
+    for (i; i < split_text.length; i++) {
+        let word = split_text[i]
         word =
             '<span id="word_' +
             i +

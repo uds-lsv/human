@@ -13,6 +13,7 @@ BASE_TEMPLATE = """
     meta: {{
         type: '{type}',
         question: '{question}',
+        answer: '{answer}'
     }}
 }},
 """
@@ -113,6 +114,7 @@ BOOLEAN_LABEL_TEMPLATE = """
     meta: {{
         type: '{type}',
         question: '{question}',
+        answer: '{answer}',
         column: '{column}'
     }}
 }},
@@ -126,6 +128,7 @@ SELECT_TEMPLATE = """
     meta: {{
         type: '{type}',
         question: '{question}',
+        answer: '{answer}',
         options: {options},
         column: '{column}'
     }}
@@ -141,6 +144,7 @@ CHOOSE_PAGE_TEMPLATE = """
     entry: [ 'print', 'showUI', 'choosePage' ],
     meta: {{
         question: '{question}',
+        answer: '{answer}',
         type: '{type}',
     }},
 }},
@@ -205,7 +209,7 @@ BBOX_TEMPLATE = """
     exit: [ 'saveBboxes' ],
     meta: {{
         question: '{question}',
-        answer: 'Submit',
+        answer: '{answer}',
         type: 'labelPicture',
         column: '{column}',
     }},
@@ -250,7 +254,7 @@ BBOX_LABEL_TEMPLATE = """
     exit: [ 'saveBboxes' ],
     meta: {{
         question: '{question}',
-        answer: 'Submit',
+        answer: '{answer}',
         type: 'labelWords',
         column: '{column}',
     }},
@@ -452,6 +456,9 @@ class AP_Parser():
             if 'transitions' not in question:
                 logging.error("Question \"{}\": Missing \"tansitions\".".format(idx))
                 error = True
+
+            if 'answer' not in question:
+                question['answer'] = 'Continue'
             
             # Check if defined type
             typ = question['type']

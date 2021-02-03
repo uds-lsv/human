@@ -40,6 +40,11 @@ export class Automaton {
         this.CURRENTSTATE = interpret(annotationProtocol)
             .onTransition((state) => {
                 console.log('currentstate', state.value, state)
+                const meta = state.meta['annotation.' + state.value]
+                console.log(meta)
+                if (meta && meta.column) {
+                    Data.current_column = meta.column
+                }
             })
             .start(start)
         window['CURRENTSTATE'] = this.CURRENTSTATE
@@ -169,7 +174,7 @@ export class Automaton {
                     if (Data.data === 'No available data') {
                         this.next('NOTHINGLEFT')
                     } else {
-                        showRead(Data.data, meta.question)
+                        showRead(meta.question)
                     }
                     break
                 default:

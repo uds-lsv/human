@@ -23,6 +23,7 @@ export let Data = {
     pdf: undefined,
     markers: [],
     annotations: new DefaultDict(Array),
+    current_column: '',
     predicted_words: [],
     bboxes: [],
     konvabboxes: [],
@@ -35,6 +36,7 @@ export let Data = {
         Data.pdf = undefined
         Data.markers = []
         Data.annotations = new DefaultDict(Array)
+        Data.current_column = ''
         Data.predicted_words = []
         Data.bboxes = []
         Data.konvabboxes = []

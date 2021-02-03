@@ -40,7 +40,7 @@ npm install
 
 Write your custom annotation protocol into protocol.json. Refer to the [wiki](https://github.com/uds-lsv/human/wiki) for documentation on how to do this and see our example protocols (under `/examples`) for inspiration.
 
-Then customize the variables inside of settings.json e.g.:
+Then customize the variables inside of settings.ts e.g.:
 
 ```json
 "url": "127.0.0.1:5000",

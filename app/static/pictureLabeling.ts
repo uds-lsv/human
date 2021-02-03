@@ -1,3 +1,4 @@
+import Konva from 'konva'
 import { automaton } from './start'
 import { Data } from './data'
 // import settings from './settings.json';
@@ -89,11 +90,11 @@ export function showChooseWords(
         answer = 'Finish'
     }
     console.log(bboxs, question, answer)
-    Data.annotations['words'] = {}
+    Data.annotations[Data.current_column] = {}
 
     Data.predicted_words = predicted_words
     predicted_words.forEach((element, index) => {
-        Data.annotations['words'][index] = element[0]
+        Data.annotations[Data.current_column][index] = element[0]
     })
     drawImage(src).then(([ stage, layer, Kimage ]) => {
         onClickPictureWords(stage, layer, Kimage)
@@ -211,10 +212,12 @@ async function setupChooseWords(index) {
         $('#word-list').append(item)
     })
 
-    $('#input-item, .word-list-item, #text-input').on('keydown',function(e) {
+    $('#input-item, .word-list-item, #text-input').on('keydown', function(
+        e
+    ) {
         if (
             ($(this).val() != '' || $(this).text() != '') &&
-            e.key === "Tab"
+            e.key === 'Tab'
         ) {
             // $('#input-item').click();
             e.preventDefault()
@@ -223,11 +226,13 @@ async function setupChooseWords(index) {
         }
     })
 
-    $('#input-item, .word-list-item, #text-input').on('keydown', function(e) {
+    $('#input-item, .word-list-item, #text-input').on('keydown', function(
+        e
+    ) {
         console.log(e.key)
         if (
             ($(this).val() != '' || $(this).text() != '') &&
-            e.key === "Tab"
+            e.key === 'Tab'
         ) {
             // $('#input-item').click();
             e.preventDefault()
@@ -242,7 +247,9 @@ async function setupChooseWords(index) {
         yes.on('click', () => {
             $('#input-item, .word-list-item').each(function() {
                 if ($(this).hasClass('active')) {
-                    Data.annotations['words'][index] = $(this).text()
+                    Data.annotations[Data.current_column][index] = $(
+                        this
+                    ).text()
                     $(this).removeClass('active')
                     return false
                 }
@@ -254,7 +261,9 @@ async function setupChooseWords(index) {
     } else {
         yes.append('Finish')
         yes.on('click', () =>
-            automaton.next('NEXT', { words: Data.annotations['words'] })
+            automaton.next('NEXT', {
+                words: Data.annotations[Data.current_column],
+            })
         )
     }
     listAnnotated()
@@ -262,11 +271,11 @@ async function setupChooseWords(index) {
 }
 
 function listAnnotated() {
-    // for (let i in Data.annotations['words']) {
+    // for (let i in Data.annotations[Data.current_column]) {
     // 	$('.bottomContainer').append(
-    // 		'<button>' + Data.annotations['words'][i] + '</button> '
+    // 		'<button>' + Data.annotations[Data.current_column][i] + '</button> '
     // 	);
-    // 	console.log(Data.annotations['words'][i]);
+    // 	console.log(Data.annotations[Data.current_column][i]);
     // }
 }
 
@@ -502,7 +511,7 @@ function redrawBoxes(layer, bboxes) {
     layer.draw()
     // console.log(bboxes)
     for (let bbox of bboxes) {
-        let rect = {
+        const rect = {
             stroke: 'red',
             strokeWidth: 3,
             name: 'rect',
@@ -514,9 +523,9 @@ function redrawBoxes(layer, bboxes) {
             width: bbox[2],
             height: bbox[3],
         }
-        rect = new Konva.Rect(Object.assign(rect, bbox))
+        const krect = new Konva.Rect(Object.assign(rect, bbox))
         // console.log(rect)
-        layer.add(rect)
+        layer.add(krect)
     }
     // console.log(layer)
     layer.draw()

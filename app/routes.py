@@ -1,4 +1,3 @@
-import ipdb
 from flask import request, jsonify, render_template, redirect, url_for, flash, Response, send_file, send_from_directory
 from flask.logging import create_logger
 from requests_toolbelt import MultipartEncoder
