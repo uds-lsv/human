@@ -108,8 +108,7 @@ polymer
 
 # Custom
 node_modules/
+uploaded_files/
 output/*
 
 # Allow
-!instance/.placeholder
-!output/.placeholder
