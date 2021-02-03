@@ -1,0 +1,105 @@
+{% extends 'bootstrap/base.html' %}
+{% block styles %}
+{{super()}}
+
+<link rel="stylesheet" href="{{url_for('.static', filename='dist/app.css')}}">
+<link rel="shortcut icon" href="{{url_for('.static', filename='favicon.ico')}}" type="image/x-icon">
+<link rel="icon" href="{{url_for('.static', filename='favicon.ico')}}" type="image/x-icon">
+
+<style>
+  .button {
+    color: #fff;
+    text-align: center;
+    border: 0;
+    transition: all 0.3s ease 0s;
+  }
+
+  .button:hover {
+    box-shadow: inset 0 0 0 5px #2d373f;
+  }
+</style>
+{% endblock %}
+
+{% block navbar%}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand " href="#"><img src="{{url_for('.static', filename='logo_full.png')}}" alt="Annotator"
+      style="width:150px;"> </a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      {% if  '/' == url_for(request.endpoint) %}
+      <li class="nav-item button active">
+        {% else %}
+      <li class="nav-item button">
+        {% endif %}
+        <a class="nav-link" href="/">Home</a>
+      </li>
+
+
+      {% if admin %}
+      {% if "upload_console" in url_for(request.endpoint) %}
+      <li class="nav-item button active">
+        {% else %}
+      <li class="nav-item button">
+        {% endif %}
+        <a class="nav-link" href="/upload_console">Upload Console</a>
+      </li>
+      {% if "data_console" in url_for(request.endpoint) %}
+      <li class="nav-item button active">
+        {% else %}
+      <li class="nav-item button">
+        {% endif %}
+        <a class="nav-link" href="/data_console">Data Console</a>
+      </li>
+      {% endif %}
+
+      {% if admin %}
+      {% if "adminConsole" in url_for(request.endpoint)%}
+      <li class="nav-item button active">
+        {% else %}
+      <li class="nav-item button">
+        {% endif %}
+        <a class="nav-link" href="/adminConsole">Admin Console</a>
+      </li>
+      {% endif %}
+
+      {% if "profile" in url_for(request.endpoint) %}
+      <li class="nav-item button active">
+        {% else %}
+      <li class="nav-item button">
+        {% endif %}
+        <a class="nav-link" href="/profile">Profile</a>
+      </li>
+    </ul>
+    <form class="form-inline my-2 my-lg-0">
+      {% if user%}
+      <span style="color:green"> Hello {{user}} </span>
+      <a class="badge badge-pill badge-light" href="/logout">logout</a>
+      {% else %}
+      <a class="badge badge-pill badge-light" href="/login">login</a>
+      <a class="badge badge-pill badge-light" href="/register_user">register</a>
+      {% endif %}
+    </form>
+  </div>
+</nav>
+<script type="text/javascript">
+  var btnContainer = document.getElementById("navbarSupportedContent");
+
+  var btns = btnContainer.getElementsByClassName("button");
+
+  for (var i = 0;i < btns.length;i++) {
+    btns[i].addEventListener("click", function () {
+      var current = document.getElementsByClassName("active");
+      if (current.length > 0) {
+        current[0].className = current[0].className.replace(" active", "");
+      }
+      this.className += " active";
+      console.write("current:")
+    });
+  }
+</script>
+{% endblock %}

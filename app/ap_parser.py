@@ -636,9 +636,10 @@ class AP_Parser():
             columns = ['"{}" text'.format(c) for c in self.columns]
 
             out.write("CREATE TABLE IF NOT EXISTS {}\n".format(table_name) +\
-                              "(\nid integer not null,\n" +\
-                              "user text not null,\n" +\
-                              "timestamp TIMESTAMP DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now', 'localtime')) NOT NULL,\n" +\
+                              "(\nid integer primary key autoincrement not null,\n" +\
+                              "data_id integer not null,\n" +\
+                              "user_id integer not null,\n" +\
+                              "timestamp TIMESTAMP DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime')) NOT NULL,\n" +\
                               ",\n".join(columns) +\
                               "\n);\n")
             out.write('\n')
