@@ -41,6 +41,6 @@ export class Service {
         return $.ajax(settings)
     }
     static fetch(url: string) {
-        return fetch(SETTINGS.URL + url)
+        return fetch(url)
     }
 }
