@@ -31,7 +31,7 @@
 
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
-      {% if  '/' == url_for(request.endpoint) %}
+      {% if '/' == url_for(request.endpoint) %}
       <li class="nav-item button active">
         {% else %}
       <li class="nav-item button">
@@ -41,15 +41,31 @@
 
 
       {% if admin %}
+      {% if "upload_console" in url_for(request.endpoint) %}
+      <li class="nav-item button active">
+        {% else %}
+      <li class="nav-item button">
+        {% endif %}
+        <a class="nav-link" href="/upload_console">Upload Console</a>
+      </li>
       {% if "data_console" in url_for(request.endpoint) %}
       <li class="nav-item button active">
         {% else %}
       <li class="nav-item button">
         {% endif %}
-        <a class="nav-link" href="/data_console">Data console</a>
+        <a class="nav-link" href="/data_console">Data Console</a>
       </li>
       {% endif %}
 
+      {% if admin %}
+      {% if "adminConsole" in url_for(request.endpoint)%}
+      <li class="nav-item button active">
+        {% else %}
+      <li class="nav-item button">
+        {% endif %}
+        <a class="nav-link" href="/adminConsole">Admin Console</a>
+      </li>
+      {% endif %}
 
       {% if "profile" in url_for(request.endpoint) %}
       <li class="nav-item button active">
@@ -58,16 +74,6 @@
         {% endif %}
         <a class="nav-link" href="/profile">Profile</a>
       </li>
-
-      {% if admin %}
-      {% if "adminConsole" in url_for(request.endpoint)%}
-      <li class="nav-item button active">
-        {% else %}
-      <li class="nav-item button">
-        {% endif %}
-        <a class="nav-link" href="/adminConsole">Admin console</a>
-      </li>
-      {% endif %}
     </ul>
     <form class="form-inline my-2 my-lg-0">
       {% if user%}
@@ -85,7 +91,7 @@
 
   var btns = btnContainer.getElementsByClassName("button");
 
-  for (var i = 0;i < btns.length;i++) {
+  for (var i = 0; i < btns.length; i++) {
     btns[i].addEventListener("click", function () {
       var current = document.getElementsByClassName("active");
       if (current.length > 0) {

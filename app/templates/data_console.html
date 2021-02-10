@@ -31,40 +31,69 @@
 <div class='container'>
   <div class="row ">
     <div class="col card-body">
-      <p class="h2 text-center">Data console</h3>
+      <p class="text-center"><h3>Data Console</h3></p>
     </div>
   </div>
   <div class='row'>
     <div class="col card text-center">
       <div class="card-body">
-        <h3>Upload files</h3>
-        <form action="/upload_file" method="POST" enctype=multipart/form-data class="form-group">
-
-          <div class="div_file form-group form-inline btn col">
-            <input type="file" name="files[]" class="form-control btn btn-outline-info" multiple>
-          </div>
-
-          <p></p>
-          <a href="#" id='more_files'>Click to add more files</a>
-          After uploading multiple files, click Submit.<br>
-          <input type="submit" value="Submit" class="btn btn-primary">
-        </form>
+        <a data-toggle="collapse" href="#annotations-table" role="button" aria-expanded="false" aria-controls="annotations-table"><h3>Annotations</h3></a>
+        {% if annotations %}
+        <div class="collapse" id="annotations-table">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                {% for header in annotations[0] %}
+                <th>{{header}}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for record in annotations %}
+              <tr>
+                {% for key in record %}
+                <td>{{record[key]}}</td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+      </div>
+      {% else %}
+        No annotations available yet.
+      {% endif %}
       </div>
     </div>
   </div>
-  <br />
+  <br>
   <div class='row'>
     <div class="col card text-center">
       <div class="card-body">
-        <h3>Upload folder</h3>
-        <form action="/upload_folder" method="POST" enctype=multipart/form-data class="form-group">
-
-          <div class="div_file form-group form-inline btn">
-            <input type="file" name="folder" class="form-control btn btn-outline-info" webkitdirectory mozdirectory>
-          </div>
-          <br>
-          <input type="submit" value="Submit" class="btn btn-primary">
-        </form>
+        <a data-toggle="collapse" href="#data-table" role="button" aria-expanded="false" aria-controls="data-table"><h3>Data</h3></a>
+        {% if data %}
+        <div class="collapse" id="data-table">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                {% for header in data[0] %}
+                <th>{{header}}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for record in data %}
+              <tr>
+                {% for key in record %}
+                <td>{{record[key]}}</td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+      </div>
+      {% else %}
+        No data available yet.
+      {% endif %}
       </div>
     </div>
   </div>
@@ -73,34 +102,9 @@
     <div class="col card text-center">
       <div class="card-body">
         <h3>Download data</h3>
-        <form action="/data_download" method="GET" enctype=multipart/form-data class="form-group">
+        <form action="/data_download" method="POST" enctype=multipart/form-data class="form-group">
           <input type="submit" value="Download data" class="btn btn-primary">
         </form>
-      </div>
-    </div>
-  </div>
-  <div class='row'>
-    <div class="col card text-center">
-      <div class="card-body">
-        <h3>Annotations</h3>
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              {% for header in annotations %}
-              <th>{{header}}</th>
-              {% endfor %}
-            </tr>
-          </thead>
-          <tbody>
-            {% for key in annotations %}
-            <tr>
-              {% for element in annotations[key] %}
-              <td>{{element}}</td>
-              {% endfor %}
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
       </div>
     </div>
   </div>
