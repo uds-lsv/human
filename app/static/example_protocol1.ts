@@ -47,14 +47,14 @@ export const pictureProtocol = {
                                     const url = await blobToDataURL(blob)
                                     if (file.name.endsWith('.pdf')) {
                                         Data.pdf = url
-                                        resolve()
+                                        resolve({ bboxes: [] })
                                     } else if (
                                         file.name.endsWith('.jpg') ||
                                         file.name.endsWith('.jpeg') ||
                                         file.name.endsWith('.png')
                                     ) {
                                         Data.picture = url
-                                        resolve()
+                                        resolve({ bboxes: [] })
                                     } else {
                                         throw Error(
                                             'Wrong file ending: ' +

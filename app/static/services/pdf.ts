@@ -149,7 +149,7 @@ async function loadPreviews() {
                 // render the page and then append to the list container
                 page.render(renderContext).then(() => {
                     previewList.append($(canvas))
-                    resolve()
+                    resolve(1)
                 })
             })
         })
