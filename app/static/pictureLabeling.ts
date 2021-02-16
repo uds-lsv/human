@@ -133,6 +133,7 @@ async function setupChooseWords(index) {
     let predicted: string[] = Data.predicted_words[index]
 
     Data.konvabboxes[index].stroke('red')
+    Data.konvabboxes[index].parent.draw()
 
     // onclick to add active class to element when clicked
     var activeOnClick = function() {
