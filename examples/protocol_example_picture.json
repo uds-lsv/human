@@ -18,7 +18,7 @@
     },
     "2": {
         "type": "bbox",
-        "question": "Draw a bounding box around each line.",
+        "question": "Draw a bounding box around each word.",
         "api_call": "word_segmentation",
         "saveAll": true,
         "transitions": [ [ "NEXT", "3" ] ]
