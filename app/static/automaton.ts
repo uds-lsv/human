@@ -75,6 +75,7 @@ export class Automaton {
             }, 500) // timeout until pdf worker is fully loaded
         },
         chooseWords: (_, event, actionMeta) => {
+            console.log(event)
             let meta =
                 actionMeta.state.meta[
                     'annotation.' + actionMeta.state.value
@@ -82,7 +83,7 @@ export class Automaton {
             showChooseWords(
                 Data.picture,
                 event.data.bboxes,
-                event.data.predicted_words,
+                event.data.predicted_labels,
                 meta.question,
                 meta.answer
             )

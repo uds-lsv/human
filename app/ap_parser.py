@@ -3,6 +3,21 @@ import logging
 import sys
 import os
 
+# DSA head
+DSA_HEAD = """
+import { Data } from './data'
+import { Service } from './services/service'
+import { blobToDataURL } from './utils'
+
+export const protocol = {
+	id: 'annotation',
+	initial: 'start',
+	context: {
+		annotation: {},
+	},
+	states: {
+"""
+
 
 # Templates for each state type
 BASE_TEMPLATE = """
@@ -103,7 +118,6 @@ LOADING_FILE_TEMPLATE = """
         type: 'loadingfile',
     }},
 }},
-
 """
 
 BOOLEAN_LABEL_TEMPLATE = """
@@ -134,6 +148,7 @@ SELECT_TEMPLATE = """
     }}
 }},
 """
+
 CHOOSE_PAGE_TEMPLATE = """
 '{idx}': {{
     on: {{
@@ -167,7 +182,6 @@ CHOOSE_PAGE_TEMPLATE = """
         {transitions}
     }},
 }},
-
 """
 
 BBOX_TEMPLATE = """
@@ -215,6 +229,7 @@ BBOX_TEMPLATE = """
     }},
 }},
 """
+
 BBOX_LABEL_TEMPLATE = """
 {idx}: {{
     invoke: {{
@@ -340,8 +355,9 @@ class AP_Parser():
     as well as error handling during conversion.
     """
     def __init__(self):
-        self.head = open('dsa_head.txt', 'r', encoding='utf8').read()
-        #self.tail = open('static/dsa_tail.txt', 'r', encoding='utf8').read()
+        self.head = DSA_HEAD
+        # self.head = open('dsa_head.txt', 'r', encoding='utf8').read()
+        # self.tail = open('static/dsa_tail.txt', 'r', encoding='utf8').read()
         self.templates = {'loading': LOADING_TEMPLATE,
                           'loadingFile': LOADING_FILE_TEMPLATE,
                           'read': BASE_TEMPLATE,

@@ -91,7 +91,7 @@ def classify_words(image, bboxes):
     :return coordinates and list of word boxes [(x, y, width, height),..], [(x, y, width, height),..]
     """
     # print([['Chien', 'Chat', 'Scorpion', 'Springbok', 'lion']] * len(bboxes))
-    return {'image': image, 'bboxes': bboxes, 'predicted_words': [['Chien', 'Chat', 'Scorpion', 'Springbok', 'lion']] * len(bboxes)}
+    return {'image': image, 'bboxes': bboxes, 'predicted_labels': [['Chien', 'Chat', 'Scorpion', 'Springbok', 'lion']] * len(bboxes)}
 
 def input_real_words(inputCoordinates, labels):
     """A function that starts word Segmentation
