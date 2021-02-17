@@ -89,7 +89,6 @@ export function showChooseWords(
     if (!answer) {
         answer = 'Finish'
     }
-    console.log(bboxs, question, answer)
     Data.annotations[Data.current_column] = {}
 
     Data.predicted_words = predicted_words
@@ -100,7 +99,7 @@ export function showChooseWords(
         onClickPictureWords(stage, layer, Kimage)
 
         const scaledbboxes = bboxs.map((bbox) => {
-            return scaleFromDefault(new BBox(bbox))
+            return new BBox(bbox).scaleFromDefault()
         })
         Data.konvabboxes = []
         for (let bbox of scaledbboxes) {
@@ -157,7 +156,7 @@ async function setupChooseWords(index) {
             }
         })
         index = index > listitems.length - 2 ? 0 : index + 1
-        $(listitems[index]).addClass('active').focus()
+        $(listitems[index]).addClass('active').trigger('focus')
         console.log($(listitems[index]))
     }
 
@@ -285,7 +284,7 @@ export function showAnnotatePicture(src, bboxs, question, answer) {
     drawImage(src).then(([ stage, layer, Kimage ]) => {
         onClickPicture(stage, layer, Kimage)
         const scaledbboxes = bboxs.map((bbox) => {
-            return scaleFromDefault(new BBox(bbox))
+            return new BBox(bbox).scaleFromDefault()
         })
         Data.konvabboxes = []
         for (let bbox of scaledbboxes) {
@@ -311,7 +310,7 @@ export function showAnnotatePicture(src, bboxs, question, answer) {
         yes.append(answer)
         yes.on('click', () => {
             const scaledbboxes = extractBboxes(layer).map((bbox) => {
-                return scaleToDefault(new BBox(bbox)).toArray()
+                return new BBox(bbox).scaleToDefault().toArray()
             })
             automaton.next('NEXT', { bboxes: scaledbboxes })
         })
@@ -469,35 +468,26 @@ function onClickPictureWords(stage, layer, Kimage) {
 }
 
 /**
- * extract bbox 
+ * extract konva rectangles from layer
  * @param {Konva.Layer} layer 
  */
 function extractBboxes(layer) {
-    console.log(layer.find('.rect'))
-    window['layer'] = layer
+    // console.log(layer.find('.rect'))
+    // window['layer'] = layer
     let bboxes = []
     for (let rect of layer.find('.rect')) {
-        let scalex = rect.attrs.scaleX ? rect.attrs.scaleX : 1
-        let scaley = rect.attrs.scaleY ? rect.attrs.scaleY : 1
-        // let bbox = {
-        // 	x: rect.attrs.x,
-        // 	y: rect.attrs.y,
-        // 	width: rect.attrs.width * scalex,
-        // 	height: rect.attrs.height * scaley
-        // };
-        let bbox = [
+        // scaling of konva object is saved in rect.attrs.scaleX/Y
+        const scalex = rect.attrs.scaleX ? rect.attrs.scaleX : 1
+        const scaley = rect.attrs.scaleY ? rect.attrs.scaleY : 1
+        // apply Konva scale to width and height
+        const bbox = [
             rect.attrs.x,
             rect.attrs.y,
             rect.attrs.width * scalex,
             rect.attrs.height * scaley,
         ]
-        bboxes.push(bbox)
+        bboxes.push(new BBox(bbox))
     }
-    // layer.destroyChildren()
-    // // layer.find('.rect').destroy()
-    // // layer.find('Transformer').destroy()
-    // layer.draw()
-
     return bboxes
 }
 
@@ -518,44 +508,10 @@ function redrawBoxes(layer, bboxes) {
             name: 'rect',
             draggable: true,
         }
-        bbox = {
-            x: bbox[0],
-            y: bbox[1],
-            width: bbox[2],
-            height: bbox[3],
-        }
         const krect = new Konva.Rect(Object.assign(rect, bbox))
-        // console.log(rect)
         layer.add(krect)
     }
-    // console.log(layer)
     layer.draw()
-}
-
-/**
- * scales bbox values
- * @param {int} scale 
- * @param {Array<float>} bboxes 
- */
-function scaleToDefault(bbox: BBox): BBox {
-    bbox.x = bbox.x * Data.scales.x
-    bbox.width = bbox.width * Data.scales.x
-    bbox.y = bbox.y * Data.scales.y
-    bbox.height = bbox.height * Data.scales.y
-    return bbox
-}
-
-/**
- * scales bbox values
- * @param {int} scale 
- * @param {Array<float>} bboxes 
- */
-function scaleFromDefault(bbox): BBox {
-    bbox.x = bbox.x / Data.scales.x
-    bbox.width = bbox.width / Data.scales.x
-    bbox.y = bbox.y / Data.scales.y
-    bbox.height = bbox.height / Data.scales.y
-    return bbox
 }
 
 interface BBoxI {
@@ -578,5 +534,19 @@ class BBox implements BBoxI {
     }
     toArray() {
         return [ this.x, this.y, this.width, this.height ]
+    }
+    scaleFromDefault(): BBox {
+        this.x = this.x / Data.scales.x
+        this.width = this.width / Data.scales.x
+        this.y = this.y / Data.scales.y
+        this.height = this.height / Data.scales.y
+        return this
+    }
+    scaleToDefault(): BBox {
+        this.x = this.x * Data.scales.x
+        this.width = this.width * Data.scales.x
+        this.y = this.y * Data.scales.y
+        this.height = this.height * Data.scales.y
+        return this
     }
 }
