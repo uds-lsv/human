@@ -64,7 +64,6 @@ export class Automaton {
             let column = meta.column
 
             Data.annotations[column] = event.data
-            Data.bboxes = event.data.bboxes
         },
         choosePage: (_, event, actionMeta) => {
             console.log('choosepage')

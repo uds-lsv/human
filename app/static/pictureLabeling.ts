@@ -96,12 +96,12 @@ export function showChooseWords(
         Data.annotations[Data.current_column][index] = element[0]
     })
     drawImage(src).then(([ stage, layer, Kimage ]) => {
-        onClickPictureWords(stage, layer, Kimage)
+        onClickPictureWords(stage, layer)
 
         const scaledbboxes = bboxs.map((bbox) => {
             return new BBox(bbox).scaleFromDefault()
         })
-        Data.konvabboxes = []
+        Data.guiBboxes = []
         for (let bbox of scaledbboxes) {
             // console.log(bbox)
             var rect = new Konva.Rect({
@@ -114,10 +114,10 @@ export function showChooseWords(
                 name: 'rect',
                 // draggable: true
             })
-            Data.konvabboxes.push(rect)
+            Data.guiBboxes.push(rect)
             layer.add(rect)
         }
-        Data.konvabboxes[0].stroke('red')
+        Data.guiBboxes[0].stroke('red')
         setupChooseWords(0)
         layer.draw()
         // add buttons
@@ -131,8 +131,8 @@ async function setupChooseWords(index) {
     // console.log(animals);
     let predicted: string[] = Data.predicted_words[index]
 
-    Data.konvabboxes[index].stroke('red')
-    Data.konvabboxes[index].parent.draw()
+    Data.guiBboxes[index].stroke('red')
+    Data.guiBboxes[index].parent.draw()
 
     // onclick to add active class to element when clicked
     var activeOnClick = function() {
@@ -254,8 +254,8 @@ async function setupChooseWords(index) {
                     return false
                 }
             })
-            Data.konvabboxes[index].stroke('green')
-            Data.konvabboxes[index].parent.draw()
+            Data.guiBboxes[index].stroke('green')
+            Data.guiBboxes[index].parent.draw()
             setupChooseWords(index + 1)
         })
     } else {
@@ -286,7 +286,7 @@ export function showAnnotatePicture(src, bboxs, question, answer) {
         const scaledbboxes = bboxs.map((bbox) => {
             return new BBox(bbox).scaleFromDefault()
         })
-        Data.konvabboxes = []
+        Data.guiBboxes = []
         for (let bbox of scaledbboxes) {
             // console.log(bbox)
             const rect = new Konva.Rect({
@@ -300,7 +300,7 @@ export function showAnnotatePicture(src, bboxs, question, answer) {
                 draggable: true,
             })
 
-            Data.konvabboxes.push(rect)
+            Data.guiBboxes.push(rect)
             layer.add(rect)
             layer.draw()
         }
@@ -447,20 +447,20 @@ function onClickPicture(stage, layer, Kimage) {
  * @param layer 
  * @param Kimage 
  */
-function onClickPictureWords(stage, layer, Kimage) {
+function onClickPictureWords(stage, layer) {
     stage.off('click tap')
     stage.on('click tap', function(e) {
         if (!e.target.hasName('rect')) {
             return
         }
-        Data.konvabboxes.forEach((bbox) => {
+        Data.guiBboxes.forEach((bbox) => {
             if (bbox.attrs.stroke != 'green') {
                 bbox.stroke('black')
             }
         })
         e.target.stroke('red')
         layer.draw()
-        setupChooseWords(Data.konvabboxes.indexOf(e.target))
+        setupChooseWords(Data.guiBboxes.indexOf(e.target))
         window['clicked'] = e.target
         window['stage'] = stage
         window['layer'] = layer
@@ -548,5 +548,14 @@ class BBox implements BBoxI {
         this.y = this.y * Data.scales.y
         this.height = this.height * Data.scales.y
         return this
+    }
+}
+
+class GuiBBox {
+    konvaBox: Konva.Rect
+    annotated: boolean
+    constructor(konvaBox: Konva.Rect, annotated: boolean) {
+        this.konvaBox = konvaBox
+        this.annotated = annotated
     }
 }

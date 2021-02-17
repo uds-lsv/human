@@ -25,8 +25,7 @@ export let Data = {
     annotations: new DefaultDict(Array),
     current_column: '',
     predicted_words: [],
-    bboxes: [],
-    konvabboxes: [],
+    guiBboxes: [],
     scales: { x: 1, y: 1 },
     reset: () => {
         Data.data = undefined
@@ -38,8 +37,7 @@ export let Data = {
         Data.annotations = new DefaultDict(Array)
         Data.current_column = ''
         Data.predicted_words = []
-        Data.bboxes = []
-        Data.konvabboxes = []
+        Data.guiBboxes = []
         Data.scales = { x: 1, y: 1 }
     },
 }
