@@ -66,6 +66,7 @@ watchBuild.on('log', fancy_log)
 
 exports.default = parallel(defaultBuild, minifycss)
 // exports.default = defaultBuild //series(uglify, cssnano);
+exports.build = defaultBuild
 
 exports.watch = series(minifycss, watch)
 exports.minifycss = minifycss
