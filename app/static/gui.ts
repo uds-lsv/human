@@ -9,11 +9,13 @@ export function showBoolean(question: string) {
     $('#question').append(question)
     let yes = $('<button class="btn btn-primary">Yes</button>')
     yes.on('click', (event) => {
+        yes.off('click')
         automaton.next('YES', { annotation: 1 })
     })
     $('#answer').append(yes)
     let no = $('<button class="btn btn-primary">No</button>')
     no.on('click', (event) => {
+        no.off('click')
         automaton.next('NO', { annotation: 0 })
     })
     $('#answer').append(no)
@@ -56,6 +58,7 @@ export function showSelect(question: string, options: string[]) {
     form.append(button)
     // on click for button
     button.on('click', (event) => {
+        button.off('click')
         // get checked radio button and run statemachine NEXT with its value
         for (let i = 0; i < options.length; i++) {
             // console.log($('#form' + i))
@@ -104,6 +107,7 @@ export function showCheck(question, options) {
     form.append(button)
     // on click for button
     button.on('click', (event) => {
+        button.off('click')
         let checkedVals = [] // for checkboxes
 
         // get checked radio button and run statemachine next with its value
@@ -130,6 +134,7 @@ export function showChoosePage(question) {
     $('#question').append(question)
     let yes = $('<button class="btn btn-primary">Correct Page</button>')
     yes.on('click', (e) => {
+        yes.off('click')
         automaton.next(
             'NEXT',
             new Promise((resolve, reject) => {

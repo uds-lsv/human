@@ -39,6 +39,7 @@ export function showRead(meta) {
         '<button class="btn btn-primary">' + answer + '</button>'
     )
     answer_button.on('click', (event) => {
+        answer_button.off('click')
         automaton.next('NEXT')
     })
     $('#answer').append(answer_button)

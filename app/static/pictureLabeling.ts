@@ -245,6 +245,7 @@ async function setupChooseWords(index) {
     if (index < Data.predicted_words.length - 1) {
         yes.append('Next')
         yes.on('click', () => {
+            yes.off('click')
             $('#input-item, .word-list-item').each(function() {
                 if ($(this).hasClass('active')) {
                     Data.annotations[Data.current_column][index] = $(
@@ -314,6 +315,7 @@ export function showAnnotatePicture(
         let yes = $('<button class="btn btn-primary"></button>')
         yes.append(answer)
         yes.on('click', () => {
+            yes.off('click')
             const scaledbboxes = extractBboxes(layer).map((bbox) => {
                 return bbox.scaleToDefault().toArray()
             })
