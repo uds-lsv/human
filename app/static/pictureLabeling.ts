@@ -80,11 +80,11 @@ function _flatten_grouped(grouped: Object): any[] {
 }
 
 export function showChooseWords(
-    src,
-    bboxs,
+    src: string,
+    bboxs: number[][],
     predicted_words: string[][],
-    question,
-    answer?
+    question: string,
+    answer?: string
 ) {
     if (!answer) {
         answer = 'Finish'
@@ -279,7 +279,12 @@ function listAnnotated() {
     // }
 }
 
-export function showAnnotatePicture(src, bboxs, question, answer) {
+export function showAnnotatePicture(
+    src: string,
+    bboxs: number[][],
+    question: string,
+    answer: string
+) {
     console.log(bboxs)
     drawImage(src).then(([ stage, layer, Kimage ]) => {
         onClickPicture(stage, layer, Kimage)
@@ -310,7 +315,7 @@ export function showAnnotatePicture(src, bboxs, question, answer) {
         yes.append(answer)
         yes.on('click', () => {
             const scaledbboxes = extractBboxes(layer).map((bbox) => {
-                return new BBox(bbox).scaleToDefault().toArray()
+                return bbox.scaleToDefault().toArray()
             })
             automaton.next('NEXT', { bboxes: scaledbboxes })
         })
@@ -322,7 +327,7 @@ export function showAnnotatePicture(src, bboxs, question, answer) {
  * Draw Image to a {Konva.Stage}
  * @param {string} src Source URL for image
  */
-function drawImage(src) {
+function drawImage(src: string) {
     return new Promise((resolve, reject) => {
         let image = new Image()
         image.onload = () => {
@@ -471,7 +476,7 @@ function onClickPictureWords(stage, layer) {
  * extract konva rectangles from layer
  * @param {Konva.Layer} layer 
  */
-function extractBboxes(layer) {
+function extractBboxes(layer): BBox[] {
     // console.log(layer.find('.rect'))
     // window['layer'] = layer
     let bboxes = []
@@ -496,7 +501,7 @@ function extractBboxes(layer) {
  * @param {Konva.Layer} layer 
  * @param {Array<float>} bboxes (x,y,width,height)
  */
-function redrawBoxes(layer, bboxes) {
+function redrawBoxes(layer, bboxes: BBox[]): void {
     layer.find('.rect').destroy()
     layer.find('Transformer').destroy()
     layer.draw()
@@ -532,7 +537,7 @@ class BBox implements BBoxI {
         this.width = bbox[2]
         this.height = bbox[3]
     }
-    toArray() {
+    toArray(): number[] {
         return [ this.x, this.y, this.width, this.height ]
     }
     scaleFromDefault(): BBox {
@@ -552,10 +557,10 @@ class BBox implements BBoxI {
 }
 
 class GuiBBox {
-    konvaBox: Konva.Rect
+    guiBox: Konva.Rect
     annotated: boolean
     constructor(konvaBox: Konva.Rect, annotated: boolean) {
-        this.konvaBox = konvaBox
+        this.guiBox = konvaBox
         this.annotated = annotated
     }
 }
