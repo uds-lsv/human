@@ -171,7 +171,7 @@ def write_to_db():
     )
     db.execute(
         'UPDATE user set annotated = ? WHERE id = ?',
-        (" ".join([current_user.get_annotated(), str(data['user_id'])]), current_user.get_id())
+        (" ".join([current_user.get_annotated(), str(data['data_id'])]), current_user.get_id())
     )
     
     db.commit()
