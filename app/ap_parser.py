@@ -321,6 +321,9 @@ end: {
             )
                 .done((res) => {
                     console.log(res)
+                    $('#endToast')
+                        .toast({ delay: 5000 })
+                        .toast('show')
                 })
                 .fail((err) => {
                     console.log(err.responseJSON)
