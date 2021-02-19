@@ -114,10 +114,11 @@ export function showChooseWords(
                 name: 'rect',
                 // draggable: true
             })
-            Data.guiBboxes.push(rect)
+            var guiBbox = new GuiBBox(rect, false)
+            Data.guiBboxes.push(guiBbox)
             layer.add(rect)
         }
-        Data.guiBboxes[0].stroke('red')
+        Data.guiBboxes[0].guiBox.stroke('red')
         setupChooseWords(0)
         layer.draw()
         // add buttons
@@ -131,8 +132,8 @@ async function setupChooseWords(index) {
     // console.log(animals);
     let predicted: string[] = Data.predicted_words[index]
 
-    Data.guiBboxes[index].stroke('red')
-    Data.guiBboxes[index].parent.draw()
+    Data.guiBboxes[index].guiBox.stroke('red')
+    Data.guiBboxes[index].guiBox.parent.draw()
 
     // onclick to add active class to element when clicked
     var activeOnClick = function() {
@@ -255,8 +256,9 @@ async function setupChooseWords(index) {
                     return false
                 }
             })
-            Data.guiBboxes[index].stroke('green')
-            Data.guiBboxes[index].parent.draw()
+            Data.guiBboxes[index].annotated = true
+            Data.guiBboxes[index].guiBox.stroke('green')
+            Data.guiBboxes[index].guiBox.parent.draw()
             setupChooseWords(index + 1)
         })
     } else {
@@ -306,7 +308,8 @@ export function showAnnotatePicture(
                 draggable: true,
             })
 
-            Data.guiBboxes.push(rect)
+            var guiBox = new GuiBBox(rect, false)
+            Data.guiBboxes.push(guiBox)
             layer.add(rect)
             layer.draw()
         }
@@ -461,13 +464,15 @@ function onClickPictureWords(stage, layer) {
             return
         }
         Data.guiBboxes.forEach((bbox) => {
-            if (bbox.attrs.stroke != 'green') {
-                bbox.stroke('black')
+            if (bbox.annotated) {
+                bbox.guiBox.stroke('green')
+            } else {
+                bbox.guiBox.stroke('black')
             }
         })
         e.target.stroke('red')
         layer.draw()
-        setupChooseWords(Data.guiBboxes.indexOf(e.target))
+        setupChooseWords(Data.guiBboxes.map((element) => {return element.guiBox}).indexOf(e.target))
         window['clicked'] = e.target
         window['stage'] = stage
         window['layer'] = layer
