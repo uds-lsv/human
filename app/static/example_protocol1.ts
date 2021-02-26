@@ -159,7 +159,7 @@ export const pictureProtocol = {
                 actions: [],
             },
             entry: [ 'showUI', 'showPictureLabeling' ],
-            exit: [ 'saveBboxes' ],
+            exit: [ 'saveBBoxes' ],
             meta: {
                 question: 'Correct paragraph box.',
                 answer: 'Correct boxes',
@@ -200,7 +200,7 @@ export const pictureProtocol = {
                 NEXT: { target: 'getWordBoxes' },
             },
             entry: [ 'showUI', 'showPictureLabeling' ],
-            exit: [ 'saveBboxes' ],
+            exit: [ 'saveBBoxes' ],
 
             meta: {
                 question: 'Correct line boxes.',
@@ -242,7 +242,7 @@ export const pictureProtocol = {
                 NEXT: { target: 'getWords' },
             },
             entry: [ 'showUI', 'showPictureLabeling' ],
-            exit: [ 'saveBboxes' ],
+            exit: [ 'saveBBoxes' ],
             meta: {
                 question: 'Correct word boxes.',
                 answer: 'Correct boxes',
@@ -282,13 +282,13 @@ export const pictureProtocol = {
             on: {
                 NEXT: { target: 'start' },
             },
-            entry: [ 'showUI', 'chooseWords' ],
-            exit: [ 'saveBboxes' ],
+            entry: [ 'showUI', 'showBBoxLabeling' ],
+            exit: [ 'saveBBoxes' ],
 
             meta: {
                 question: 'Correct word labels .',
                 answer: 'Finish',
-                type: 'labelWords',
+                type: 'labelBBoxes',
                 column: 'words',
             },
         },

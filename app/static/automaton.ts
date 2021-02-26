@@ -3,7 +3,8 @@ import {
     loadPDF,
     loadPicture,
     loadWords,
-    showChooseWords,
+    showLabelBBoxes,
+    showMultilabelBBox,
     showAnnotatePicture,
 } from './pictureLabeling'
 import { showLabeling, showRead } from './textLabeling'
@@ -56,7 +57,7 @@ export class Automaton {
         setupPage: (_, event, meta) => {
             setupPage()
         },
-        saveBboxes: (_, event, actionMeta) => {
+        saveBBoxes: (_, event, actionMeta) => {
             // since actions onexit are called being in the next state already
             // we then have to get the meta from the previous state for the column
             let state = actionMeta.state.history
@@ -74,13 +75,13 @@ export class Automaton {
                 })
             }, 500) // timeout until pdf worker is fully loaded
         },
-        chooseWords: (_, event, actionMeta) => {
+        showBBoxLabeling: (_, event, actionMeta) => {
             console.log(event)
             let meta =
                 actionMeta.state.meta[
                     'annotation.' + actionMeta.state.value
                 ]
-            showChooseWords(
+            showLabelBBoxes(
                 Data.picture,
                 event.data.bboxes,
                 event.data.predicted_labels,
@@ -162,7 +163,7 @@ export class Automaton {
                     console.log('labeling')
                     // loadPicture()
                     break
-                case 'labelWords':
+                case 'labelBBoxes':
                     loadWords()
                     break
                 case 'choosePage':

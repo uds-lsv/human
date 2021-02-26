@@ -2,7 +2,7 @@ import Konva from 'konva'
 import { automaton } from './start'
 import { Data } from './data'
 // import settings from './settings.json';
-import animals from '../data/animals_fr.json'
+import autocomplete_list from '../data/autocomplete.json'
 
 declare var Split
 
@@ -70,8 +70,8 @@ function _flatten_grouped(grouped: Object): any[] {
     for (let group in grouped) {
         console.log(grouped[group])
         element = element.concat(grouped[group])
-        var uniqueNames = []
-        var obj = {}
+        const uniqueNames = []
+        const obj = {}
         element = element.filter(function(item) {
             return obj.hasOwnProperty(item) ? false : (obj[item] = true)
         })
@@ -79,10 +79,10 @@ function _flatten_grouped(grouped: Object): any[] {
     return element
 }
 
-export function showChooseWords(
+export function showLabelBBoxes(
     src: string,
     bboxs: number[][],
-    predicted_words: string[][],
+    predicted_labels: string[][],
     question: string,
     answer?: string
 ) {
@@ -91,8 +91,8 @@ export function showChooseWords(
     }
     Data.annotations[Data.current_column] = {}
 
-    Data.predicted_words = predicted_words
-    predicted_words.forEach((element, index) => {
+    Data.predicted_labels = predicted_labels
+    predicted_labels.forEach((element, index) => {
         Data.annotations[Data.current_column][index] = element[0]
     })
     drawImage(src).then(([ stage, layer, Kimage ]) => {
@@ -101,10 +101,10 @@ export function showChooseWords(
         const scaledbboxes = bboxs.map((bbox) => {
             return new BBox(bbox).scaleFromDefault()
         })
-        Data.guiBboxes = []
+        Data.guiBBoxes = []
         for (let bbox of scaledbboxes) {
             // console.log(bbox)
-            var rect = new Konva.Rect({
+            const rect = new Konva.Rect({
                 x: bbox.x,
                 y: bbox.y,
                 width: bbox.width,
@@ -114,26 +114,22 @@ export function showChooseWords(
                 name: 'rect',
                 // draggable: true
             })
-            var guiBbox = new GuiBBox(rect, false)
-            Data.guiBboxes.push(guiBbox)
+            const guiBBox = new GuiBBox(rect, false)
+            Data.guiBBoxes.push(guiBBox)
             layer.add(rect)
         }
-        Data.guiBboxes[0].guiBox.stroke('red')
-        setupChooseWords(0)
+        setupLabelBBoxes(0)
         layer.draw()
         // add buttons
         $('#question').append(question)
     })
 }
 
-async function setupChooseWords(index) {
-    // const animals = await import(settings.word_list_path);
-    // const animals = await import('./data/animals_fr.json');
-    // console.log(animals);
-    let predicted: string[] = Data.predicted_words[index]
+async function setupLabelBBoxes(index) {
+    let predicted: string[] = Data.predicted_labels[index]
 
-    Data.guiBboxes[index].guiBox.stroke('red')
-    Data.guiBboxes[index].guiBox.parent.draw()
+    Data.guiBBoxes[index].guiBox.stroke('red')
+    Data.guiBBoxes[index].guiBox.parent.draw()
 
     // onclick to add active class to element when clicked
     var activeOnClick = function() {
@@ -179,21 +175,25 @@ async function setupChooseWords(index) {
     }
 
     // initial filter
-    let animals_filtered = predicted //animals.slice(0, 10);
+    let autocomplete_list_filtered = predicted //animals.slice(0, 10);
 
     // input filter
     $('#text-input').on('input', function() {
         let inp = <string>$(this).val()
         if (inp === '') {
-            animals_filtered = predicted
+            autocomplete_list_filtered = predicted
         } else {
-            animals_filtered = animals.filter((element) => {
-                return element.toLowerCase().startsWith(inp.toLowerCase())
-            })
+            autocomplete_list_filtered = autocomplete_list.filter(
+                (element) => {
+                    return element
+                        .toLowerCase()
+                        .startsWith(inp.toLowerCase())
+                }
+            )
             $('#input-item').empty().on('click', activeOnClick).append(inp)
         }
-        console.log(animals_filtered)
-        listController(animals_filtered)
+        console.log(autocomplete_list_filtered)
+        listController(autocomplete_list_filtered)
         $('#input-item').trigger('click')
     })
     // build initial list
@@ -203,7 +203,7 @@ async function setupChooseWords(index) {
             '<button id="input-item" class="list-group-item" style="text-align: left;"></button>'
         )
     )
-    animals_filtered.forEach((animal, i) => {
+    autocomplete_list_filtered.forEach((animal, i) => {
         let item = $(
             '<button class="list-group-item word-list-item"></button>'
         )
@@ -243,7 +243,7 @@ async function setupChooseWords(index) {
 
     let yes = $('<button class="btn btn-primary"></button>')
 
-    if (index < Data.predicted_words.length - 1) {
+    if (index < Data.predicted_labels.length - 1) {
         yes.append('Next')
         yes.on('click', () => {
             yes.off('click')
@@ -256,16 +256,16 @@ async function setupChooseWords(index) {
                     return false
                 }
             })
-            Data.guiBboxes[index].annotated = true
-            Data.guiBboxes[index].guiBox.stroke('green')
-            Data.guiBboxes[index].guiBox.parent.draw()
-            setupChooseWords(index + 1)
+            Data.guiBBoxes[index].annotated = true
+            Data.guiBBoxes[index].guiBox.stroke('green')
+            Data.guiBBoxes[index].guiBox.parent.draw()
+            setupLabelBBoxes(index + 1)
         })
     } else {
         yes.append('Finish')
         yes.on('click', () =>
             automaton.next('NEXT', {
-                words: Data.annotations[Data.current_column],
+                labels: Data.annotations[Data.current_column],
             })
         )
     }
@@ -294,7 +294,7 @@ export function showAnnotatePicture(
         const scaledbboxes = bboxs.map((bbox) => {
             return new BBox(bbox).scaleFromDefault()
         })
-        Data.guiBboxes = []
+        Data.guiBBoxes = []
         for (let bbox of scaledbboxes) {
             // console.log(bbox)
             const rect = new Konva.Rect({
@@ -308,8 +308,8 @@ export function showAnnotatePicture(
                 draggable: true,
             })
 
-            var guiBox = new GuiBBox(rect, false)
-            Data.guiBboxes.push(guiBox)
+            const guiBox = new GuiBBox(rect, false)
+            Data.guiBBoxes.push(guiBox)
             layer.add(rect)
             layer.draw()
         }
@@ -319,7 +319,7 @@ export function showAnnotatePicture(
         yes.append(answer)
         yes.on('click', () => {
             yes.off('click')
-            const scaledbboxes = extractBboxes(layer).map((bbox) => {
+            const scaledbboxes = extractBBoxes(layer).map((bbox) => {
                 return bbox.scaleToDefault().toArray()
             })
             automaton.next('NEXT', { bboxes: scaledbboxes })
@@ -352,14 +352,14 @@ function drawImage(src: string) {
             Data.scales.y = 2500 / image.height
 
             // setup stage with previously calculated scaling
-            var stage = new Konva.Stage({
+            const stage = new Konva.Stage({
                 container: 'picture_content',
                 width: image.width,
                 height: image.height,
             })
             $('.konvajs-content')[0].style['box-shadow'] =
                 '-3px 5px 9px 0px grey'
-            var layer = new Konva.Layer()
+            const layer = new Konva.Layer()
             stage.add(layer)
             // add picture
             let Kimage = new Konva.Image({
@@ -399,8 +399,8 @@ function onClickPicture(stage, layer, Kimage) {
         if (e.target === Kimage) {
             if (stage.find('Transformer').length != 0) {
                 // console.log('redraw')
-                // console.log(extractBboxes(layer))
-                redrawBoxes(layer, extractBboxes(layer))
+                // console.log(extractBBoxes(layer))
+                redrawBoxes(layer, extractBBoxes(layer))
                 // stage.find('Transformer').destroy();
                 // layer.draw();
                 return
@@ -430,10 +430,11 @@ function onClickPicture(stage, layer, Kimage) {
         stage.find('Transformer').destroy()
 
         // create new transformer
-        var tr = new Konva.Transformer({
+        const tr = new Konva.Transformer({
             rotateEnabled: false,
             borderDash: [ 4, 4 ],
             keepRatio: false,
+            ignoreStroke: true,
             borderStrokeWidth: 3,
             borderStroke: 'green',
             anchorSize: 5,
@@ -463,7 +464,7 @@ function onClickPictureWords(stage, layer) {
         if (!e.target.hasName('rect')) {
             return
         }
-        Data.guiBboxes.forEach((bbox) => {
+        Data.guiBBoxes.forEach((bbox) => {
             if (bbox.annotated) {
                 bbox.guiBox.stroke('green')
             } else {
@@ -472,7 +473,13 @@ function onClickPictureWords(stage, layer) {
         })
         e.target.stroke('red')
         layer.draw()
-        setupChooseWords(Data.guiBboxes.map((element) => {return element.guiBox}).indexOf(e.target))
+        setupLabelBBoxes(
+            Data.guiBBoxes
+                .map((element) => {
+                    return element.guiBox
+                })
+                .indexOf(e.target)
+        )
         window['clicked'] = e.target
         window['stage'] = stage
         window['layer'] = layer
@@ -483,7 +490,7 @@ function onClickPictureWords(stage, layer) {
  * extract konva rectangles from layer
  * @param {Konva.Layer} layer 
  */
-function extractBboxes(layer): BBox[] {
+function extractBBoxes(layer): BBox[] {
     // console.log(layer.find('.rect'))
     // window['layer'] = layer
     let bboxes = []

@@ -220,7 +220,7 @@ BBOX_TEMPLATE = """
     on: {{{transitions}
     }},
     entry: [ 'showUI', 'showPictureLabeling' ],
-    exit: [ 'saveBboxes' ],
+    exit: [ 'saveBBoxes' ],
     meta: {{
         question: '{question}',
         answer: '{answer}',
@@ -265,12 +265,12 @@ BBOX_LABEL_TEMPLATE = """
 'show_{idx}': {{
     on: {{{transitions}
     }},
-    entry: [ 'showUI', 'chooseWords' ],
-    exit: [ 'saveBboxes' ],
+    entry: [ 'showUI', 'showBBoxLabeling' ],
+    exit: [ 'saveBBoxes' ],
     meta: {{
         question: '{question}',
         answer: '{answer}',
-        type: 'labelWords',
+        type: 'labelBBoxes',
         column: '{column}',
     }},
 }},

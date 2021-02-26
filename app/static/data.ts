@@ -24,8 +24,8 @@ export let Data = {
     markers: [],
     annotations: new DefaultDict(Array),
     current_column: '',
-    predicted_words: [],
-    guiBboxes: [],
+    predicted_labels: [],
+    guiBBoxes: [],
     scales: { x: 1, y: 1 },
     reset: () => {
         Data.data = undefined
@@ -36,8 +36,8 @@ export let Data = {
         Data.markers = []
         Data.annotations = new DefaultDict(Array)
         Data.current_column = ''
-        Data.predicted_words = []
-        Data.guiBboxes = []
+        Data.predicted_labels = []
+        Data.guiBBoxes = []
         Data.scales = { x: 1, y: 1 }
     },
 }
