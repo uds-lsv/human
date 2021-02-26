@@ -1,4 +1,4 @@
-from flask import request, jsonify, render_template, redirect, url_for, flash, Response, send_file, send_from_directory
+from flask import request, jsonify, render_template, redirect, url_for, flash, Response, send_file, send_from_directory, stream_with_context
 from flask.logging import create_logger
 from requests_toolbelt import MultipartEncoder
 import pandas as pd
@@ -14,6 +14,7 @@ from flask_login import LoginManager, UserMixin, logout_user, login_user, login_
 from datetime import timedelta
 import json
 import os
+import io
 import logging
 from collections import Counter
 
@@ -407,59 +408,79 @@ def upload_folder():
 def data_download():
     """
     Download data in database after converting it to csv/tsv.
-    (Downloading of the data to be restricted to the admin.)
+    Downloading of the data is restricted to the admin.
     """
-
-    app.logger.debug("Requested dowload page")
+    app.logger.debug("Requested data dowload page")
     ## Verify if the logged in user is admin
     if not current_user.admin:
-        app.logger.info("data_downloaded requested by non-admin user")
-        return render_template('login.html',error="login as admin to proceed")
-
+        app.logger.info("data_download requested by non-admin user")
+        return render_template('login.html',error="Login as admin to proceed.")
     if request.method == 'POST':
-        try:
-            os.makedirs('download_data/', exist_ok=False)
-        except Exception as e:
-            app.logger.info("Folder already exists")
-        try:
-            db = get_db()
-            df = pd.read_sql_query("SELECT * FROM annotations", db)
-            df.to_json('download_data/Annotation_comparisons.json')
-            df.to_csv('download_data/annotations.csv', index_label='index', sep=";")
-            df = pd.read_sql_query("SELECT * FROM user", db)
-            print(df)
-            df.to_csv('download_data/user.csv', index_label='index', sep=";")
-            df = pd.read_sql_query("SELECT * FROM data", db)
-            print(df)
-            df.to_csv('download_data/data.csv', index_label='index', sep=";")
-        except Exception as e:
-            app.logger.error("Database Error:"+str(e))
-            raise error_handler.DatabaseError(str(e))
-        try:
-            annotation_df = pd.read_csv('download_data/annotations.csv',sep=';',encoding='utf-8',header=0)
-            users_df = pd.read_csv('download_data/user.csv',sep=';',encoding='utf-8',header=0)
-            data_df = pd.read_csv('download_data/data.csv',sep=';',encoding='utf-8',header=0)
+        df = get_data()
+        return Response(df.to_csv(index_label='index', sep="\t"), headers={'Content-Disposition': f'attachment; filename=data.csv'} ,mimetype='text/csv')
 
-            users_dict = pd.Series(users_df.given_name.values,index=users_df.id).to_dict()
-            comments_dict = pd.Series(data_df.content.values,index=data_df.id).to_dict()
 
-            annotation_df.insert(loc=1,column='Name',value=annotation_df['user'].map(users_dict))
-            annotation_df.insert(loc=1,column='Instance',value=annotation_df['id'].map(comments_dict))
 
-            annotation_df = annotation_df.sort_values(by=['id','Name'])
-            annotation_df.drop(['user'],inplace=True,axis=1)
+@app.route('/annotations_download', methods=["GET", "POST"])
+@login_required
+def annotations_download():
+    """
+    Download annotations in database as csv/tsv.
+    Restricted to the admin.
+    """
+    app.logger.debug("Requested annotations dowload page")
+    # Verify if the logged in user is admin
+    if not current_user.admin:
+        app.logger.info("annotations_download requested by non-admin user")
+        return render_template('login.html',error="Login as admin to proceed.")
+    if request.method == 'POST':
+        df = get_annotations()
+        return Response(df.to_csv(index_label='index', sep="\t"), headers={'Content-Disposition': f'attachment; filename=annotations.csv'} ,mimetype='text/csv')
 
-            try:
-                annotation_df.to_excel('download_data/Annotation_comparisions.xlsx')
-                return send_file('../download_data/Annotation_comparisions.xlsx',as_attachment=True)
 
-            except ImportError as e:
-                annotation_df.to_csv('download_data/Annotation_comparisions.csv')
-                return send_file('../download_data/Annotation_comparisions.csv',as_attachment=True)
-        except Exception as e:
-            app.logger.error("Error:"+str(e))
-            raise error_handler.UnknownError(str(e))
-    return render_template('upload_console.html', user=current_user.fname, admin=current_user.admin)
+@app.route('/user_download', methods=["GET", "POST"])
+@login_required
+def user_download():
+    """
+    n/a yet
+    """
+    # Verify if the logged in user is admin
+    if not current_user.admin:
+        app.logger.info("annotations_download requested by non-admin user")
+        return render_template('login.html',error="Login as admin to proceed.")
+    if request.method == 'POST':
+        df = get_users()
+        return Response(df.to_csv(index_label='index', sep="\t"), headers={'Content-Disposition': f'attachment; filename=annotations.csv'} ,mimetype='text/csv')
+    
+
+@app.route('/all_download', methods=["GET", "POST"])
+@login_required
+def all_download():
+    """
+    Download all data as xlsx file.
+    Restricted to the admin
+    """
+    # Verify if the logged in user is admin
+    if not current_user.admin:
+        app.logger.info("all_download requested by non-admin user")
+        return render_template('login.html',error="Login as admin to proceed.")
+    try:
+        # write relevant database tables to xlsx buffer
+        buffer = io.BytesIO()
+        writer = pd.ExcelWriter(buffer, engine='xlsxwriter')
+        df_annotations = get_annotations()
+        df_annotations.to_excel(writer, sheet_name = 'annotations')
+        df_data = get_data()
+        df_data.to_excel(writer, sheet_name = 'data')
+        df_users = get_users()
+        df_users.to_excel(writer, sheet_name = 'users')
+        writer.save() # implicit close as well
+
+    # if xlsxwriter not installed
+    except ImportError as e:
+        return "Error: " + str(e) + ". The package 'xlsxwriter' is probably not installed. Add it to the python environment for xlsx downloads."
+    # return buffer in response and set file name and mimetype explicitly
+    return Response(buffer.getvalue(), headers={'Content-Disposition': f'attachment; filename=export.xlsx'} ,mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 
 @app.route('/profile', methods=["GET"])
@@ -753,3 +774,15 @@ def get_data() -> pd.DataFrame:
     except Exception as e:
         app.logger.error("Error:" + str(e))
         raise error_handler.UnknownError(str(e))
+
+def get_users() -> pd.DataFrame:
+    try:
+        db = get_db()
+        df_user = pd.read_sql_query("SELECT * FROM user", db)
+        del df_user['password']
+        annotated_amount = [len(row.split()) for row in df_user['annotated']]
+        df_user['annotated_amount'] = annotated_amount
+        return df_user
+    except Exception as e:
+        app.logger.error("Database Error:" + str(e))
+        raise error_handler.DatabaseError(str(e))
