@@ -101,13 +101,7 @@ def choose_text():
         return 'User not found'
     # if nothing annotated return first in list
     if user['annotated'] is None:
-        selected = db.execute(
-            'SELECT * FROM data', ()
-        ).fetchone()
-        if selected is not None:
-            return jsonify(row2dict(selected))
-        else:
-            return 'No available data'
+        annotated = []
     else:
         annotated = user['annotated'].split()
     # select all the id which have less than max_annotations
@@ -116,7 +110,7 @@ def choose_text():
 
     for item in annotation_list:
         try:
-            annotation_by_individual_user = item[0].split()
+            annotation_by_individual_user = (item[0].split() if len(item) > 0 or item is not None else [])
             annotation_count.extend(annotation_by_individual_user)
         except Exception as e:
             app.logger.error("Exception occurred:"+str(e))
@@ -128,7 +122,7 @@ def choose_text():
     already_sufficient_count = [k for (k,v) in annotation_count_dict.items() if v>=max_annotations]
     # add already_sufficient_count to annotated
 
-    annotated.extend(annotation_count_dict)
+    annotated.extend(already_sufficient_count)
 
     # select first which was not annotated yet. join adds '?' dynamically
     query = 'SELECT * FROM data WHERE id NOT IN ({})'.format(','.join('?'*len(annotated))) 
