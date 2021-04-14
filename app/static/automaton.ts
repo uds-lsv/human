@@ -4,7 +4,6 @@ import {
     loadPicture,
     loadWords,
     showLabelBBoxes,
-    showMultilabelBBox,
     showAnnotatePicture,
 } from './pictureLabeling'
 import { showLabeling, showRead } from './textLabeling'
