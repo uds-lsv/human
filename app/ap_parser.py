@@ -322,6 +322,7 @@ end: {
                 .done((res) => {
                     console.log(res)
                     $('#endToast')
+                        .show()
                         .toast({ delay: 5000 })
                         .toast('show')
                 })
