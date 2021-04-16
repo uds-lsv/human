@@ -8,7 +8,7 @@ if [ -f "$CONDA" ]; then
         . "$CONDA"
         CONDA_CHANGEPS1=false 
         conda activate human
-        echo "conda env acticated"
+        echo "conda env activated"
 fi
 
 echo
