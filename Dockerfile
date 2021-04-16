@@ -24,7 +24,6 @@ COPY logo.png .
 COPY start.py .
 
 # WORKDIR app
-EXPOSE 8000
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "human", "gunicorn", "-b=0.0.0.0:8000", "-w=3", "--worker-tmp-dir=/dev/shm", "--log-level=debug", "start"]
 # gunicorn -b=127.0.0.1:8000 -w=3 --log-level=debug start
 # ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "human", "flask", "run", "--host=0.0.0.0"]
