@@ -99,5 +99,9 @@ https://github.com/ruitedk6
 
 https://github.com/GeetDsa
 
+# Paper
+
+https://arxiv.org/abs/2010.01080
+
 # Licence
 HUMAN is licensed under GPL-3.
