@@ -78,13 +78,10 @@
         <a class="nav-link" id="theme-button" href="#">Toogle Dark Mode</a>
       </li>
     </ul>
-    <form class="form-inline my-2 my-lg-0">
+    <form class="form-inline my-2 my-lg-0" style="display: flex;flex-direction: column;">
       {% if user%}
-      <span style="color:green"> Hello {{user}} </span>
-      <a class="badge badge-pill badge-light" href="/logout">logout</a>
-      {% else %}
-      <a class="badge badge-pill badge-light" href="/login">login</a>
-      <a class="badge badge-pill badge-light" href="/register_user">register</a>
+      <span> Hello {{user}} </span>
+      <a class="badge badge-pill badge-light" style="border: black 1px solid;" href="/logout">logout</a>
       {% endif %}
     </form>
   </div>
