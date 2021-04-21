@@ -2735,7 +2735,7 @@ fieldset:disabled a.btn {
 
 .btn-primary {
     color: #fff;
-    background-color: #375a7f;
+    background-color: var(--primary);
     border-color: #375a7f;
 }
 
@@ -5998,6 +5998,7 @@ a.badge-dark.focus {
     padding: 0.75rem 1.25rem;
     background-color: #303030;
     border: 1px solid #444;
+    color: white;
 }
 
 .list-group-item:first-child {
@@ -6020,7 +6021,7 @@ a.badge-dark.focus {
 .list-group-item.active {
     z-index: 2;
     color: #fff;
-    background-color: #375a7f;
+    background-color: var(--primary);
     border-color: #375a7f;
 }
 
