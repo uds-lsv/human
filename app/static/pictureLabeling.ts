@@ -131,115 +131,7 @@ async function setupLabelBBoxes(index) {
     Data.guiBBoxes[index].guiBox.stroke('red')
     Data.guiBBoxes[index].guiBox.parent.draw()
 
-    // onclick to add active class to element when clicked
-    var activeOnClick = function() {
-        // console.log($(this));
-        if ($(this).text() != '') {
-            $('#input-item, .word-list-item').each(function() {
-                $(this).removeClass('active')
-            })
-            $(this).addClass('active')
-        }
-    }
-
-    var activateNext = function() {
-        let index = 0
-        let listitems = $('#input-item, .word-list-item:visible')
-        listitems.each(function(i) {
-            console.log($(this))
-            if ($(this).hasClass('active')) {
-                index = i
-                $(this).removeClass('active')
-            }
-        })
-        index = index > listitems.length - 2 ? 0 : index + 1
-        $(listitems[index]).addClass('active').trigger('focus')
-        console.log($(listitems[index]))
-    }
-
-    // shows filtered list
-    var listController = function(animals_filtered) {
-        $('.word-list-item, .word-list-item:hidden').each(function(index) {
-            // console.log(index);
-            // console.log($(this));
-            let element =
-                index > animals_filtered.length - 1
-                    ? ''
-                    : animals_filtered[index]
-            if (element) {
-                $(this).empty().show().append(element)
-            } else {
-                $(this).empty().hide()
-            }
-        })
-    }
-
-    // initial filter
-    let autocomplete_list_filtered = predicted //animals.slice(0, 10);
-
-    // input filter
-    $('#text-input').on('input', function() {
-        let inp = <string>$(this).val()
-        if (inp === '') {
-            autocomplete_list_filtered = predicted
-        } else {
-            autocomplete_list_filtered = autocomplete_list.filter(
-                (element) => {
-                    return element
-                        .toLowerCase()
-                        .startsWith(inp.toLowerCase())
-                }
-            )
-            $('#input-item').empty().on('click', activeOnClick).append(inp)
-        }
-        console.log(autocomplete_list_filtered)
-        listController(autocomplete_list_filtered)
-        $('#input-item').trigger('click')
-    })
-    // build initial list
-    $('#word-list').empty()
-    $('#word-list').append(
-        $(
-            '<button id="input-item" class="list-group-item" style="text-align: left;"></button>'
-        )
-    )
-    autocomplete_list_filtered.forEach((animal, i) => {
-        let item = $(
-            '<button class="list-group-item word-list-item"></button>'
-        )
-            .on('click', activeOnClick)
-            .append(animal)
-        if (i === 0) item.addClass('active')
-        $('#word-list').append(item)
-    })
-
-    $('#input-item, .word-list-item, #text-input').on('keydown', function(
-        e
-    ) {
-        if (
-            ($(this).val() != '' || $(this).text() != '') &&
-            e.key === 'Tab'
-        ) {
-            // $('#input-item').click();
-            e.preventDefault()
-            // console.log(e);
-            activateNext()
-        }
-    })
-
-    $('#input-item, .word-list-item, #text-input').on('keydown', function(
-        e
-    ) {
-        console.log(e.key)
-        if (
-            ($(this).val() != '' || $(this).text() != '') &&
-            e.key === 'Tab'
-        ) {
-            // $('#input-item').click();
-            e.preventDefault()
-            // activateNext();
-        }
-    })
+    setupAutocompleteList(predicted)
 
     let yes = $('<button class="btn btn-primary"></button>')
 
@@ -273,14 +165,298 @@ async function setupLabelBBoxes(index) {
     $('#answer').empty().append(yes)
 }
 
-function listAnnotated() {
-    // for (let i in Data.annotations[Data.current_column]) {
-    // 	$('.bottomContainer').append(
-    // 		'<button>' + Data.annotations[Data.current_column][i] + '</button> '
-    // 	);
-    // 	console.log(Data.annotations[Data.current_column][i]);
-    // }
+function setupAutocompleteList(prediction: string[]) {
+    // onclick to add active class to element when clicked
+    var activeOnClick = function() {
+        // console.log($(this));
+        if ($(this).text() != '') {
+            $('#input-item, .word-list-item').each(function() {
+                $(this).removeClass('active')
+            })
+            $(this).addClass('active')
+        }
+    }
+
+    var activateNext = function() {
+        let index = 0
+        let listitems = $('#input-item, .word-list-item:visible')
+        listitems.each(function(i) {
+            console.log($(this))
+            if ($(this).hasClass('active')) {
+                index = i
+                $(this).removeClass('active')
+            }
+        })
+        index = index >= listitems.length - 1 ? 0 : index + 1 // if larger than list reset to 1
+        $(listitems[index]).addClass('active').trigger('focus')
+        console.log($(listitems[index]))
+    }
+
+    // shows filtered list
+    var listController = function(autocomplete_filtered) {
+        $('.word-list-item, .word-list-item:hidden').each(function(index) {
+            let element =
+                index > autocomplete_filtered.length - 1
+                    ? ''
+                    : autocomplete_filtered[index]
+            if (element) {
+                $(this).empty().show().append(element)
+            } else {
+                $(this).empty().hide()
+            }
+        })
+    }
+
+    // initial filter
+    let autocomplete_list_filtered = prediction
+
+    // input filter
+    $('#text-input').off('input').on('input', function() {
+        let inp = <string>$(this).val()
+        if (inp === '') {
+            autocomplete_list_filtered = prediction
+            $('#input-item')
+                .empty()
+                .on('click', activeOnClick)
+                .append('/empty/')
+            console.log('empty')
+        } else {
+            autocomplete_list_filtered = autocomplete_list.filter(
+                (element) => {
+                    return element
+                        .toLowerCase()
+                        .startsWith(inp.toLowerCase())
+                }
+            )
+            $('#input-item').empty().on('click', activeOnClick).append(inp)
+        }
+        console.log(autocomplete_list_filtered)
+        listController(autocomplete_list_filtered)
+        $('#input-item').trigger('click')
+    })
+
+    // build initial list
+    $('#word-list').empty()
+    $('#word-list').append(
+        $(
+            '<button id="input-item" class="list-group-item" style="text-align: left;"></button>'
+        ).addClass('active')
+    )
+    for (let i = 0; i < 9; i++) {
+        if (i != 0) {
+            let item = $(
+                '<button class="list-group-item word-list-item"></button>'
+            ).on('click', activeOnClick)
+            if (i < autocomplete_list_filtered.length) {
+                item.append(autocomplete_list_filtered[i])
+            }
+            // item.addClass('active')
+            $('#word-list').append(item)
+        }
+    }
+
+    $('#input-item, .word-list-item, #text-input').on('keydown', function(
+        e
+    ) {
+        if (
+            ($(this).val() != '' || $(this).text() != '') &&
+            e.key === 'Tab'
+        ) {
+            // $('#input-item').click();
+            e.preventDefault()
+            // console.log(e);
+            activateNext()
+        }
+    })
+    $('#text-input').val(prediction[0])
+    $('#input-item').text(prediction[0])
 }
+
+function listAnnotated() {
+    console.log('list annotated')
+    console.log(Data.annotations[Data.current_column])
+    Data.predicted_labels = [
+        [ 'fly', 'blackbird', 'dove', 'ant', 'mosquito', 'lion' ],
+    ]
+
+    const predictionContainer = $('<div style="display: flex"></div>')
+    $('.bottomContainer').append(predictionContainer)
+    predictionContainer.append('<span>+</span>')
+
+    for (let i = 0; i < Data.predicted_labels.length; i++) {
+        predictionContainer.append(
+            '<span>' + Data.predicted_labels[i][0] + '</span>'
+        )
+        if (i < Data.predicted_labels.length - 2) {
+            predictionContainer.append(
+                '<span data-toggle="tooltip" data-placement="top" title="+" style="min-width: 5px"></span>'
+            )
+        }
+        // console.log(Data.predicted_labels[i])
+    }
+    predictionContainer.append('<span>+</span>')
+    // $('[data-toggle="tooltip"]').tooltip()
+    predictionContainer.tooltip()
+}
+
+export function showMultilabelBBox(
+    src: string,
+    bbox: number[],
+    predicted_labels: string[][],
+    question: string,
+    answer?: string
+) {
+    if (!answer) {
+        answer = 'Finish'
+    }
+    Data.annotations[Data.current_column] = {}
+
+    Data.predicted_labels = predicted_labels
+    predicted_labels.forEach((element, index) => {
+        Data.annotations[Data.current_column][index] = element[0]
+    })
+    // DEBUG
+    Data.predicted_labels = [
+        [ 'fly', 'blackbird', 'dove', 'ant', 'mosquito', 'lion' ],
+        [ 'blackbird', 'dove', 'ant', 'mosquito', 'lion', 'fly' ],
+        [ 'dove', 'ant', 'mosquito', 'lion', 'fly', 'blackbird' ],
+        [ 'ant', 'mosquito', 'lion', 'fly', 'blackbird', 'dove' ],
+        [ 'mosquito', 'lion', 'fly', 'blackbird', 'dove', 'ant' ],
+        [ 'lion', 'fly', 'blackbird', 'dove', 'ant', 'mosquito' ],
+    ]
+    predicted_labels = Data.predicted_labels
+    drawImage(src).then(([ stage, layer, Kimage ]) => {
+        onClickPictureWords(stage, layer)
+        const scaledBBox = new BBox(bbox).scaleFromDefault()
+        Data.guiBBoxes = []
+        const rect = new Konva.Rect({
+            x: scaledBBox.x,
+            y: scaledBBox.y,
+            width: scaledBBox.width,
+            height: scaledBBox.height,
+            stroke: 'black',
+            strokeWidth: 3,
+            name: 'rect',
+            // draggable: true
+        })
+
+        const guiBBox = new GuiBBox(rect, false)
+        Data.guiBBoxes.push(guiBBox)
+        layer.add(rect)
+
+        // Data.guiBBoxes[0].guiBox.stroke('red')
+        const labels = drawBBoxLabels(
+            stage,
+            layer,
+            scaledBBox,
+            predicted_labels
+        )
+        listAnnotated()
+
+        setupMultilabelBBox(0, labels)
+        setupAutocompleteList(predicted_labels[0])
+
+        // layer.draw()
+        // add buttons
+        $('#question').append(question)
+
+        let yes = $('<button class="btn btn-primary"></button>')
+        yes.append(answer).on('click', () => {
+            console.log('bla')
+            console.log(predicted_labels)
+            predicted_labels.push([ 'test', 'testrow' ])
+            const labels = drawBBoxLabels(
+                stage,
+                layer,
+                scaledBBox,
+                predicted_labels
+            )
+            setupMultilabelBBox(0, labels)
+        })
+        $('#answer').empty().append(yes)
+    })
+}
+/**
+ * 
+ * @param stage 
+ * @param layer 
+ * @param scaledBBox 
+ * @param predicted_labels 
+ */
+function drawBBoxLabels(
+    stage: Konva.Stage,
+    layer: Konva.Layer,
+    scaledBBox,
+    predicted_labels: string[][]
+) {
+    stage.find('Text').each((child) => child.destroy())
+
+    let offset = scaledBBox.x
+    const labels = []
+    for (let i = 0; i < predicted_labels.length; i++) {
+        const fontSize = 16
+        const text = new Konva.Text({
+            x: offset,
+            y: scaledBBox.y - fontSize - 2,
+            align: 'center',
+            fontSize: fontSize,
+            wrap: 'word',
+            // height
+            text: predicted_labels[i][0],
+        })
+
+        console.log(predicted_labels[i])
+        const textborder = new Konva.Rect({
+            x: offset - 2,
+            y: text.y(),
+            width: text.width() + 4,
+            height: text.height(),
+            stroke: '#555',
+            strokeWidth: 1,
+            fill: '#ddd',
+            cornerRadius: 3,
+        })
+
+        // TODO: full length of box?
+        offset = text.x() + text.width() + 6
+
+        layer.add(textborder)
+        layer.add(text)
+        labels.push(text)
+        // DEBUG
+        window['ktext' + i] = text
+    }
+    stage.off('click')
+    stage.on('click', (e) => {
+        const index = labels.indexOf(e.target)
+        if (index != -1) {
+            console.log('clicked box')
+            console.log(index)
+            setupMultilabelBBox(index, labels)
+            setupAutocompleteList(predicted_labels[index])
+        }
+    })
+    layer.draw()
+
+    return labels
+}
+
+function setupMultilabelBBox(index: number, labels: Konva.Text[]) {
+    // set label colors in Image
+    for (let i = 0; i < labels.length; i++) {
+        if (i === index) {
+            labels[i].fill('red').draw()
+        } else {
+            labels[i].fill('black').draw()
+        }
+        $('#text-input').trigger('focus')
+    }
+    // TODO: set label colors at bottom
+
+    // TODO: setup suggestions in the right panel
+}
+
+function setupSuggestions() {}
 
 export function showAnnotatePicture(
     src: string,
@@ -332,7 +508,9 @@ export function showAnnotatePicture(
  * Draw Image to a {Konva.Stage}
  * @param {string} src Source URL for image
  */
-function drawImage(src: string) {
+function drawImage(
+    src: string
+): Promise<[Konva.Stage, Konva.Layer, Konva.Image]> {
     return new Promise((resolve, reject) => {
         let image = new Image()
         image.onload = () => {
@@ -555,10 +733,12 @@ class BBox implements BBoxI {
         return [ this.x, this.y, this.width, this.height ]
     }
     scaleFromDefault(): BBox {
+        console.log(this)
         this.x = this.x / Data.scales.x
         this.width = this.width / Data.scales.x
         this.y = this.y / Data.scales.y
         this.height = this.height / Data.scales.y
+        console.log(this)
         return this
     }
     scaleToDefault(): BBox {

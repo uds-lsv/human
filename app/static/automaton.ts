@@ -4,6 +4,7 @@ import {
     loadPicture,
     loadWords,
     showLabelBBoxes,
+    showMultilabelBBox,
     showAnnotatePicture,
 } from './pictureLabeling'
 import { showLabeling, showRead } from './textLabeling'
@@ -80,9 +81,29 @@ export class Automaton {
                 actionMeta.state.meta[
                     'annotation.' + actionMeta.state.value
                 ]
-            showLabelBBoxes(
+            showMultilabelBBox(
                 Data.picture,
-                event.data.bboxes,
+                event.data.bboxes[0],
+                event.data.predicted_labels,
+                meta.question,
+                meta.answer
+            )
+            // showLabelBBoxes(
+            //     Data.picture,
+            //     event.data.bboxes,
+            //     event.data.predicted_labels,
+            //     meta.question,
+            //     meta.answer
+            // )
+        },
+        showMultilabelBBox: (_, event, actionMeta) => {
+            let meta =
+                actionMeta.state.meta[
+                    'annotation.' + actionMeta.state.value
+                ]
+            showMultilabelBBox(
+                Data.picture,
+                event.data.bboxes[0],
                 event.data.predicted_labels,
                 meta.question,
                 meta.answer
