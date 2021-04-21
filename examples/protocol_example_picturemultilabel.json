@@ -1,0 +1,19 @@
+{
+    "start": {
+        "type": "loadingFile",
+        "transitions": [ [ "onDone", "0" ] ]
+    },
+    "0": {
+        "type": "bbox",
+        "question": "Draw a bounding box around a line with english animal names.",
+        "api_call": "paragraph_segmentation",
+        "saveAll": true,
+        "transitions": [ [ "NEXT", "3" ] ]
+    },
+    "3": {
+        "type": "bboxMultilabel",
+        "question": "Transcribe each word.",
+        "api_call": "classify_words",
+        "transitions": [ [ "NEXT", "end", [ "save" ] ] ]
+    }
+}

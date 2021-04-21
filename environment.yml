@@ -12,5 +12,4 @@ dependencies:
   - pip
   - pillow
   - pip:
-    - Bootstrap-Flask
     - requests-toolbelt

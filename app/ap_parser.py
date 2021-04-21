@@ -276,6 +276,52 @@ BBOX_LABEL_TEMPLATE = """
 }},
 """
 
+BBOX_MULTILABEL_TEMPLATE = """
+{idx}: {{
+    invoke: {{
+        id: '{idx}',
+        src: (_, event) =>
+            new Promise((resolve, reject) => {{
+                const payload = {{
+                    image: Data.picture,
+                    bboxes: event.data.bboxes
+                    ? event.data.bboxes
+                    : [],
+                    api_call: '{api_call}',
+                }}
+                Service.post(
+                    '/api/callAPI',
+                    'json',
+                    JSON.stringify(payload)
+                ).then((res) => {{
+                    Data.picture = res['image']
+                    resolve(res)
+                }})
+            }}),
+        onDone: {{
+            target: 'show_{idx}',
+            actions: [ 'print' ],
+        }},
+        onError: {{
+            target: 'failure',
+            actions: [ 'print', 'showError' ],
+        }},
+    }},
+}},
+'show_{idx}': {{
+    on: {{{transitions}
+    }},
+    entry: [ 'showUI', 'showMultilabelBBox' ],
+    exit: [ 'saveBBoxes' ],
+    meta: {{
+        question: '{question}',
+        answer: '{answer}',
+        type: 'labelBBoxes',
+        column: '{column}',
+    }},
+}},
+"""
+
 FAILURE_TEMPLATE = """
 failure: {
     invoke: {
@@ -371,7 +417,8 @@ class AP_Parser():
                           'label': BOOLEAN_LABEL_TEMPLATE,
                           'choosePage': CHOOSE_PAGE_TEMPLATE,
                           'bbox': BBOX_TEMPLATE,
-                          'bboxLabel': BBOX_LABEL_TEMPLATE}
+                          'bboxLabel': BBOX_LABEL_TEMPLATE,
+                          'bboxMultilabel': BBOX_MULTILABEL_TEMPLATE}
         self.columns = []
 
    
@@ -420,7 +467,7 @@ class AP_Parser():
                 if saveAll:
                     actions.append('save')
                 # bbox does not need save action
-                if typ in ['bbox', 'bboxLabel'] and 'save' in actions:
+                if typ in ['bbox', 'bboxLabel', 'bboxMultilabel'] and 'save' in actions:
                     actions.remove('save')
                 actions = self.format_actions(actions)
             else: actions = ''
@@ -483,7 +530,7 @@ class AP_Parser():
             # Check if defined type
             typ = question['type']
             defined_types = ['loading', 'loadingFile', 'read', 'boolean', 'select',
-                             'checkmark','label', 'choosePage', 'bbox', 'bboxLabel']
+                             'checkmark','label', 'choosePage', 'bbox', 'bboxLabel', 'bboxMultilabel']
             if typ not in defined_types:
                 logging.error("Question \"{}\": Type \"{}\" not defined. Choose from {}".format(idx, typ, ', '.join(defined_types)))
                 error = True
@@ -505,7 +552,7 @@ class AP_Parser():
                 if typ == 'checkmark' or typ == 'select':
                     unacceptable = ['api_call']
                     necessary = ['question', 'options']
-                if typ in ['bbox', 'bboxLabel']:
+                if typ in ['bbox', 'bboxLabel', 'bboxMultilabel']:
                     unacceptable = ['options']
                     necessary = ['api_call', 'question']
                 error = self.check_fields(question, unacceptable, necessary, typ, idx, error)
@@ -522,7 +569,7 @@ class AP_Parser():
                 if typ in ['loading', 'loadingFile', 'choosePage'] and path != 'onDone':
                     logging.error('Question \"{}\": Question type \"loading\" only accepts transition path \"onDone\".'.format(idx))
                     error = True
-                if typ in ['read', 'checkmark', 'label', 'bbox', 'bboxLabel'] and path != 'NEXT':
+                if typ in ['read', 'checkmark', 'label', 'bbox', 'bboxLabel', 'bboxMultilabel'] and path != 'NEXT':
                     logging.error('Question \"{}\": Question type \"{}\" only accepts transition path \"NEXT\".'.format(idx, typ))
                     error = True
                 if typ == 'boolean' and path not in ['YES', 'NO']:
@@ -578,7 +625,7 @@ class AP_Parser():
                         error = True
 
             # bbox does not need save action (saves by default)
-            if typ in ['bbox', 'bboxLabel'] and type(transition[-1]) == list:
+            if typ in ['bbox', 'bboxLabel', 'bboxMultilabel'] and type(transition[-1]) == list:
                 if 'save' in transition[-1]:
                     logging.info('Question \"{}\": Question type \"{}\" does not require \"save\" action. Saving is performed by default here.'.format(idx, typ))
             # Inform about non-saving questions

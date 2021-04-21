@@ -13,8 +13,6 @@ app.config.from_mapping(
     SECRET_KEY='dev',
     DATABASE=os.path.join(app.instance_path, 'database.sqlite'),
 )
-Bootstrap(app)
-
 init_app(app)
 
 login_manager = LoginManager(app)
