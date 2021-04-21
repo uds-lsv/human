@@ -14,7 +14,9 @@ See our Demo on http://human.lsv.uni-saarland.de
 The only requirements are a working version of node and python 3.7. Using anaconda or miniconda for a python environment is highly recommended.
 To make it easier to install, update and remove node, especially if you plan to maybe use it in other projects we suggest using the node version manager https://github.com/nvm-sh/nvm.
 
-## Installation
+## Setup
+
+### Python environment
 First install the python environment.
 
 With Conda:
@@ -30,14 +32,7 @@ then activate the environment with
 
 OR install from requirements.txt with pip or whatever you fancy.
 
-Next install the node modules. This is used to run gulp tasks to handle Typescript and minify the webpage.
-
-```sh
-npm install
-```
-
-## Setup
-
+### Annotation protocol
 Write your custom annotation protocol into protocol.json. Refer to the [wiki](https://github.com/uds-lsv/human/wiki) for documentation on how to do this and see our example protocols (under `/examples`) for inspiration.
 
 Then customize the variables inside of settings.ts e.g.:
@@ -50,24 +45,29 @@ Then customize the variables inside of settings.ts e.g.:
 Finally run ```setup.sh``` to finish the setup. This script will run the following tasks for you: 
 1. Installing dependencies for gulp 
 2. Parsing the annotation protocol. Be sure to read all warnings and resolve all errors before continuing!
-3. Ask you to set up an admin account (necessary for data upload). You can set that up later as well. 
+3. Ask you to set up an admin account (necessary for data upload).
 4. Set up the database for you
 
-Whenever you change something in the settings or the protocol be sure to run this script again.
+Whenever you change something in the settings or the protocol be sure to run this script again. You can skip steps, like rebuilding the database if necessary.
 
-To run the server locally run 
+To run the server locally for testing purposes run 
 ```sh
 flask start
 ```
 
-When debugging and changing things client side run let gulp watch changes and do tasks automatically: ```npm start watch```
+When debugging and changing things client side it is very convenient to let gulp watch file changes and transpile your code automatically: ```npm start watch```
 
-
-## Adding data
+### Adding data
 To add a file with data, start the server, log in with your admin account, and go to "Data Console". There you can upload the file.
 Be sure that it is a tab separated file with the three columns "content", "context" and "meta".
 
 When you want to display files you can use "Upload Folder" in "Data Console" and then upload a file with ```<folder-name>/<file-name>``` in the content fields for every file in the folder.
+
+# Setup on a server
+When running HUMAN on a server we recommend using gunicorn (also included in the environment). The script ```start_server.sh``` should take care of starting the server, however you have to insert the ip and port yourself and make sure to add the web address into the url field in settings.ts and run setup.sh again.
+
+Another possibility is using the provided Dockerfile to build an image and the run it in a container.
+
 
 # Try our Examples!
 
