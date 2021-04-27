@@ -55,7 +55,7 @@ def call_api():
 @app.route('/api/getdatafile', methods=["GET"])
 def choose_file():
     """
-    This function automatically chooses and returns unannotated data for the current user 
+    This function automatically chooses and returns unannotated data for the current user
     including a file. The path of this file is found in the content field of the database.
     """
     # call choose_text and get a piece of data
@@ -83,57 +83,50 @@ def choose_file():
 @app.route('/api/getdata', methods=["GET", "POST", "OPTIONS"])
 def choose_text():
     """
-    This function automatically chooses and returns a piece of unannotated 
+    This function automatically chooses and returns a piece of unannotated
     data for the current user
     """
     uid = current_user.get_id()
 
     db = get_db()
 
-    row = db.execute('SELECT max_annotations FROM options').fetchone()
-    max_annotations = int(row['max_annotations'])
-    
     # get user from database
     user = db.execute(
         'SELECT * FROM user WHERE id = ?', (uid,)
-        ).fetchone() 
+        ).fetchone()
     if user is None:
         return 'User not found'
-    # if nothing annotated return first in list
-    if user['annotated'] is None:
-        annotated = []
-    else:
-        annotated = user['annotated'].split()
-    # select all the id which have less than max_annotations
-    annotation_list = db.execute('SELECT annotated FROM user').fetchall()
-    annotation_count = []
+    # if user is in the process of annotating data, return the current annotation
+    current_annotation_id = user["current_annotation"]
+    if current_annotation_id != 0:
+        current_annotation = db.execute("SELECT * FROM data WHERE id = ?", (current_annotation_id,)).fetchone()
+        if current_annotation is not None:
+            return jsonify(row2dict(current_annotation))
+        else:
+            # reset to 0 to avoid endless loop, if current annotation is not in DB
+            db.execute("UPDATE user SET current_annotation = 0 WHERE id = ?", (current_user.get_id(),))
+            db.commit()
 
-    for item in annotation_list:
-        try:
-            annotation_by_individual_user = (item[0].split() if len(item) > 0 or item is not None else [])
-            annotation_count.extend(annotation_by_individual_user)
-        except Exception as e:
-            app.logger.error("Exception occurred:"+str(e))
-            pass
+            return choose_text()
+    else: # find new not-yet annotated data
+        # select all the data ids which have less than max_annotations
+        selected = None
+        data_list = db.execute("SELECT * FROM data").fetchall()
+        max_annotations = int(db.execute("SELECT max_annotations FROM options").fetchone()["max_annotations"])
 
-    annotation_count_dict = Counter(annotation_count)
+        # choose first instance with annotation_count <= max_annotations
+        for data_instance in data_list:
+            if int(data_instance["annotation_count"]) < max_annotations:
+                selected = data_instance
+                break
 
-    #retrieve all the annotations higher than max_annotations
-    already_sufficient_count = [k for (k,v) in annotation_count_dict.items() if v>=max_annotations]
-    # add already_sufficient_count to annotated
-
-    annotated.extend(already_sufficient_count)
-
-    # select first which was not annotated yet. join adds '?' dynamically
-    query = 'SELECT * FROM data WHERE id NOT IN ({})'.format(','.join('?'*len(annotated))) 
-    selected = db.execute(
-        query, (annotated)
-        ).fetchone()
-    # return selected
-    if selected is not None:
-        return jsonify(row2dict(selected))
-    else:
-        return 'No available data'
+        if selected is not None:
+            db.execute("UPDATE user SET current_annotation = ? WHERE id = ?", (selected["id"], uid))
+            db.execute("UPDATE data SET annotation_count = ? WHERE id = ?", (int(selected["annotation_count"])+1, selected["id"]))
+            db.commit()
+            return jsonify(row2dict(selected))
+        else:
+            return 'No available data'
 
 @login_required
 @app.route('/api/write_to_db', methods=["POST", "OPTIONS"])
@@ -168,7 +161,9 @@ def write_to_db():
         'UPDATE user set annotated = ? WHERE id = ?',
         (" ".join([current_user.get_annotated(), str(data['data_id'])]), current_user.get_id())
     )
-    
+    # Unconditionally set. If the user completed an annotation, it was current_annotation.
+    db.execute("UPDATE user SET current_annotation = 0 WHERE id = ?", (current_user.get_id(),))
+
     db.commit()
     return 'Success'
 
@@ -210,12 +205,12 @@ def register_user_frontend():
                          fname, lname, email, username, password, confirm_password))
         success, failure = user_handler.register_user(username, email, fname, lname, password, confirm_password)
         app.logger.debug("Success message:{}".format(success if success else "None"))
-        app.logger.debug("Failure message:{}".format(failure if failure else "None"))    
-        
+        app.logger.debug("Failure message:{}".format(failure if failure else "None"))
+
         if success:
             app.logger.info("User {} added succesfully".format(username))
             return render_template('login.html',success=success, user=username)
-    
+
     return render_template('register_user.html', error = failure)
 
 
@@ -271,7 +266,7 @@ def upload_file():
 
     if request.method == 'POST':
         files = request.files.getlist('files[]')
-        
+
         app.logger.info("Files: " + str(files))
         ## Handling Zero inputs
         if len(files) == 1:
@@ -279,7 +274,7 @@ def upload_file():
                 app.logger.info("Submitted 0 (zero) files")
                 return render_template('upload_console.html', error=str("Upload atleast one file"), 
                                        user=current_user.fname, admin=current_user.admin)
-        
+
         # Save the files on the server.
         for file_ in files:
             file_.save('uploaded_files/'+secure_filename(file_.filename))
@@ -302,10 +297,10 @@ def upload_file():
         except Exception as e:
             app.logger.critical('Exception occurred while processing the database while uploading the file:'+str(e))
             raise error_handler.UnknownError(e)
-            
+
         for file_ in files:
             try:
-                df = pd.read_csv('uploaded_files/'+secure_filename(file_.filename), 
+                df = pd.read_csv('uploaded_files/'+secure_filename(file_.filename),
                                  sep='\t', header=0, names=['content', 'context', 'meta'])
 
                 for index, row in df.iterrows():
@@ -322,14 +317,14 @@ def upload_file():
         if failed_files != "":
             app.logger.error("Failed to upload one or more files:"+str(failed_files))
             if success_files == 0:
-                return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files), 
+                return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files),
                                        user=current_user.fname, admin=current_user.admin)
             else:
-                return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files), 
+                return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files),
                                        success=str(success_files)+" files uploaded successfully", user=current_user.fname, admin=current_user.admin)
 
         app.logger.info("Files uploaded successfully:" + str(success_files))
-        return render_template('upload_console.html', success=str(success_files)+" files uploaded successfully", 
+        return render_template('upload_console.html', success=str(success_files)+" files uploaded successfully",
                                user=current_user.fname, admin=current_user.admin)
     else:
         app.logger.debug("from upload_file current User:{}".format(current_user.fname))
@@ -352,12 +347,12 @@ def upload_folder():
     if request.method == 'POST':
         folder = request.files.getlist('folder')
         app.logger.info("Folders: " + str(folder))
-        
+
         ## Handling Zero inputs
         if len(folder) == 1:
             if folder[0].filename == '':
                 app.logger.info("Submitted 0 (zero) folder")
-                return render_template('upload_folder.html', error=str("Upload atleast one folder"), 
+                return render_template('upload_folder.html', error=str("Upload atleast one folder"),
                                        user=current_user.fname, admin=current_user.admin)
 
         #Check if the folder exists
@@ -382,7 +377,7 @@ def upload_folder():
                 app.logger.error("Error uploading file from the folder: "+str(e))
                 failed_files += str(file_.filename)+" "
 
-        
+
         if failed_files != "":
             app.logger.error("Failed to upload one or more files:"+str(failed_files))
             if success_files == 0:
@@ -392,7 +387,7 @@ def upload_folder():
 
         app.logger.info("Files uploaded successfully:" + str(success_files))
         return render_template('upload_console.html', success=str(success_files)+" files uploaded successfully",user=current_user.fname, admin=current_user.admin)
-    
+
     ## GET request
     app.logger.debug("from upload_file current User:{}".format(current_user.fname))
     return render_template('upload_console.html', user=current_user.fname, admin=current_user.admin)
@@ -445,7 +440,7 @@ def user_download():
     if request.method == 'POST':
         df = get_users()
         return Response(df.to_csv(index_label='index', sep="\t"), headers={'Content-Disposition': f'attachment; filename=annotations.csv'} ,mimetype='text/csv')
-    
+
 
 @app.route('/all_download', methods=["GET", "POST"])
 @login_required
@@ -498,9 +493,9 @@ def load_profile():
         annotation_by_individual_user = 0
     # get user from database
 
-    return render_template('profile.html', fname=current_user.fname, lname=current_user.lname, 
-                           username=current_user.username, user_type=current_user.user_type, 
-                           email=current_user.email, user=current_user.fname, 
+    return render_template('profile.html', fname=current_user.fname, lname=current_user.lname,
+                           username=current_user.username, user_type=current_user.user_type,
+                           email=current_user.email, user=current_user.fname,
                            admin=current_user.admin, annotation_by_individual_user = annotation_by_individual_user)
 
 @app.route('/api/changePassword', methods=["GET", "POST"])
@@ -519,12 +514,12 @@ def change_password():
         confirm_new_password = request.form['confirm_new_password']
         app.logger.debug("Requested resource: password:{} confirm_password: {} new_password:{}, confirm_new_password:{}".format(
                          password, confirm_password, new_password, confirm_new_password))
-        success, failure = user_handler.change_password(current_user.username, password, 
+        success, failure = user_handler.change_password(current_user.username, password,
                                                         confirm_password, new_password,
                                                         confirm_new_password)
         app.logger.debug("Success message:{}".format(success if success else "None"))
         app.logger.debug("Failure message:{}".format(failure if failure else "None"))
-    return render_template('changePassword.html', user=current_user.fname, 
+    return render_template('changePassword.html', user=current_user.fname,
                            admin=current_user.admin, success = success, error = failure)
 
 @app.route('/adminConsole', methods=["GET", "POST"])
@@ -567,7 +562,7 @@ def admin_console():
         except Exception as e:
             app.logger.error("Exception:"+str(e))
             annotation_by_individual_user = 0
-        return render_template('adminConsole.html', user=current_user.fname, admin=current_user.admin, 
+        return render_template('adminConsole.html', user=current_user.fname, admin=current_user.admin,
                                active_users=active_users['username'], inactive_users=inactive_users['username'],
                                all_users=df['username'], fname=user1.fname, lname=user1.lname, username=user1.username,
                                user_type=user1.user_type, email=user1.email, active_account=user1.is_approved,annotation_by_individual_user=annotation_by_individual_user)
@@ -642,7 +637,7 @@ def activate_user():
 
     app.logger.debug("Success message:{}".format(success if success else "None"))
     app.logger.debug("Failure message:{}".format(failure if failure else "None"))
-  
+
     return redirect(url_for('admin_console', success=success, failure=failure))
 
 @app.route('/api/deactivate_user',methods=["POST"])
@@ -666,7 +661,7 @@ def deactivate_user():
 @login_required
 def change_password_admin():
     """
-    Change the password for normal user by calling the method in user_handler. 
+    Change the password for normal user by calling the method in user_handler.
     (Action performed by the admin on behalf of other user)
     """
     app.logger.debug("from change_password_user")
