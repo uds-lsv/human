@@ -645,7 +645,9 @@ class AP_Parser():
                               "password text not null,\n" +\
                               "user_type text not null,\n" +\
                               "is_approved text not null,\n" +\
-                              "annotated text\n);\n")
+                              "annotated text,\n" +\
+                              "current_annotation integer not null default 0" +\
+                              ");\n")
             out.write('\n')
 
             # Create data table
@@ -654,7 +656,9 @@ class AP_Parser():
                               "(\nid integer primary key autoincrement not null,\n" +\
                               "content text not null,\n" +\
                               "context text,\n" +\
-                              "meta text\n);\n")
+                              "meta text,\n" +\
+                              "annotation_count integer not null default 0"
+                              ");\n")
             out.write('\n')
 
             # Create annotations table
