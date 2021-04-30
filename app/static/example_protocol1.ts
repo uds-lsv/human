@@ -282,7 +282,7 @@ export const pictureProtocol = {
             on: {
                 NEXT: { target: 'start' },
             },
-            entry: [ 'showUI', 'showBBoxLabeling' ],
+            entry: [ 'showUI', 'showLabelBBox' ],
             exit: [ 'saveBBoxes' ],
 
             meta: {
