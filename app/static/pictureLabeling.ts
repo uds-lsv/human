@@ -253,39 +253,6 @@ function setAnnotation(task: ITask) {
     task.setCurrentIndex(task.currentIndex + 1)
 }
 
-function listAnnotated() {
-    console.log('list annotated')
-    const buttonContainer = $('<div style="display: flex"></div>')
-    $('.bottomContainer').append(buttonContainer)
-    buttonContainer.append(
-        $('<button id="insertPrev" class="btn btn-primary">< +</button>')
-    )
-    buttonContainer.append(
-        $('<button id="insertNext" class="btn btn-primary">+ ></button>')
-    )
-
-    // Failed attempt. Wanted to show all labels at the bottom again with buttons to add in between the labels
-    // const predictionContainer = $('<div style="display: flex"></div>')
-    // $('.bottomContainer').append(predictionContainer)
-
-    // predictionContainer.append('<span>+</span>')
-
-    // for (let i = 0; i < Data.predicted_labels.length; i++) {
-    //     predictionContainer.append(
-    //         '<span>' + Data.predicted_labels[i][0] + '</span>'
-    //     )
-    //     if (i < Data.predicted_labels.length - 2) {
-    //         predictionContainer.append(
-    //             '<span data-toggle="tooltip" data-placement="top" title="+" style="min-width: 5px"></span>'
-    //         )
-    //     }
-    //     // console.log(Data.predicted_labels[i])
-    // }
-    // predictionContainer.append('<span>+</span>')
-    // // $('[data-toggle="tooltip"]').tooltip()
-    // predictionContainer.tooltip()
-}
-
 export function showMultilabelBBox(
     src: string,
     bbox: number[],
@@ -332,7 +299,20 @@ export function showMultilabelBBox(
         )
 
         multilabelBBoxTask.drawBBoxLabels()
-        listAnnotated()
+
+        // setup controls in bottomcontainer
+        const buttonContainer = $('<div style="display: flex"></div>')
+        $('.bottomContainer').append(buttonContainer)
+        buttonContainer.append(
+            $(
+                '<button id="insertPrev" class="btn btn-primary">< +</button>'
+            )
+        )
+        buttonContainer.append(
+            $(
+                '<button id="insertNext" class="btn btn-primary">+ ></button>'
+            )
+        )
 
         multilabelBBoxTask.setCurrentIndex(0)
         setupAutocompleteList(predicted_labels[0], multilabelBBoxTask)
@@ -348,6 +328,7 @@ export function showMultilabelBBox(
             console.log('test finish')
             // TODO automaton next and add annotations
             setAnnotation(multilabelBBoxTask)
+            buttonContainer.remove()
             automaton.next('NEXT', {
                 labels: multilabelBBoxTask.annotations,
             })
@@ -602,7 +583,6 @@ class LabelBBoxTask implements ITask {
                 })
             )
         }
-        listAnnotated()
         $('#answer').empty().append(yes)
     }
     drawBBoxLabels() {}
@@ -751,7 +731,6 @@ class MultilabelBBoxTask implements ITask {
             const index = labels.indexOf(e.target)
             if (index != -1) {
                 console.log('clicked box')
-                console.log(index)
                 this.setCurrentIndex(index)
                 setupAutocompleteList(this.predicted_labels[index], this)
             }
