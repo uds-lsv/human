@@ -89,15 +89,14 @@ export function showLabelBBoxes(
     if (!answer) {
         answer = 'Finish'
     }
-    Data.annotations[Data.current_column] = {}
+    // TODO put this into class
+    const annotations = []
 
     Data.predicted_labels = predicted_labels
     predicted_labels.forEach((element, index) => {
-        Data.annotations[Data.current_column][index] = element[0]
+        annotations.push([ element[0], element[0] ])
     })
     drawImage(src).then(([ stage, layer, Kimage ]) => {
-        onClickPictureWords(stage, layer)
-
         const scaledbboxes = bboxs.map((bbox) => {
             return new BBox(bbox).scaleFromDefault()
         })
@@ -118,54 +117,17 @@ export function showLabelBBoxes(
             Data.guiBBoxes.push(guiBBox)
             layer.add(rect)
         }
-        setupLabelBBoxes(0)
+        const labelBBoxTask = new LabelBBoxTask()
+        labelBBoxTask.setCurrentIndex(0)
+        labelBBoxTask.onClickPictureWords(stage, layer)
+
         layer.draw()
         // add buttons
         $('#question').append(question)
     })
 }
 
-async function setupLabelBBoxes(index) {
-    let predicted: string[] = Data.predicted_labels[index]
-
-    Data.guiBBoxes[index].guiBox.stroke('red')
-    Data.guiBBoxes[index].guiBox.parent.draw()
-
-    setupAutocompleteList(predicted)
-
-    let yes = $('<button class="btn btn-primary"></button>')
-
-    if (index < Data.predicted_labels.length - 1) {
-        yes.append('Next')
-        yes.on('click', () => {
-            yes.off('click')
-            $('#input-item, .word-list-item').each(function() {
-                if ($(this).hasClass('active')) {
-                    Data.annotations[Data.current_column][index] = $(
-                        this
-                    ).text()
-                    $(this).removeClass('active')
-                    return false
-                }
-            })
-            Data.guiBBoxes[index].annotated = true
-            Data.guiBBoxes[index].guiBox.stroke('green')
-            Data.guiBBoxes[index].guiBox.parent.draw()
-            setupLabelBBoxes(index + 1)
-        })
-    } else {
-        yes.append('Finish')
-        yes.on('click', () =>
-            automaton.next('NEXT', {
-                labels: Data.annotations[Data.current_column],
-            })
-        )
-    }
-    listAnnotated()
-    $('#answer').empty().append(yes)
-}
-
-function setupAutocompleteList(prediction: string[]) {
+function setupAutocompleteList(prediction: string[], task: ITask) {
     // onclick to add active class to element when clicked
     var activeOnClick = function() {
         // console.log($(this));
@@ -213,7 +175,7 @@ function setupAutocompleteList(prediction: string[]) {
     // input filter
     $('#text-input').off('input').on('input', function() {
         let inp = <string>$(this).val()
-        if (inp === '') {
+        if (inp.trim() === '') {
             autocomplete_list_filtered = prediction
             $('#input-item')
                 .empty()
@@ -255,48 +217,73 @@ function setupAutocompleteList(prediction: string[]) {
         }
     }
 
-    $('#input-item, .word-list-item, #text-input').on('keydown', function(
-        e
-    ) {
-        if (
-            ($(this).val() != '' || $(this).text() != '') &&
-            e.key === 'Tab'
-        ) {
-            // $('#input-item').click();
-            e.preventDefault()
-            // console.log(e);
-            activateNext()
-        }
-    })
+    $('#input-item, .word-list-item, #text-input')
+        .off('keyup')
+        .on('keyup', function(e) {
+            if (
+                ($(this).val() != '' || $(this).text() != '') &&
+                e.key === 'Tab'
+            ) {
+                // $('#input-item').click();
+                e.preventDefault()
+                // console.log(e);
+                activateNext()
+            }
+            if (e.key === 'Enter') {
+                // $('#input-item').click();
+                e.preventDefault()
+                setAnnotation(task)
+            }
+        })
     $('#text-input').val(prediction[0])
     $('#input-item').text(prediction[0])
 }
 
+// TODO refactor this and probably transform into class method
+function setAnnotation(task: ITask) {
+    let listitems = $('#input-item, .word-list-item:visible')
+    listitems.each(function(i) {
+        if ($(this).hasClass('active')) {
+            task.annotations[task.currentIndex][0] = $(this).text()
+            task.predicted_labels[task.currentIndex][0] = $(this).text()
+            return false
+        }
+    })
+    task.drawBBoxLabels()
+    task.setCurrentIndex(task.currentIndex + 1)
+}
+
 function listAnnotated() {
     console.log('list annotated')
-    console.log(Data.annotations[Data.current_column])
-    Data.predicted_labels = [
-        [ 'fly', 'blackbird', 'dove', 'ant', 'mosquito', 'lion' ],
-    ]
+    const buttonContainer = $('<div style="display: flex"></div>')
+    $('.bottomContainer').append(buttonContainer)
+    buttonContainer.append(
+        $('<button id="insertPrev" class="btn btn-primary">< +</button>')
+    )
+    buttonContainer.append(
+        $('<button id="insertNext" class="btn btn-primary">+ ></button>')
+    )
 
-    const predictionContainer = $('<div style="display: flex"></div>')
-    $('.bottomContainer').append(predictionContainer)
-    predictionContainer.append('<span>+</span>')
+    // Failed attempt. Wanted to show all labels at the bottom again with buttons to add in between the labels
+    // const predictionContainer = $('<div style="display: flex"></div>')
+    // $('.bottomContainer').append(predictionContainer)
 
-    for (let i = 0; i < Data.predicted_labels.length; i++) {
-        predictionContainer.append(
-            '<span>' + Data.predicted_labels[i][0] + '</span>'
-        )
-        if (i < Data.predicted_labels.length - 2) {
-            predictionContainer.append(
-                '<span data-toggle="tooltip" data-placement="top" title="+" style="min-width: 5px"></span>'
-            )
-        }
-        // console.log(Data.predicted_labels[i])
-    }
-    predictionContainer.append('<span>+</span>')
-    // $('[data-toggle="tooltip"]').tooltip()
-    predictionContainer.tooltip()
+    // predictionContainer.append('<span>+</span>')
+
+    // for (let i = 0; i < Data.predicted_labels.length; i++) {
+    //     predictionContainer.append(
+    //         '<span>' + Data.predicted_labels[i][0] + '</span>'
+    //     )
+    //     if (i < Data.predicted_labels.length - 2) {
+    //         predictionContainer.append(
+    //             '<span data-toggle="tooltip" data-placement="top" title="+" style="min-width: 5px"></span>'
+    //         )
+    //     }
+    //     // console.log(Data.predicted_labels[i])
+    // }
+    // predictionContainer.append('<span>+</span>')
+    // // $('[data-toggle="tooltip"]').tooltip()
+    // predictionContainer.tooltip()
 }
 
 export function showMultilabelBBox(
@@ -309,24 +296,13 @@ export function showMultilabelBBox(
     if (!answer) {
         answer = 'Finish'
     }
-    Data.annotations[Data.current_column] = {}
+    const annotations = []
 
     Data.predicted_labels = predicted_labels
     predicted_labels.forEach((element, index) => {
-        Data.annotations[Data.current_column][index] = element[0]
+        annotations.push([ element[0], element[0] ])
     })
-    // DEBUG
-    Data.predicted_labels = [
-        [ 'fly', 'blackbird', 'dove', 'ant', 'mosquito', 'lion' ],
-        [ 'blackbird', 'dove', 'ant', 'mosquito', 'lion', 'fly' ],
-        [ 'dove', 'ant', 'mosquito', 'lion', 'fly', 'blackbird' ],
-        [ 'ant', 'mosquito', 'lion', 'fly', 'blackbird', 'dove' ],
-        [ 'mosquito', 'lion', 'fly', 'blackbird', 'dove', 'ant' ],
-        [ 'lion', 'fly', 'blackbird', 'dove', 'ant', 'mosquito' ],
-    ]
-    predicted_labels = Data.predicted_labels
     drawImage(src).then(([ stage, layer, Kimage ]) => {
-        onClickPictureWords(stage, layer)
         const scaledBBox = new BBox(bbox).scaleFromDefault()
         Data.guiBBoxes = []
         const rect = new Konva.Rect({
@@ -343,117 +319,59 @@ export function showMultilabelBBox(
         const guiBBox = new GuiBBox(rect, false)
         Data.guiBBoxes.push(guiBBox)
         layer.add(rect)
-
-        // Data.guiBBoxes[0].guiBox.stroke('red')
-        const labels = drawBBoxLabels(
-            stage,
-            layer,
+        layer.draw()
+        layer = new Konva.Layer()
+        stage.add(layer)
+        // this works
+        const multilabelBBoxTask = new MultilabelBBoxTask(
+            predicted_labels,
+            annotations,
             scaledBBox,
-            predicted_labels
+            layer,
+            stage
         )
+
+        multilabelBBoxTask.drawBBoxLabels()
         listAnnotated()
 
-        setupMultilabelBBox(0, labels)
-        setupAutocompleteList(predicted_labels[0])
+        multilabelBBoxTask.setCurrentIndex(0)
+        setupAutocompleteList(predicted_labels[0], multilabelBBoxTask)
 
         // layer.draw()
         // add buttons
         $('#question').append(question)
 
         let yes = $('<button class="btn btn-primary"></button>')
-        yes.append(answer).on('click', () => {
-            console.log('bla')
-            console.log(predicted_labels)
-            predicted_labels.push([ 'test', 'testrow' ])
-            const labels = drawBBoxLabels(
-                stage,
-                layer,
-                scaledBBox,
-                predicted_labels
-            )
-            setupMultilabelBBox(0, labels)
+        yes.append(answer)
+        yes.on('click', () => {
+            // yes.off('click')
+            console.log('test finish')
+            // TODO automaton next and add annotations
+            setAnnotation(multilabelBBoxTask)
+            automaton.next('NEXT', {
+                labels: multilabelBBoxTask.annotations,
+            })
         })
         $('#answer').empty().append(yes)
-    })
-}
-/**
- * 
- * @param stage 
- * @param layer 
- * @param scaledBBox 
- * @param predicted_labels 
- */
-function drawBBoxLabels(
-    stage: Konva.Stage,
-    layer: Konva.Layer,
-    scaledBBox,
-    predicted_labels: string[][]
-) {
-    stage.find('Text').each((child) => child.destroy())
 
-    let offset = scaledBBox.x
-    const labels = []
-    for (let i = 0; i < predicted_labels.length; i++) {
-        const fontSize = 16
-        const text = new Konva.Text({
-            x: offset,
-            y: scaledBBox.y - fontSize - 2,
-            align: 'center',
-            fontSize: fontSize,
-            wrap: 'word',
-            // height
-            text: predicted_labels[i][0],
-        })
-
-        console.log(predicted_labels[i])
-        const textborder = new Konva.Rect({
-            x: offset - 2,
-            y: text.y(),
-            width: text.width() + 4,
-            height: text.height(),
-            stroke: '#555',
-            strokeWidth: 1,
-            fill: '#ddd',
-            cornerRadius: 3,
-        })
-
-        // TODO: full length of box?
-        offset = text.x() + text.width() + 6
-
-        layer.add(textborder)
-        layer.add(text)
-        labels.push(text)
-        // DEBUG
-        window['ktext' + i] = text
-    }
-    stage.off('click')
-    stage.on('click', (e) => {
-        const index = labels.indexOf(e.target)
-        if (index != -1) {
-            console.log('clicked box')
-            console.log(index)
-            setupMultilabelBBox(index, labels)
-            setupAutocompleteList(predicted_labels[index])
+        // Add buttons for inserting new labels
+        const insertLabel = (index) => {
+            multilabelBBoxTask.predicted_labels.splice(index, 0, [ '' ])
+            multilabelBBoxTask.annotations.splice(index, 0, [
+                '/empty/',
+                '/empty/',
+            ])
+            multilabelBBoxTask.predicted_labels = predicted_labels
+            multilabelBBoxTask.drawBBoxLabels()
+            multilabelBBoxTask.setCurrentIndex(index)
         }
+        $('#insertPrev').on('click', () => {
+            insertLabel(multilabelBBoxTask.currentIndex)
+        })
+        $('#insertNext').on('click', () => {
+            insertLabel(multilabelBBoxTask.currentIndex + 1)
+        })
     })
-    layer.draw()
-
-    return labels
-}
-
-function setupMultilabelBBox(index: number, labels: Konva.Text[]) {
-    // set label colors in Image
-    for (let i = 0; i < labels.length; i++) {
-        if (i === index) {
-            labels[i].fill('red').draw()
-        } else {
-            labels[i].fill('black').draw()
-        }
-        $('#text-input').trigger('focus')
-    }
-    // TODO: set label colors at bottom
-
-    // TODO: setup suggestions in the right panel
 }
 
 function setupSuggestions() {}
@@ -630,38 +548,220 @@ function onClickPicture(stage, layer, Kimage) {
     })
 }
 
-/**
- * 
- * @param stage 
- * @param layer 
- * @param Kimage 
- */
-function onClickPictureWords(stage, layer) {
-    stage.off('click tap')
-    stage.on('click tap', function(e) {
-        if (!e.target.hasName('rect')) {
-            return
+interface ITask {
+    currentIndex
+    guiBBoxes: GuiBBox[]
+    predicted_labels: string[][]
+    annotations: string[][]
+    /** */
+    setCurrentIndex(index: number)
+    drawBBoxLabels()
+}
+
+class LabelBBoxTask implements ITask {
+    // TODO make all relevant functions to methods
+
+    currentIndex = 0
+    guiBBoxes: GuiBBox[] = []
+    predicted_labels: string[][]
+    annotations: string[][]
+    constructor() {}
+
+    setCurrentIndex(index: number) {
+        let predicted: string[] = Data.predicted_labels[index]
+
+        Data.guiBBoxes[index].guiBox.stroke('red')
+        Data.guiBBoxes[index].guiBox.parent.draw()
+
+        setupAutocompleteList(predicted, this)
+
+        let yes = $('<button class="btn btn-primary"></button>')
+
+        if (index < Data.predicted_labels.length - 1) {
+            yes.append('Next')
+            yes.on('click', () => {
+                yes.off('click')
+                const self = this
+                $('#input-item, .word-list-item').each(function() {
+                    if ($(this).hasClass('active')) {
+                        self.annotations[index][0] = $(this).text()
+                        $(this).removeClass('active')
+                        return false
+                    }
+                })
+                Data.guiBBoxes[index].annotated = true
+                Data.guiBBoxes[index].guiBox.stroke('green')
+                Data.guiBBoxes[index].guiBox.parent.draw()
+                this.setCurrentIndex(index + 1)
+            })
+        } else {
+            yes.append('Finish')
+            yes.on('click', () =>
+                automaton.next('NEXT', {
+                    labels: this.annotations,
+                })
+            )
         }
-        Data.guiBBoxes.forEach((bbox) => {
-            if (bbox.annotated) {
-                bbox.guiBox.stroke('green')
+        listAnnotated()
+        $('#answer').empty().append(yes)
+    }
+    drawBBoxLabels() {}
+
+    onClickPictureWords(stage, layer) {
+        stage.off('click tap')
+        stage.on('click tap', (e) => {
+            if (!e.target.hasName('rect')) {
+                return
+            }
+            Data.guiBBoxes.forEach((bbox) => {
+                if (bbox.annotated) {
+                    bbox.guiBox.stroke('green')
+                } else {
+                    bbox.guiBox.stroke('black')
+                }
+            })
+            e.target.stroke('red')
+            layer.draw()
+            this.setCurrentIndex(
+                Data.guiBBoxes
+                    .map((element) => {
+                        return element.guiBox
+                    })
+                    .indexOf(e.target)
+            )
+            window['clicked'] = e.target
+            window['stage'] = stage
+            window['layer'] = layer
+        })
+    }
+}
+
+class MultilabelBBoxTask implements ITask {
+    // TODO make all relevant functions to methods
+    guiBBoxes: GuiBBox[] = []
+
+    currentIndex = 0
+    bbox: BBoxI
+    kLabels: Konva.Text[]
+    kBoxes: Konva.Rect[]
+    predicted_labels: string[][]
+    annotations: string[][]
+    layer
+    stage
+
+    constructor(
+        predicted_labels: string[][],
+        annotations,
+        bbox: BBox,
+        layer,
+        stage
+    ) {
+        this.predicted_labels = predicted_labels
+        this.annotations = annotations
+        this.bbox = bbox
+        this.layer = layer
+        this.stage = stage
+    }
+
+    setCurrentIndex(index: number) {
+        // reset current index to start when larger than list
+        this.currentIndex = index > this.kBoxes.length - 1 ? 0 : index
+        console.log(this.currentIndex)
+        // set label colors in Image
+        for (let i = 0; i < this.kBoxes.length; i++) {
+            if (i === this.currentIndex) {
+                this.kBoxes[i].stroke('red').draw()
             } else {
-                bbox.guiBox.stroke('black')
+                this.kBoxes[i].stroke('black').draw()
+            }
+            this.kLabels[i].text(this.annotations[i][0]).draw()
+            $('#text-input').trigger('focus')
+        }
+        setupAutocompleteList(
+            this.predicted_labels[this.currentIndex],
+            this
+        )
+        // TODO: set label colors at bottom
+
+        // TODO: setup suggestions in the right panel
+    }
+
+    /**
+     * 
+     * @param stage 
+     * @param layer 
+     * @param scaledBBox 
+     * @param predicted_labels 
+     */
+    drawBBoxLabels(
+        stage?,
+        layer?,
+        scaledBBox?,
+        predicted_labels?: string[][]
+    ) {
+        // TODO refactor this and remove arguments
+        layer = this.layer
+        stage = this.stage
+        scaledBBox = this.bbox
+
+        layer.getChildren().each((node) => node.destroy())
+
+        let offset = scaledBBox.x
+        const labels = []
+        const boxes = []
+        for (let i = 0; i < this.annotations.length; i++) {
+            const fontSize = 16
+            const text = new Konva.Text({
+                x: offset,
+                y: scaledBBox.y - fontSize - 2,
+                align: 'center',
+                fontSize: fontSize,
+                wrap: 'word',
+                // stroke: 'black',
+                fill: 'black',
+                // height
+                text: this.annotations[i][0],
+            })
+
+            const textborder = new Konva.Rect({
+                x: offset - 2,
+                y: text.y(),
+                width: text.width() + 4,
+                height: text.height(),
+                stroke: '#555',
+                strokeWidth: 1,
+                fill: '#ddd',
+                cornerRadius: 3,
+            })
+
+            // TODO: full length of box?
+            offset = text.x() + text.width() + 6
+
+            layer.add(textborder)
+            layer.add(text)
+            labels.push(text)
+            boxes.push(textborder)
+            // DEBUG
+            // window['ktext' + i] = text
+        }
+        stage.off('click')
+        stage.on('click', (e) => {
+            // console.log(labels)
+            // console.log(e.target)
+            const index = labels.indexOf(e.target)
+            if (index != -1) {
+                console.log('clicked box')
+                console.log(index)
+                this.setCurrentIndex(index)
+                setupAutocompleteList(this.predicted_labels[index], this)
             }
         })
-        e.target.stroke('red')
         layer.draw()
-        setupLabelBBoxes(
-            Data.guiBBoxes
-                .map((element) => {
-                    return element.guiBox
-                })
-                .indexOf(e.target)
-        )
-        window['clicked'] = e.target
-        window['stage'] = stage
-        window['layer'] = layer
-    })
+        // console.log('jo')
+        this.kLabels = labels
+        this.kBoxes = boxes
+        // return [ boxes, labels ]
+    }
 }
 
 /**
@@ -733,12 +833,10 @@ class BBox implements BBoxI {
         return [ this.x, this.y, this.width, this.height ]
     }
     scaleFromDefault(): BBox {
-        console.log(this)
         this.x = this.x / Data.scales.x
         this.width = this.width / Data.scales.x
         this.y = this.y / Data.scales.y
         this.height = this.height / Data.scales.y
-        console.log(this)
         return this
     }
     scaleToDefault(): BBox {
