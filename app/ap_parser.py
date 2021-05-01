@@ -265,7 +265,7 @@ BBOX_LABEL_TEMPLATE = """
 'show_{idx}': {{
     on: {{{transitions}
     }},
-    entry: [ 'showUI', 'showBBoxLabeling' ],
+    entry: [ 'showUI', 'showLabelBBox' ],
     exit: [ 'saveBBoxes' ],
     meta: {{
         question: '{question}',

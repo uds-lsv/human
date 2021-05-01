@@ -13,7 +13,7 @@
     "3": {
         "type": "bboxMultilabel",
         "question": "Transcribe each word.",
-        "api_call": "classify_words",
+        "api_call": "classify_multilabel",
         "transitions": [ [ "NEXT", "end", [ "save" ] ] ]
     }
 }

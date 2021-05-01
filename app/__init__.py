@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_bootstrap import Bootstrap
 from app.db import get_db, init_app
 from flask_login import LoginManager
 import os

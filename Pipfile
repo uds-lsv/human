@@ -1,0 +1,34 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+certifi = "*"
+chardet = "*"
+click = "*"
+flask = "*"
+flask-cors = "*"
+flask-login = "*"
+gunicorn = "*"
+idna = "*"
+itsdangerous = "*"
+jinja2 = "*"
+MarkupSafe = "*"
+numpy = "*"
+olefile = "*"
+pandas = "*"
+Pillow = "*"
+python-dateutil = "*"
+pytz = "*"
+requests = "*"
+requests-toolbelt = "*"
+six = "*"
+urllib3 = "*"
+Werkzeug = "*"
+XlsxWriter = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

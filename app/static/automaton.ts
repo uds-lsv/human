@@ -20,6 +20,7 @@ import { showPDF } from './services/pdf'
 
 export class Automaton {
     CURRENTSTATE: any
+
     currentannotation
     machine: any
     timestamp = new Date().getTime()
@@ -75,28 +76,22 @@ export class Automaton {
                 })
             }, 500) // timeout until pdf worker is fully loaded
         },
-        showBBoxLabeling: (_, event, actionMeta) => {
+        showLabelBBox: (_, event, actionMeta) => {
             console.log(event)
             let meta =
                 actionMeta.state.meta[
                     'annotation.' + actionMeta.state.value
                 ]
-            showMultilabelBBox(
+            showLabelBBoxes(
                 Data.picture,
-                event.data.bboxes[0],
+                event.data.bboxes,
                 event.data.predicted_labels,
                 meta.question,
                 meta.answer
             )
-            // showLabelBBoxes(
-            //     Data.picture,
-            //     event.data.bboxes,
-            //     event.data.predicted_labels,
-            //     meta.question,
-            //     meta.answer
-            // )
         },
-        showMultilabelBBox: (_, event, actionMeta) => {
+        showMultilabelBBox: async (_, event, actionMeta) => {
+            await loadWords()
             let meta =
                 actionMeta.state.meta[
                     'annotation.' + actionMeta.state.value
@@ -151,7 +146,9 @@ export class Automaton {
         },
         showUI: (_, event, actionMeta) => {
             const timestamp2 = new Date().getTime()
-            Data.annotations['timings'].push(timestamp2 - this.timestamp)
+            Data.annotations['timings'].push(
+                (actionMeta.state.value, timestamp2 - this.timestamp)
+            )
             this.timestamp = timestamp2
 
             let meta =
