@@ -144,15 +144,19 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
         let listitems = $('#input-item, .word-list-item:visible')
         //console.log(listitems)
         listitems.each(function(i) {
-        //    console.log($(this))
+            //    console.log($(this))
             if ($(this).hasClass('active')) {
                 index = i
                 $(this).removeClass('active')
 
-                if (index >= listitems.length - 1 || ( index < listitems.length - 1 && $(listitems[i+1]).text() == "")) {
-                  index = 0
+                if (
+                    index >= listitems.length - 1 ||
+                    (index < listitems.length - 1 &&
+                        $(listitems[i + 1]).text() == '')
+                ) {
+                    index = 0
                 } else {
-                  index = index + 1
+                    index = index + 1
                 }
                 return false
             }
@@ -648,6 +652,7 @@ class MultilabelBBoxTask implements ITask {
         this.bbox = bbox
         this.layer = layer
         this.stage = stage
+        // window['task'] = this
     }
 
     setCurrentIndex(index: number) {
@@ -673,13 +678,6 @@ class MultilabelBBoxTask implements ITask {
         // TODO: setup suggestions in the right panel
     }
 
-    /**
-     * 
-     * @param stage 
-     * @param layer 
-     * @param scaledBBox 
-     * @param predicted_labels 
-     */
     drawBBoxLabels(
         stage?,
         layer?,
@@ -691,7 +689,7 @@ class MultilabelBBoxTask implements ITask {
         stage = this.stage
         scaledBBox = this.bbox
 
-        layer.getChildren().each((node) => node.destroy())
+        layer.destroyChildren()
 
         let offset = scaledBBox.x
         const labels = []
