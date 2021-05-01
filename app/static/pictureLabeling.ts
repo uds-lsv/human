@@ -60,10 +60,10 @@ export async function loadWords() {
     // $('.bottomContainer').height('20%')
 }
 
-//
 /**
+ * UNUSED
  * utility for flattening json of the form {"a": ["x"],"b":["z"], "c":["z"]} to unique ["x","z"]
- * @param grouped 
+ * @param grouped
  */
 function _flatten_grouped(grouped: Object): any[] {
     let element = []
@@ -89,9 +89,8 @@ export function showLabelBBoxes(
     if (!answer) {
         answer = 'Finish'
     }
-    // TODO put this into class
-    const annotations = []
 
+    const annotations = []
     Data.predicted_labels = predicted_labels
     predicted_labels.forEach((element, index) => {
         annotations.push([ element[0], element[0] ])
@@ -250,7 +249,7 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
     $('#input-item').text(prediction[0])
 }
 
-// TODO refactor this and probably transform into class method
+// TODO refactor this and probably better transform into superclass method
 function setAnnotation(task: ITask) {
     let listitems = $('#input-item, .word-list-item:visible')
     listitems.each(function(i) {
@@ -280,7 +279,9 @@ export function showMultilabelBBox(
     predicted_labels.forEach((element, index) => {
         annotations.push([ element[0], element[0] ])
     })
+    // draw image in background layer
     drawImage(src).then(([ stage, layer, Kimage ]) => {
+        // add bounding box to background layer
         const scaledBBox = new BBox(bbox).scaleFromDefault()
         Data.guiBBoxes = []
         const rect = new Konva.Rect({
@@ -293,60 +294,27 @@ export function showMultilabelBBox(
             name: 'rect',
             // draggable: true
         })
-
         const guiBBox = new GuiBBox(rect, false)
         Data.guiBBoxes.push(guiBBox)
         layer.add(rect)
         layer.draw()
-        layer = new Konva.Layer()
-        stage.add(layer)
-        // this works
+
+        // new layer for badges
+        const badgeLayer = new Konva.Layer()
+        stage.add(badgeLayer)
+        // instantiate task
         const multilabelBBoxTask = new MultilabelBBoxTask(
             predicted_labels,
             annotations,
             scaledBBox,
-            layer,
+            badgeLayer,
             stage
         )
-
         multilabelBBoxTask.drawBBoxLabels()
-
-        // setup controls in bottomcontainer
-        const buttonContainer = $('<div style="display: flex"></div>')
-        $('.bottomContainer').append(buttonContainer)
-        buttonContainer.append(
-            $(
-                '<button id="insertPrev" class="btn btn-primary">< +</button>'
-            )
-        )
-        buttonContainer.append(
-            $(
-                '<button id="insertNext" class="btn btn-primary">+ ></button>'
-            )
-        )
-
         multilabelBBoxTask.setCurrentIndex(0)
         setupAutocompleteList(predicted_labels[0], multilabelBBoxTask)
 
-        // layer.draw()
-        // add buttons
-        $('#question').append(question)
-
-        let yes = $('<button class="btn btn-primary"></button>')
-        yes.append(answer)
-        yes.on('click', () => {
-            // yes.off('click')
-            console.log('test finish')
-            // TODO automaton next and add annotations
-            setAnnotation(multilabelBBoxTask)
-            buttonContainer.remove()
-            automaton.next('NEXT', {
-                labels: multilabelBBoxTask.annotations,
-            })
-        })
-        $('#answer').empty().append(yes)
-
-        // Add buttons for inserting new labels
+        // controls in bottom container
         const insertLabel = (index) => {
             multilabelBBoxTask.predicted_labels.splice(index, 0, [ '' ])
             multilabelBBoxTask.annotations.splice(index, 0, [
@@ -357,12 +325,37 @@ export function showMultilabelBBox(
             multilabelBBoxTask.drawBBoxLabels()
             multilabelBBoxTask.setCurrentIndex(index)
         }
-        $('#insertPrev').on('click', () => {
-            insertLabel(multilabelBBoxTask.currentIndex)
+        const buttonContainer = $('<div style="display: flex"></div>')
+        $('.bottomContainer').append(buttonContainer)
+        buttonContainer.append(
+            $(
+                '<button class="btn btn-primary">< +</button>'
+            ).on('click', () => {
+                insertLabel(multilabelBBoxTask.currentIndex)
+            })
+        )
+        buttonContainer.append(
+            $(
+                '<button class="btn btn-primary">+ ></button>'
+            ).on('click', () => {
+                insertLabel(multilabelBBoxTask.currentIndex + 1)
+            })
+        )
+
+        // controls in right side container
+        $('#question').append(question)
+
+        let yes = $('<button class="btn btn-primary"></button>')
+        yes.append(answer)
+        yes.on('click', () => {
+            yes.off('click')
+            setAnnotation(multilabelBBoxTask)
+            buttonContainer.remove()
+            automaton.next('NEXT', {
+                labels: multilabelBBoxTask.annotations,
+            })
         })
-        $('#insertNext').on('click', () => {
-            insertLabel(multilabelBBoxTask.currentIndex + 1)
-        })
+        $('#answer').empty().append(yes)
     })
 }
 
@@ -655,10 +648,13 @@ class MultilabelBBoxTask implements ITask {
         // window['task'] = this
     }
 
+    /**
+     * set the currently active label at index
+     * the label box is marked black
+     */
     setCurrentIndex(index: number) {
         // reset current index to start when larger than list
         this.currentIndex = index > this.kBoxes.length - 1 ? 0 : index
-        console.log(this.currentIndex)
         // set label colors in Image
         for (let i = 0; i < this.kBoxes.length; i++) {
             if (i === this.currentIndex) {
@@ -666,39 +662,34 @@ class MultilabelBBoxTask implements ITask {
             } else {
                 this.kBoxes[i].stroke('black').draw()
             }
+            // the boxes are drawn over the text,
+            // so we have to redraw the text after the boxes again
             this.kLabels[i].text(this.annotations[i][0]).draw()
             $('#text-input').trigger('focus')
         }
+        // update autocomplete list
         setupAutocompleteList(
             this.predicted_labels[this.currentIndex],
             this
         )
         // TODO: set label colors at bottom
-
-        // TODO: setup suggestions in the right panel
     }
 
-    drawBBoxLabels(
-        stage?,
-        layer?,
-        scaledBBox?,
-        predicted_labels?: string[][]
-    ) {
-        // TODO refactor this and remove arguments
-        layer = this.layer
-        stage = this.stage
-        scaledBBox = this.bbox
+    /**
+     * Draw current labels as badges on top of bounding box
+     * The resulting labels and boxes are saved in kLabels and kBoxes respectively
+     */
+    drawBBoxLabels() {
+        this.layer.destroyChildren()
 
-        layer.destroyChildren()
-
-        let offset = scaledBBox.x
+        let offset = this.bbox.x
         const labels = []
         const boxes = []
         for (let i = 0; i < this.annotations.length; i++) {
             const fontSize = 16
             const text = new Konva.Text({
                 x: offset,
-                y: scaledBBox.y - fontSize - 2,
+                y: this.bbox.y - fontSize - 2,
                 align: 'center',
                 fontSize: fontSize,
                 wrap: 'word',
@@ -719,18 +710,16 @@ class MultilabelBBoxTask implements ITask {
                 cornerRadius: 3,
             })
 
-            // TODO: full length of box?
+            // TODO: maybe adjust this?
             offset = text.x() + text.width() + 6
 
-            layer.add(textborder)
-            layer.add(text)
+            this.layer.add(textborder)
+            this.layer.add(text)
             labels.push(text)
             boxes.push(textborder)
-            // DEBUG
-            // window['ktext' + i] = text
         }
-        stage.off('click')
-        stage.on('click', (e) => {
+        this.stage.off('click')
+        this.stage.on('click', (e) => {
             // console.log(labels)
             // console.log(e.target)
             const index = labels.indexOf(e.target)
@@ -740,11 +729,9 @@ class MultilabelBBoxTask implements ITask {
                 setupAutocompleteList(this.predicted_labels[index], this)
             }
         })
-        layer.draw()
-        // console.log('jo')
+        this.layer.draw()
         this.kLabels = labels
         this.kBoxes = boxes
-        // return [ boxes, labels ]
     }
 }
 
