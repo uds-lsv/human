@@ -180,16 +180,26 @@ function setupAutocompleteList(prediction: string[]) {
     var activateNext = function() {
         let index = 0
         let listitems = $('#input-item, .word-list-item:visible')
+        //console.log(listitems)
         listitems.each(function(i) {
-            console.log($(this))
+        //    console.log($(this))
             if ($(this).hasClass('active')) {
                 index = i
                 $(this).removeClass('active')
+
+                if (index >= listitems.length - 1 || ( index < listitems.length - 1 && $(listitems[i+1]).text() == "")) {
+                  index = 0
+                } else {
+                  index = index + 1
+                }
+                return false
             }
         })
-        index = index >= listitems.length - 1 ? 0 : index + 1 // if larger than list reset to 1
+        //index = index >= listitems.length - 1 ? 0 : index + 1 // if larger than list reset to 1
+
         $(listitems[index]).addClass('active').trigger('focus')
-        console.log($(listitems[index]))
+
+        //console.log($(listitems[index]))
     }
 
     // shows filtered list
@@ -259,12 +269,12 @@ function setupAutocompleteList(prediction: string[]) {
         e
     ) {
         if (
-            ($(this).val() != '' || $(this).text() != '') &&
+            //($(this).val() != '' || $(this).text() != '') &&
             e.key === 'Tab'
         ) {
             // $('#input-item').click();
             e.preventDefault()
-            // console.log(e);
+            //console.log(e);
             activateNext()
         }
     })
