@@ -1,6 +1,7 @@
 import { Data } from './data'
 import { Service } from './services/service'
 import { blobToDataURL } from './utils'
+import { BBox } from './pictureLabeling'
 
 export const protocol = {
     id: 'annotation',
@@ -38,6 +39,7 @@ export const protocol = {
                             })
                             .then((fd) => {
                                 const file = fd.get('file') as File
+                                Data.text = file.name
                                 Data.data = JSON.parse(
                                     fd.get('data').toString()
                                 )
@@ -72,7 +74,7 @@ export const protocol = {
                     }),
 
                 onDone: {
-                    target: '0',
+                    target: 'extra',
                 },
                 onError: {
                     target: 'failure',
@@ -83,10 +85,9 @@ export const protocol = {
                 type: 'loadingfile',
             },
         },
-
-        0: {
+        extra: {
             invoke: {
-                id: '0',
+                id: 'extra',
                 src: (_, event) =>
                     new Promise((resolve, reject) => {
                         const payload = {
@@ -94,7 +95,8 @@ export const protocol = {
                             bboxes: event.data.bboxes
                                 ? event.data.bboxes
                                 : [],
-                            api_call: 'paragraph_segmentation',
+                            fname: Data.text,
+                            api_call: 'hardcoded_lines_fromcsv',
                         }
                         Service.post(
                             '/api/callAPI',
@@ -106,7 +108,7 @@ export const protocol = {
                         })
                     }),
                 onDone: {
-                    target: 'show_0',
+                    target: '0',
                     actions: [ 'print' ],
                 },
                 onError: {
@@ -115,26 +117,28 @@ export const protocol = {
                 },
             },
         },
-        show_0: {
+
+        '0': {
             on: {
-                NEXT: {
+                YES: {
                     target: '3',
                 },
+                NO: {
+                    target: '1',
+                },
             },
-            entry: [ 'showUI', 'showPictureLabeling' ],
-            exit: [ 'saveBBoxes' ],
+            entry: [ 'showUI', 'showPictureBBox' ],
             meta: {
-                question:
-                    'Draw a bounding box around the paragraph with english animal names.',
-                answer: 'Continue',
-                type: 'labelPicture',
-                column: '0',
+                type: 'boolean',
+                question: 'Are the bounding boxes correct?',
+                // answer: 'Continue',
+                // column: '0',
             },
         },
 
-        3: {
+        1: {
             invoke: {
-                id: '3',
+                id: '1',
                 src: (_, event) =>
                     new Promise((resolve, reject) => {
                         const payload = {
@@ -142,6 +146,107 @@ export const protocol = {
                             bboxes: event.data.bboxes
                                 ? event.data.bboxes
                                 : [],
+                            fname: Data.text,
+                            api_call: 'hardcoded_lines_fromcsv',
+                        }
+                        Service.post(
+                            '/api/callAPI',
+                            'json',
+                            JSON.stringify(payload)
+                        ).then((res) => {
+                            Data.picture = res['image']
+                            resolve(res)
+                        })
+                    }),
+                onDone: {
+                    target: 'show_1',
+                    actions: [ 'print' ],
+                },
+                onError: {
+                    target: 'failure',
+                    actions: [ 'print', 'showError' ],
+                },
+            },
+        },
+        show_1: {
+            on: {
+                NEXT: {
+                    target: 'end',
+                    actions: [ 'save' ],
+                },
+            },
+            entry: [ 'showUI', 'showPictureLabeling' ],
+            exit: [ 'saveBBoxes' ],
+            meta: {
+                question: 'Correct the bounding boxes around the lines.',
+                answer: 'Continue',
+                type: 'labelPicture',
+                column: '1',
+            },
+        },
+
+        // repetition cycle
+        3: {
+            invoke: {
+                id: '3',
+                src: (_, event) =>
+                    new Promise((resolve, reject) => {
+                        try {
+                            Data.active++
+                            console.log(Data.active)
+                            console.log(event.data)
+                            console.log(Data.guiBBoxes)
+                            if (Data.active < Data.guiBBoxes.length) {
+                                Data.annotations['3'] = []
+                                Data.annotations['3'].push(
+                                    event.data.labels
+                                )
+                                resolve({
+                                    bboxes: Data.guiBBoxes.map((bbox) => {
+                                        const box = new BBox([
+                                            0,
+                                            0,
+                                            0,
+                                            0,
+                                        ])
+                                        box.fromKonvaRect(bbox.guiBox)
+                                        console.log(box)
+                                        return box
+                                            .scaleToDefault()
+                                            .toArray()
+                                    }),
+                                    active: Data.active,
+                                })
+                            } else {
+                                Data.active = -1
+                                reject()
+                            }
+                        } catch (err) {
+                            console.error(err)
+                            reject()
+                        }
+                    }),
+                onDone: {
+                    target: '4',
+                },
+                onError: {
+                    target: 'end',
+                },
+            },
+        },
+
+        4: {
+            invoke: {
+                id: '4',
+                src: (_, event) =>
+                    new Promise((resolve, reject) => {
+                        const payload = {
+                            image: Data.picture,
+                            bboxes: event.data.bboxes
+                                ? event.data.bboxes
+                                : [],
+                            active: Data.active,
+                            fname: Data.text,
                             api_call: 'classify_multilabel',
                         }
                         Service.post(
@@ -166,14 +271,14 @@ export const protocol = {
         show_3: {
             on: {
                 NEXT: {
-                    target: 'end',
+                    target: '3',
                 },
             },
             entry: [ 'showUI', 'showMultilabelBBox' ],
             exit: [ 'saveBBoxes' ],
             meta: {
                 question: 'Transcribe each word.',
-                answer: 'Finish',
+                answer: 'Continue',
                 type: 'labelBBoxes',
                 column: '3',
             },
