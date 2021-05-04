@@ -111,18 +111,18 @@ def choose_text():
     else: # find new not-yet annotated data
         # select all the data ids which have less than max_annotations
         selected = None
-        data_list = db.execute("SELECT * FROM data").fetchall()
+        # get max_annotations from options
         max_annotations = int(db.execute("SELECT max_annotations FROM options").fetchone()["max_annotations"])
-
-        # choose first instance with annotation_count <= max_annotations
-        for data_instance in data_list:
-            if int(data_instance["annotation_count"]) < max_annotations:
-                selected = data_instance
-                break
+        # query list string of all annotated ids by current user
+        already_annotated = "(" + ", ".join(user['annotated'].split()) + ")"
+        # choose first instance with annotation_count < max_annotations which was not annotated by user already
+        selected = db.execute("SELECT * FROM data WHERE annotation_count < " + str(max_annotations) + 
+            " AND id NOT IN " + already_annotated).fetchone()
 
         if selected is not None:
+            # assign selected instance to current user and count up annotation count
             db.execute("UPDATE user SET current_annotation = ? WHERE id = ?", (selected["id"], uid))
-            db.execute("UPDATE data SET annotation_count = ? WHERE id = ?", (int(selected["annotation_count"])+1, selected["id"]))
+            db.execute("UPDATE data SET annotation_count = annotation_count + 1 WHERE id = ?", selected["id"]))
             db.commit()
             return jsonify(row2dict(selected))
         else:
