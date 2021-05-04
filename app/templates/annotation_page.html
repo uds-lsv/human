@@ -104,9 +104,19 @@
 </script>
 <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
 <script>
+    let sizes = localStorage.getItem('split-sizes')
+    if (sizes) {
+        sizes = JSON.parse(sizes)
+    } else {
+        sizes = [50, 50] // default sizes
+    }
     Split(['#mainContainer', '#sidebarContainer'], {
         gutterSize: 8,
-        cursor: 'col-resize'
+        sizes,
+        cursor: 'col-resize',
+        onDragEnd: function (sizes) {
+            localStorage.setItem('split-sizes', JSON.stringify(sizes))
+        },
     })
 
     Split(['#contentContainer', '#bottomContainer'], {
