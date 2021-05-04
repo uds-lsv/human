@@ -289,7 +289,6 @@ export function showMultilabelBBox(
     MultilabelBBoxTask.drawImage(src).then(([ stage, layer, Kimage ]) => {
         // add bounding box to background layer
         const scaledBBox = new BBox(bbox).scaleFromDefault()
-        Data.guiBBoxes = []
         const rect = new Konva.Rect({
             x: scaledBBox.x,
             y: scaledBBox.y,
@@ -301,7 +300,6 @@ export function showMultilabelBBox(
             // draggable: true
         })
         const guiBBox = new GuiBBox(rect, false)
-        Data.guiBBoxes.push(guiBBox)
         layer.add(rect)
         layer.draw()
 
@@ -897,6 +895,12 @@ class BBox implements BBoxI {
         this.y = bbox[1]
         this.width = bbox[2]
         this.height = bbox[3]
+    }
+    fromKonvaRect(rect: Konva.Rect) {
+        this.x = rect.x()
+        this.y = rect.y()
+        this.width = rect.width()
+        this.height = rect.height()
     }
     toArray(): number[] {
         return [ this.x, this.y, this.width, this.height ]

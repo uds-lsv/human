@@ -6,6 +6,7 @@ import {
     showLabelBBoxes,
     showMultilabelBBox,
     showAnnotatePicture,
+    showPictureBBox,
 } from './pictureLabeling'
 import { showLabeling, showRead } from './textLabeling'
 import { showBoolean, showCheck, showChoosePage, showSelect } from './gui'
@@ -115,6 +116,18 @@ export class Automaton {
                 event.data.bboxes,
                 meta.question,
                 meta.answer
+            )
+        },
+        showPictureBBox: async (_, event, actionMeta) => {
+            await loadPicture()
+            let meta =
+                actionMeta.state.meta[
+                    'annotation.' + actionMeta.state.value
+                ]
+            showPictureBBox(
+                Data.picture,
+                event.data.bboxes,
+                event.data.active
             )
         },
 
