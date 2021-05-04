@@ -121,7 +121,7 @@ def choose_data():
         if selected is not None:
             # assign selected instance to current user and count up annotation count
             db.execute("UPDATE user SET current_annotation = ? WHERE id = ?", (selected["id"], uid))
-            db.execute("UPDATE data SET annotation_count = annotation_count + 1 WHERE id = ?", selected["id"]))
+            db.execute("UPDATE data SET annotation_count = annotation_count + 1 WHERE id = ?", (selected["id"],))
             db.commit()
             return jsonify(row2dict(selected))
         else:
