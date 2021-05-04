@@ -280,7 +280,7 @@ export function showMultilabelBBox(
         annotations.push([ element[0], element[0] ])
     })
     // draw image in background layer
-    drawImage(src).then(([ stage, layer, Kimage ]) => {
+    MultilabelBBoxTask.drawImage(src).then(([ stage, layer, Kimage ]) => {
         // add bounding box to background layer
         const scaledBBox = new BBox(bbox).scaleFromDefault()
         Data.guiBBoxes = []
@@ -648,6 +648,67 @@ class MultilabelBBoxTask implements ITask {
         // window['task'] = this
     }
 
+    static drawImage(
+        src: string
+    ): Promise<[Konva.Stage, Konva.Layer, Konva.Image]> {
+        return new Promise((resolve, reject) => {
+            let image = new Image()
+            image.onload = () => {
+                // make image fit into picture_content
+
+                let scale = $('#picture_content').width() / image.width
+                if (
+                    scale * image.height >
+                    $('#picture_content').height()
+                ) {
+                    scale = $('#picture_content').height() / image.height
+                    image.width = scale * image.width
+                    image.height = $('#picture_content').height()
+                } else {
+                    image.width = $('#picture_content').width()
+                    image.height = scale * image.height
+                }
+                // set global scales to standardize bboxes
+                Data.scales.x = 2500 / image.width
+                Data.scales.y = 2500 / image.height
+
+                // setup stage with previously calculated scaling
+                const stage = new Konva.Stage({
+                    container: 'picture_content',
+                    width: image.width,
+                    height: image.height + 20, //padding for labels
+                })
+                $('.konvajs-content')[0].style['box-shadow'] =
+                    '-3px 5px 9px 0px grey'
+                const layer = new Konva.Layer({
+                    x: 0,
+                    y: 20, //padding for labels
+                    width: image.width,
+                    height: image.height,
+                })
+                stage.add(layer)
+                // add picture
+                let Kimage = new Konva.Image({
+                    x: 0,
+                    y: 0,
+                    image: image,
+                    width: image.width,
+                    height: image.height,
+                })
+                // add picture to layer
+                layer.add(Kimage)
+                layer.draw()
+                // set onclickmethod
+                // onClickPicture(stage, layer, Kimage);
+                // onClickPictureWords(stage, layer, Kimage);
+                resolve([ stage, layer, Kimage ])
+            }
+            // image.src = URL + '/api/getpicture';
+            // load image
+            image.src = src
+        })
+    }
+
     /**
      * set the currently active label at index
      * the label box is marked black
@@ -689,7 +750,7 @@ class MultilabelBBoxTask implements ITask {
             const fontSize = 16
             const text = new Konva.Text({
                 x: offset,
-                y: this.bbox.y - fontSize - 2,
+                y: this.bbox.y + 20 - fontSize - 2,
                 align: 'center',
                 fontSize: fontSize,
                 wrap: 'word',

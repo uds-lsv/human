@@ -53,14 +53,14 @@ def call_api():
     return jsonify(resp)
 
 @app.route('/api/getdatafile', methods=["GET"])
-def choose_file():
+def choose_data_file():
     """
     This function automatically chooses and returns unannotated data for the current user
     including a file. The path of this file is found in the content field of the database.
     """
-    # call choose_text and get a piece of data
-    chosen = choose_text()
-    # if something went wrong in choose_text then pass through the string
+    # call choose_data and get a piece of data
+    chosen = choose_data()
+    # if something went wrong in choose_data then pass through the string
     if chosen and not isinstance(chosen, str):
         data = chosen.json
     else:
@@ -81,7 +81,7 @@ def choose_file():
     return (multipart.to_string(), {'Content-Type': multipart.content_type})
 
 @app.route('/api/getdata', methods=["GET", "POST", "OPTIONS"])
-def choose_text():
+def choose_data():
     """
     This function automatically chooses and returns a piece of unannotated
     data for the current user
@@ -106,23 +106,22 @@ def choose_text():
             # reset to 0 to avoid endless loop, if current annotation is not in DB
             db.execute("UPDATE user SET current_annotation = 0 WHERE id = ?", (current_user.get_id(),))
             db.commit()
-
-            return choose_text()
+            return choose_data() # start choosing process anew
     else: # find new not-yet annotated data
         # select all the data ids which have less than max_annotations
         selected = None
-        data_list = db.execute("SELECT * FROM data").fetchall()
+        # get max_annotations from options
         max_annotations = int(db.execute("SELECT max_annotations FROM options").fetchone()["max_annotations"])
-
-        # choose first instance with annotation_count <= max_annotations
-        for data_instance in data_list:
-            if int(data_instance["annotation_count"]) < max_annotations:
-                selected = data_instance
-                break
+        # query list string of all annotated ids by current user
+        already_annotated = "(" + ", ".join(user['annotated'].split()) + ")"
+        # choose first instance with annotation_count < max_annotations which was not annotated by user already
+        selected = db.execute("SELECT * FROM data WHERE annotation_count < " + str(max_annotations) + 
+            " AND id NOT IN " + already_annotated).fetchone()
 
         if selected is not None:
+            # assign selected instance to current user and count up annotation count
             db.execute("UPDATE user SET current_annotation = ? WHERE id = ?", (selected["id"], uid))
-            db.execute("UPDATE data SET annotation_count = ? WHERE id = ?", (int(selected["annotation_count"])+1, selected["id"]))
+            db.execute("UPDATE data SET annotation_count = annotation_count + 1 WHERE id = ?", selected["id"]))
             db.commit()
             return jsonify(row2dict(selected))
         else:
@@ -140,7 +139,7 @@ def write_to_db():
     data['user_id'] = current_user.get_id()
     print(data)
     if str(data['data_id']) in current_user.get_annotated().split():
-        raise  error_handler.DatabaseError("Already annotated", 500)
+        raise error_handler.DatabaseError("Already annotated", 500)
     # try:
     db = get_db()
     cursor = db.execute('select * from annotations')
