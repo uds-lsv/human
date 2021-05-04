@@ -27,6 +27,7 @@ export let Data = {
     predicted_labels: [],
     guiBBoxes: [],
     scales: { x: 1, y: 1 },
+    active: -1,
     reset: () => {
         Data.data = undefined
         Data.text = ''

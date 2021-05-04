@@ -116,7 +116,13 @@ export function showLabelBBoxes(
             Data.guiBBoxes.push(guiBBox)
             layer.add(rect)
         }
-        const labelBBoxTask = new LabelBBoxTask()
+        const labelBBoxTask = new LabelBBoxTask(
+            predicted_labels,
+            annotations,
+            Data.guiBBoxes,
+            layer,
+            stage
+        )
         labelBBoxTask.setCurrentIndex(0)
         labelBBoxTask.onClickPictureWords(stage, layer)
 
@@ -525,6 +531,11 @@ function onClickPicture(stage, layer, Kimage) {
         layer.draw()
         document.onkeydown = (keyev) => {
             if (keyev.key == 'r') {
+                Data.guiBBoxes.forEach((gb, i) => {
+                    if (gb.guiBox == e.target) {
+                        Data.guiBBoxes.splice(i, 1)
+                    }
+                })
                 e.target.destroy()
                 stage.find('Transformer').destroy()
                 layer.draw()
@@ -543,14 +554,39 @@ interface ITask {
     drawBBoxLabels()
 }
 
-class LabelBBoxTask implements ITask {
+class Task implements ITask {
+    currentIndex
+    guiBBoxes: GuiBBox[]
+    predicted_labels: string[][]
+    annotations: string[][]
+
+    constructor(predicted_labels: string[][], annotations) {
+        this.predicted_labels = predicted_labels
+        this.annotations = annotations
+
+        // window['task'] = this
+    }
+    setCurrentIndex(index: number) {}
+    drawBBoxLabels() {}
+}
+
+class LabelBBoxTask extends Task {
     // TODO make all relevant functions to methods
 
     currentIndex = 0
     guiBBoxes: GuiBBox[] = []
     predicted_labels: string[][]
     annotations: string[][]
-    constructor() {}
+    constructor(
+        predicted_labels: string[][],
+        annotations,
+        guiBBoxesbbox: GuiBBox[],
+        layer,
+        stage
+    ) {
+        super(predicted_labels, annotations)
+        this.guiBBoxes = guiBBoxesbbox
+    }
 
     setCurrentIndex(index: number) {
         let predicted: string[] = Data.predicted_labels[index]
@@ -620,7 +656,7 @@ class LabelBBoxTask implements ITask {
     }
 }
 
-class MultilabelBBoxTask implements ITask {
+class MultilabelBBoxTask extends Task {
     // TODO make all relevant functions to methods
     guiBBoxes: GuiBBox[] = []
 
@@ -630,6 +666,7 @@ class MultilabelBBoxTask implements ITask {
     kBoxes: Konva.Rect[]
     predicted_labels: string[][]
     annotations: string[][]
+    backLayer
     layer
     stage
 
@@ -640,8 +677,8 @@ class MultilabelBBoxTask implements ITask {
         layer,
         stage
     ) {
-        this.predicted_labels = predicted_labels
-        this.annotations = annotations
+        super(predicted_labels, annotations)
+
         this.bbox = bbox
         this.layer = layer
         this.stage = stage
