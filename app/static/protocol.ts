@@ -171,7 +171,7 @@ export const protocol = {
         show_1: {
             on: {
                 NEXT: {
-                    target: 'end',
+                    target: '3',
                     actions: [ 'save' ],
                 },
             },
@@ -184,6 +184,55 @@ export const protocol = {
                 column: '1',
             },
         },
+        // TODO Add this in between 1=paragraphseg 2=lineseg
+        // 1: {
+        //     invoke: {
+        //         id: '1',
+        //         src: (_, event) =>
+        //             new Promise((resolve, reject) => {
+        //                 const payload = {
+        //                     image: Data.picture,
+        //                     bboxes: event.data.bboxes
+        //                         ? event.data.bboxes
+        //                         : [],
+        //                     fname: Data.text,
+        //                     api_call: 'hardcoded_lines_fromcsv',
+        //                 }
+        //                 Service.post(
+        //                     '/api/callAPI',
+        //                     'json',
+        //                     JSON.stringify(payload)
+        //                 ).then((res) => {
+        //                     Data.picture = res['image']
+        //                     resolve(res)
+        //                 })
+        //             }),
+        //         onDone: {
+        //             target: 'show_1',
+        //             actions: [ 'print' ],
+        //         },
+        //         onError: {
+        //             target: 'failure',
+        //             actions: [ 'print', 'showError' ],
+        //         },
+        //     },
+        // },
+        // show_1: {
+        //     on: {
+        //         NEXT: {
+        //             target: '3',
+        //             actions: [ 'save' ],
+        //         },
+        //     },
+        //     entry: [ 'showUI', 'showPictureLabeling' ],
+        //     exit: [ 'saveBBoxes' ],
+        //     meta: {
+        //         question: 'Correct the bounding boxes around the lines.',
+        //         answer: 'Continue',
+        //         type: 'labelPicture',
+        //         column: '1',
+        //     },
+        // },
 
         // repetition cycle
         3: {
