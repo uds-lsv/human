@@ -365,6 +365,38 @@ export function showMultilabelBBox(
 
 function setupSuggestions() {}
 
+export function showPictureBBox(
+    src: string,
+    bboxs: number[][],
+    active: number
+) {
+    console.log(bboxs)
+    drawImage(src).then(([ stage, layer, Kimage ]) => {
+        const scaledbboxes = bboxs.map((bbox) => {
+            return new BBox(bbox).scaleFromDefault()
+        })
+        Data.guiBBoxes = []
+        for (let i = 0; i < scaledbboxes.length; i++) {
+            const bbox = scaledbboxes[i]
+            // console.log(bbox)
+            const rect = new Konva.Rect({
+                x: bbox.x,
+                y: bbox.y,
+                width: bbox.width,
+                height: bbox.height,
+                stroke: i == active ? 'red' : 'black',
+                strokeWidth: 3,
+                name: 'rect',
+            })
+
+            const guiBox = new GuiBBox(rect, false)
+            Data.guiBBoxes.push(guiBox)
+            layer.add(rect)
+            layer.draw()
+        }
+    })
+}
+
 export function showAnnotatePicture(
     src: string,
     bboxs: number[][],
@@ -885,7 +917,7 @@ interface BBoxI {
     height: number
 }
 
-class BBox implements BBoxI {
+export class BBox implements BBoxI {
     x: number
     y: number
     width: number
