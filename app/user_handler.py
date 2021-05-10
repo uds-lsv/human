@@ -96,8 +96,8 @@ def register_user(username,email,fname,lname,password,confirm_password):
 
     try:
         ## Insert the data into the database
-        db.execute('INSERT INTO user (username, email, given_name, surname, password, user_type, is_approved) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        (username, email, fname, lname, password_hash,"normal","no"))
+        db.execute('INSERT INTO user (username, email, given_name, surname, password, user_type, is_approved, annotated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        (username, email, fname, lname, password_hash,"normal","no", ""))
         db.commit()
         app.logger.debug("New user added to db, db-commit successful")
         return "Successfully added user", None

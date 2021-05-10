@@ -693,7 +693,7 @@ class AP_Parser():
                               "password text not null,\n" +\
                               "user_type text not null,\n" +\
                               "is_approved text not null,\n" +\
-                              "annotated text,\n" +\
+                              "annotated text not null,\n" +\
                               "current_annotation integer not null default 0" +\
                               ");\n")
             out.write('\n')

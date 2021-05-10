@@ -110,12 +110,13 @@ def add_admin():
     surname = input('Surname: ')
     user_type = 'admin'
     is_approved = 'yes'
+    annotated = ''
     password = 0
     password = getpass()
     password_hash_object = hashlib.sha256(password.encode('utf-8'))
     password_hash = password_hash_object.hexdigest()
-    db_cursor.execute("INSERT INTO user (username, email, given_name, surname, password, user_type, is_approved) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    (username, email, given_name, surname, password_hash, user_type, is_approved))
+    db_cursor.execute("INSERT INTO user (username, email, given_name, surname, password, user_type, is_approved, annotated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    (username, email, given_name, surname, password_hash, user_type, is_approved, annotated))
     db.commit()
     db.close()
     click.echo("Successfully added Administrator account.")
