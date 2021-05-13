@@ -262,13 +262,13 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
     $('#input-item, .word-list-item, #text-input')
         .off('keydown')
         .on('keydown', function(e) {
-            if (e.key === 'Tab') {
+            if (e.key === 'Tab' || e.key === 'ArrowDown') {
                 e.preventDefault()
-                if (e.shiftKey) {
-                    activatePrev()
-                } else {
-                    activateNext()
-                }
+                activateNext()
+            }
+            if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
+                e.preventDefault()
+                activatePrev()
             }
         })
     $('#text-input').val(prediction[0])
