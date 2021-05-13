@@ -252,6 +252,7 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
             }
         })
     $('#text-input').val(prediction[0])
+    $('#text-input').trigger('select')
     $('#input-item').text(prediction[0])
 }
 
@@ -325,7 +326,6 @@ export function showMultilabelBBox(
                 '/empty/',
                 '/empty/',
             ])
-            multilabelBBoxTask.predicted_labels = predicted_labels
             multilabelBBoxTask.drawBBoxLabels()
             multilabelBBoxTask.setCurrentIndex(index)
         }
@@ -782,7 +782,8 @@ class MultilabelBBoxTask extends Task {
      */
     setCurrentIndex(index: number) {
         // reset current index to start when larger than list
-        this.currentIndex = index > this.kBoxes.length - 1 ? 0 : index
+        this.currentIndex =
+            index > this.kBoxes.length - 1 ? this.kBoxes.length - 1 : index
         // set label colors in Image
         for (let i = 0; i < this.kBoxes.length; i++) {
             if (i === this.currentIndex) {
