@@ -3,6 +3,7 @@ import { automaton } from './start'
 import { Data } from './data'
 // import settings from './settings.json';
 import autocomplete_list from '../data/autocomplete.json'
+import { FZF } from "./fuzzy"
 
 declare var Split
 
@@ -216,13 +217,14 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
                 .append('/empty/')
             console.log('empty')
         } else {
-            autocomplete_list_filtered = autocomplete_list.filter(
-                (element) => {
-                    return element
-                        .toLowerCase()
-                        .startsWith(inp.toLowerCase())
-                }
-            )
+            //autocomplete_list_filtered = autocomplete_list.filter(
+            //    (element) => {
+            //        return element
+            //            .toLowerCase()
+            //            .startsWith(inp.toLowerCase())
+            //    }
+            //)
+            autocomplete_list_filtered = FZF.fzf_sort(inp.toLowerCase(), autocomplete_list).map(el => el.string);
             $('#input-item').empty().on('click', activeOnClick).append(inp)
         }
         console.log(autocomplete_list_filtered)
