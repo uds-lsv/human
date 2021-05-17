@@ -74,7 +74,13 @@
     <div id="sidebarContainer" class="sidebarContainer">
         <div class="">
             <div id="question" class="question"></div>
-            <input id="text-input" class="form-control" type="text">
+            <div class="input-group" id="text-input-group">
+                <input id="text-input" class="form-control" type="text">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary active" data-toggle="button" type="button"
+                        id="fzf-toggle">fzf</button>
+                </div>
+            </div>
             <ul style="overflow: scroll; height: 100%; margin-top: 10px; -webkit-overflow-scrolling: touch;"
                 id="word-list" class="list-group">
                 <button id="input-item" class="list-group-item" style="text-align: left;"></button>
