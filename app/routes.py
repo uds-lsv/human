@@ -231,6 +231,11 @@ def upload_console():
     return render_template('upload_console.html',success=request.args.get('success'),
                     error=request.args.get('error'),admin=current_user.admin,user=current_user.fname, annotations=annotations, data=data)
 
+@app.route("/instructions", methods=["GET"])
+@login_required
+def instructions():
+    return render_template('instructions.html', admin=current_user.admin, user=current_user.fname)
+
 @app.route("/data_console", methods=["GET"])
 @login_required
 def data_console():
