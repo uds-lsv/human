@@ -9,39 +9,43 @@ declare var Split
 
 export async function loadPicture() {
     console.log('loadpic')
-    await $('.card-subtitle').hide()
-    await $('#text-input').hide()
-    await $('#text-input-group').hide()
-    await $('#word-list').hide()
-    await $('.textContainer').hide()
-    await $('.pictureContainer').show()
-    await $('#pdf-meta').hide()
-    await $('#pdf-contents').hide()
-    await $('#picture_content').show()
-    await $('.mainContainer').height('100%')
-    await $('.gutter-vertical').remove()
+    await Promise.all([
+        $('.card-subtitle').hide(),
+        $('#text-input').hide(),
+        $('#text-input-group').hide(),
+        $('#word-list').hide(),
+        $('.textContainer').hide(),
+        $('.pictureContainer').show(),
+        $('#pdf-meta').hide(),
+        $('#pdf-contents').hide(),
+        $('#picture_content').show(),
+        $('.mainContainer').height('100%'),
+        $('.gutter-vertical').remove(),
+        // await $('.contentContainer').height('80%')
+        // await $('.bottomContainer').height('20%')
+    ])
     Split([ '#contentContainer', '#bottomContainer' ], {
         sizes: [ 90, 10 ],
         direction: 'vertical',
         gutterSize: 8,
         cursor: 'row-resize',
     })
-    // await $('.contentContainer').height('80%')
-    // await $('.bottomContainer').height('20%')
 }
 
 export async function loadPDF() {
-    await $('.card-subtitle').hide()
-    await $('#text-input').hide()
-    await $('#text-input-group').hide()
-    await $('#word-list').hide()
-    await $('.textContainer').hide()
-    await $('.pictureContainer').show()
-    await $('#pdf-meta').show()
-    await $('#pdf-contents').show()
-    await $('#picture_content').hide()
-    await $('.context-content').hide()
-    await $('.gutter-vertical').remove()
+    await Promise.all([
+        $('.card-subtitle').hide(),
+        $('#text-input').hide(),
+        $('#text-input-group').hide(),
+        $('#word-list').hide(),
+        $('.textContainer').hide(),
+        $('.pictureContainer').show(),
+        $('#pdf-meta').show(),
+        $('#pdf-contents').show(),
+        $('#picture_content').hide(),
+        $('.context-content').hide(),
+        $('.gutter-vertical').remove(),
+    ])
     Split([ '#contentContainer', '#bottomContainer' ], {
         sizes: [ 90, 10 ],
         direction: 'vertical',
@@ -51,17 +55,17 @@ export async function loadPDF() {
 }
 
 export async function loadWords() {
-    await $('.card-subtitle').hide()
-    await $('#text-input').show()
-    await $('#text-input-group').show()
-    await $('#word-list').show()
-    await $('.textContainer').hide()
-    await $('.pictureContainer').show()
-    await $('#pdf-meta').hide()
-    await $('#pdf-contents').hide()
-    await $('#picture_content').show()
-    // $('.contentContainer').height('80%')
-    // $('.bottomContainer').height('20%')
+    await Promise.all([
+        $('.card-subtitle').hide(),
+        $('#text-input').show(),
+        $('#text-input-group').show(),
+        $('#word-list').show(),
+        $('.textContainer').hide(),
+        $('.pictureContainer').show(),
+        $('#pdf-meta').hide(),
+        $('#pdf-contents').hide(),
+        $('#picture_content').show(),
+    ])
 }
 
 /**
@@ -226,10 +230,6 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
                     inp.toLowerCase(),
                     autocomplete_list
                 ).map((el) => el.string)
-                $('#input-item')
-                    .empty()
-                    .on('click', activeOnClick)
-                    .append(inp)
             } else {
                 autocomplete_list_filtered = autocomplete_list.filter(
                     (element) => {
@@ -239,6 +239,7 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
                     }
                 )
             }
+            $('#input-item').empty().on('click', activeOnClick).append(inp)
         }
         console.log(autocomplete_list_filtered)
         listController(autocomplete_list_filtered)
