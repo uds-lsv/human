@@ -22,6 +22,7 @@ String.prototype.format = function(args) {
 
 $(document).ready(function() {
     $('#text-input').hide()
+    $('#text-input-group').hide()
     $('#word-list').hide()
     $('#pdf-contents').hide()
     $('.context-content').hide()

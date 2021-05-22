@@ -13,6 +13,7 @@ export function showRead(meta) {
 
     $('.card-subtitle').show()
     $('#text-input').hide()
+    $('#text-input-group').hide()
     $('#word-list').hide()
     $('.pictureContainer').hide()
     $('#pdf-meta').hide()
