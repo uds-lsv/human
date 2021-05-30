@@ -356,29 +356,24 @@ export function showMultilabelBBox(
         setupAutocompleteList(predicted_labels[0], multilabelBBoxTask)
 
         // controls in bottom container
-        const insertLabel = (index) => {
-            multilabelBBoxTask.predicted_labels.splice(index, 0, [ '' ])
-            multilabelBBoxTask.annotations.splice(index, 0, [
-                '/empty/',
-                '/empty/',
-            ])
-            multilabelBBoxTask.drawBBoxLabels()
-            multilabelBBoxTask.setCurrentIndex(index)
-        }
         const buttonContainer = $('<div style="display: flex"></div>')
         $('.bottomContainer').append(buttonContainer)
         buttonContainer.append(
             $(
                 '<button class="btn btn-primary">< +</button>'
             ).on('click', () => {
-                insertLabel(multilabelBBoxTask.currentIndex)
+                multilabelBBoxTask.insertLabel(
+                    multilabelBBoxTask.currentIndex
+                )
             })
         )
         buttonContainer.append(
             $(
                 '<button class="btn btn-primary">+ ></button>'
             ).on('click', () => {
-                insertLabel(multilabelBBoxTask.currentIndex + 1)
+                multilabelBBoxTask.insertLabel(
+                    multilabelBBoxTask.currentIndex + 1
+                )
             })
         )
 
@@ -817,9 +812,11 @@ class MultilabelBBoxTask extends Task {
      * the label box is marked black
      */
     setCurrentIndex(index: number) {
-        // reset current index to start when larger than list
-        this.currentIndex =
-            index > this.kBoxes.length - 1 ? this.kBoxes.length - 1 : index
+        // if larger than list add another item
+        if (index > this.kBoxes.length - 1) {
+            this.insertLabel(this.kBoxes.length)
+        }
+        this.currentIndex = index
         // set label colors in Image
         for (let i = 0; i < this.kBoxes.length; i++) {
             if (i === this.currentIndex) {
@@ -838,6 +835,13 @@ class MultilabelBBoxTask extends Task {
             this
         )
         // TODO: set label colors at bottom
+    }
+
+    insertLabel(index) {
+        this.predicted_labels.splice(index, 0, [ '/empty/' ])
+        this.annotations.splice(index, 0, [ '/empty/', '/empty/' ])
+        this.drawBBoxLabels()
+        this.setCurrentIndex(index)
     }
 
     /**
