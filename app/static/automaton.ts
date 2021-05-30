@@ -115,7 +115,8 @@ export class Automaton {
                 Data.picture,
                 event.data.bboxes,
                 meta.question,
-                meta.answer
+                meta.answer,
+                meta.max_bboxes
             )
         },
         showPictureBBox: async (_, event, actionMeta) => {

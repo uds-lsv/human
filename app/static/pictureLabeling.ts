@@ -222,7 +222,6 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
                 .empty()
                 .on('click', activeOnClick)
                 .append('/empty/')
-            console.log('empty')
         } else {
             // search fuzzy if toggle is on
             if ($('#fzf-toggle').hasClass('active')) {
@@ -241,7 +240,6 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
             }
             $('#input-item').empty().on('click', activeOnClick).append(inp)
         }
-        console.log(autocomplete_list_filtered)
         listController(autocomplete_list_filtered)
         $('#input-item').trigger('click')
     })
@@ -273,6 +271,7 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
                 // $('#input-item').click();
                 e.preventDefault()
                 setAnnotation(task)
+                task.setCurrentIndex(task.currentIndex + 1)
             }
         })
     $('#input-item, .word-list-item, #text-input')
@@ -303,7 +302,7 @@ function setAnnotation(task: ITask) {
         }
     })
     task.drawBBoxLabels()
-    task.setCurrentIndex(task.currentIndex + 1)
+    // task.setCurrentIndex(task.currentIndex + 1)
 }
 
 export function showMultilabelBBox(
@@ -391,6 +390,21 @@ export function showMultilabelBBox(
             })
         })
         $('#answer').empty().append(yes)
+
+        if (Data.active >= 1) {
+            let back = $('<button class="btn btn-primary"></button>')
+            back.append('Go back')
+            back.on('click', () => {
+                back.off('click')
+                setAnnotation(multilabelBBoxTask)
+                buttonContainer.remove()
+                Data.active -= 2
+                automaton.next('NEXT', {
+                    labels: multilabelBBoxTask.annotations,
+                })
+            })
+            $('#answer').prepend(back)
+        }
     })
 }
 
@@ -418,6 +432,15 @@ export function showPictureBBox(
                 stroke: i == active ? 'red' : 'black',
                 strokeWidth: 3,
                 name: 'rect',
+            }).on('click', (e) => {
+                layer.children.each((child) => {
+                    if (e.target == child) {
+                        child.setAttr('stroke', 'red')
+                    } else {
+                        child.setAttr('stroke', 'black')
+                    }
+                })
+                layer.draw()
             })
 
             const guiBox = new GuiBBox(rect, false)
@@ -432,11 +455,12 @@ export function showAnnotatePicture(
     src: string,
     bboxs: number[][],
     question: string,
-    answer: string
+    answer: string,
+    max_bboxes: number = null
 ) {
     console.log(bboxs)
     drawImage(src).then(([ stage, layer, Kimage ]) => {
-        onClickPicture(stage, layer, Kimage)
+        onClickPicture(stage, layer, Kimage, max_bboxes)
         const scaledbboxes = bboxs.map((bbox) => {
             return new BBox(bbox).scaleFromDefault()
         })
@@ -453,7 +477,6 @@ export function showAnnotatePicture(
                 name: 'rect',
                 draggable: true,
             })
-
             const guiBox = new GuiBBox(rect, false)
             Data.guiBBoxes.push(guiBox)
             layer.add(rect)
@@ -465,9 +488,12 @@ export function showAnnotatePicture(
         yes.append(answer)
         yes.on('click', () => {
             yes.off('click')
-            const scaledbboxes = extractBBoxes(layer).map((bbox) => {
-                return bbox.scaleToDefault().toArray()
-            })
+            rescaleGuiBBoxes()
+            const scaledbboxes = extractBBoxes(layer)
+                .sort(BBox.sortBBoxArray)
+                .map((bbox) => {
+                    return bbox.scaleToDefault().toArray()
+                })
             automaton.next('NEXT', { bboxes: scaledbboxes })
         })
         $('#answer').append(yes)
@@ -539,7 +565,12 @@ function drawImage(
  * 4. if transformer also set onkeylistener for backspace
  * @param {Konva.Stage} stage 
  */
-function onClickPicture(stage, layer, Kimage) {
+function onClickPicture(
+    stage,
+    layer: Konva.Layer,
+    Kimage,
+    max_bboxes = null
+) {
     stage.off('click tap')
     stage.on('click tap', function(e) {
         // if click on empty area - remove all transformers
@@ -549,10 +580,17 @@ function onClickPicture(stage, layer, Kimage) {
                 // console.log('redraw')
                 // console.log(extractBBoxes(layer))
                 redrawBoxes(layer, extractBBoxes(layer))
+                rescaleGuiBBoxes()
                 // stage.find('Transformer').destroy();
                 // layer.draw();
                 return
             } else {
+                if (
+                    max_bboxes &&
+                    layer.getChildren().length >= max_bboxes
+                ) {
+                    return
+                }
                 let rect = new Konva.Rect({
                     x: e.evt.layerX,
                     y: e.evt.layerY,
@@ -563,7 +601,7 @@ function onClickPicture(stage, layer, Kimage) {
                     name: 'rect',
                     draggable: true,
                 })
-
+                Data.guiBBoxes.push(new GuiBBox(rect, false))
                 layer.add(rect)
                 layer.draw()
                 return
@@ -814,7 +852,7 @@ class MultilabelBBoxTask extends Task {
     setCurrentIndex(index: number) {
         // if larger than list add another item
         if (index > this.kBoxes.length - 1) {
-            this.insertLabel(this.kBoxes.length)
+            this.insertLabel(index)
         }
         this.currentIndex = index
         // set label colors in Image
@@ -827,7 +865,7 @@ class MultilabelBBoxTask extends Task {
             // the boxes are drawn over the text,
             // so we have to redraw the text after the boxes again
             this.kLabels[i].text(this.annotations[i][0]).draw()
-            $('#text-input').trigger('focus')
+            $('#text-input').trigger('focus').trigger('input')
         }
         // update autocomplete list
         setupAutocompleteList(
@@ -893,7 +931,7 @@ class MultilabelBBoxTask extends Task {
             // console.log(e.target)
             const index = labels.indexOf(e.target)
             if (index != -1) {
-                console.log('clicked box')
+                // console.log('clicked box')
                 this.setCurrentIndex(index)
                 setupAutocompleteList(this.predicted_labels[index], this)
             }
@@ -926,6 +964,18 @@ function extractBBoxes(layer): BBox[] {
         bboxes.push(new BBox(bbox))
     }
     return bboxes
+}
+function rescaleGuiBBoxes() {
+    for (let guibox of Data.guiBBoxes) {
+        const rect = guibox.guiBox
+        const scalex = rect.attrs.scaleX ? rect.attrs.scaleX : 1
+        const scaley = rect.attrs.scaleY ? rect.attrs.scaleY : 1
+        rect.attrs.width *= scalex
+        rect.attrs.height *= scaley
+        rect.attrs.scaleX = 1
+        rect.attrs.scaleY = 1
+    }
+    Data.guiBBoxes.sort(GuiBBox.sortGuiBBoxArray)
 }
 
 /**
@@ -970,10 +1020,12 @@ export class BBox implements BBoxI {
         this.height = bbox[3]
     }
     fromKonvaRect(rect: Konva.Rect) {
+        const scalex = rect.attrs.scaleX ? rect.attrs.scaleX : 1
+        const scaley = rect.attrs.scaleY ? rect.attrs.scaleY : 1
         this.x = rect.x()
         this.y = rect.y()
-        this.width = rect.width()
-        this.height = rect.height()
+        this.width = rect.width() * scalex
+        this.height = rect.height() * scaley
     }
     toArray(): number[] {
         return [ this.x, this.y, this.width, this.height ]
@@ -992,6 +1044,15 @@ export class BBox implements BBoxI {
         this.height = this.height * Data.scales.y
         return this
     }
+    static sortBBoxArray(a: BBox, b: BBox) {
+        if (a.y > b.y) {
+            return 1
+        }
+        if (a.y < b.y) {
+            return -1
+        }
+        return 0
+    }
 }
 
 class GuiBBox {
@@ -1000,5 +1061,27 @@ class GuiBBox {
     constructor(konvaBox: Konva.Rect, annotated: boolean) {
         this.guiBox = konvaBox
         this.annotated = annotated
+    }
+    static sortGuiBBoxArray(a: GuiBBox, b: GuiBBox) {
+        if (a.guiBox.attrs.y > b.guiBox.attrs.y) {
+            return 1
+        }
+        if (a.guiBox.attrs.y < b.guiBox.attrs.y) {
+            return -1
+        }
+        return 0
+    }
+    toBBox(): BBox {
+        const scalex = this.guiBox.attrs.scaleX
+            ? this.guiBox.attrs.scaleX
+            : 1
+        const scaley = this.guiBox.attrs.scaleY
+            ? this.guiBox.attrs.scaleY
+            : 1
+        const x = this.guiBox.x()
+        const y = this.guiBox.y()
+        const width = this.guiBox.width() * scalex
+        const height = this.guiBox.height() * scaley
+        return new BBox([ x, y, width, height ])
     }
 }
