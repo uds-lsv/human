@@ -121,6 +121,46 @@ def add_admin():
     db.close()
     click.echo("Successfully added Administrator account.")
 
+@click.command('remove-annotation')
+@click.option('-id', '--id')
+@click.option('-dataid', '--data_id')
+@with_appcontext
+def remove_annotation(id, data_id):
+    db = get_db()
+    db_cursor = db.cursor()
+    if id:
+        pass
+        # annotation = db_cursor.execute("SELECT * FROM annotations WHERE id=?",
+        #     (id,))
+        # db_cursor.execute("DELETE FROM annotations WHERE id=?",
+        #     (id,))
+    elif data_id:
+
+        data = db_cursor.execute("SELECT * from data WHERE id=?", (data_id,)).fetchone()
+        # click.echo(data)
+
+        # click.echo(data['id'])
+        annotated = data['annotation_count']
+        if annotated <= 0:
+            return
+        annotated = 0
+        db_cursor.execute("UPDATE data SET annotation_count=? WHERE id=?",
+            (annotated, data_id))
+        db_cursor.execute("DELETE FROM annotations WHERE data_id=?",
+            (data_id,))
+        # click.echo(annotated)
+
+    else:
+        click.echo("Specify -id or -dataid to be removed.")
+
+    # db_cursor.execute("INSERT INTO user (username, email, given_name, surname, password, user_type, is_approved, annotated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    # (username, email, given_name, surname, password_hash, user_type, is_approved, annotated))
+
+
+    db.commit()
+    db.close()
+    click.echo("Successfully removed.")
+
 
 def init_app(app):
     """Register database functions with the Flask app. This is called by
@@ -130,4 +170,5 @@ def init_app(app):
     app.cli.add_command(init_db_command)
     app.cli.add_command(save_db_command)
     app.cli.add_command(db_from_csv_command)
-    app.cli.add_command(add_admin)    
+    app.cli.add_command(add_admin)  
+    app.cli.add_command(remove_annotation)  
