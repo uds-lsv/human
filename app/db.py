@@ -1,4 +1,5 @@
 import sqlite3
+from sqlite3.dbapi2 import DatabaseError
 
 import os
 import click
@@ -121,20 +122,14 @@ def add_admin():
     db.close()
     click.echo("Successfully added Administrator account.")
 
-@click.command('remove-annotation')
-@click.option('-id', '--id')
+@click.command('remove-annotation-data')
 @click.option('-dataid', '--data_id')
 @with_appcontext
-def remove_annotation(id, data_id):
+def remove_all_annotation_for_data(data_id):
     db = get_db()
     db_cursor = db.cursor()
-    if id:
-        pass
-        # annotation = db_cursor.execute("SELECT * FROM annotations WHERE id=?",
-        #     (id,))
-        # db_cursor.execute("DELETE FROM annotations WHERE id=?",
-        #     (id,))
-    elif data_id:
+
+    if data_id:
 
         data = db_cursor.execute("SELECT * from data WHERE id=?", (data_id,)).fetchone()
         # click.echo(data)
@@ -149,9 +144,8 @@ def remove_annotation(id, data_id):
         db_cursor.execute("DELETE FROM annotations WHERE data_id=?",
             (data_id,))
         # click.echo(annotated)
-
     else:
-        click.echo("Specify -id or -dataid to be removed.")
+        click.echo("Specify -dataid to be removed.")
 
     # db_cursor.execute("INSERT INTO user (username, email, given_name, surname, password, user_type, is_approved, annotated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     # (username, email, given_name, surname, password_hash, user_type, is_approved, annotated))
@@ -161,6 +155,38 @@ def remove_annotation(id, data_id):
     db.close()
     click.echo("Successfully removed.")
 
+@click.command('remove-annotation')
+@click.option('-id', '--annotation_id')
+@with_appcontext
+def remove_single_annotation(annotation_id):
+    db = get_db()
+    db_cursor = db.cursor()
+    if annotation_id:
+        remove_annotation(db_cursor, annotation_id)
+    else:
+        click.echo("Specify -id to be removed.")
+        raise DatabaseError('No id specified')
+    db.commit()
+    db.close()
+    click.echo("Successfully removed.")
+
+def remove_annotation(db_cursor, annotation_id):
+
+    annotation = db_cursor.execute("SELECT * from annotations WHERE id=?", (annotation_id,)).fetchone()
+    data = db_cursor.execute("SELECT * from data WHERE id=?", (annotation["data_id"],)).fetchone()
+    annotation_count = data['annotation_count']
+    if annotation_count <= 0:
+        annotation_count = 0
+    else:
+        annotation_count -= 1
+    db_cursor.execute("UPDATE data SET annotation_count=? WHERE id=?",
+        (annotation_count, annotation["data_id"]))
+
+    user = db_cursor.execute("SELECT * from user WHERE id=?", (annotation["user_id"],)).fetchone()
+    annotated = " ".join([anno for anno in user['annotated'].split() if int(anno) != annotation["data_id"]])
+    db_cursor.execute("UPDATE user SET annotated=? WHERE id=?", (annotated, annotation["user_id"]))
+    db_cursor.execute("DELETE FROM annotations WHERE id=?",
+        (annotation_id,))
 
 def init_app(app):
     """Register database functions with the Flask app. This is called by
@@ -171,4 +197,5 @@ def init_app(app):
     app.cli.add_command(save_db_command)
     app.cli.add_command(db_from_csv_command)
     app.cli.add_command(add_admin)  
-    app.cli.add_command(remove_annotation)  
+    app.cli.add_command(remove_all_annotation_for_data)  
+    app.cli.add_command(remove_single_annotation)  

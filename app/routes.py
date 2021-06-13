@@ -1,4 +1,4 @@
-from flask import request, jsonify, render_template, redirect, url_for, flash, Response, send_file, send_from_directory, stream_with_context
+from flask import request, jsonify, render_template, redirect, url_for, flash, Response, send_file, send_from_directory, stream_with_context, g
 from flask.logging import create_logger
 from requests_toolbelt import MultipartEncoder
 import pandas as pd
@@ -732,9 +732,9 @@ def get_annotations() -> pd.DataFrame:
         raise error_handler.DatabaseError(str(e))
     try:
 
-        comments_dict = pd.Series(df_data.content.values,index=df_data.id).to_dict()
+        contents_dict = pd.Series(df_data.content.values,index=df_data.id).to_dict()
 
-        df_annotations.insert(loc=1,column='comment',value=df_annotations['data_id'].map(comments_dict))
+        df_annotations.insert(loc=1,column='content',value=df_annotations['data_id'].map(contents_dict))
 
         df_annotations = df_annotations.sort_values(by=['id'])
         #df_annotations.drop(['user'],inplace=True,axis=1)
@@ -779,3 +779,9 @@ def get_users() -> pd.DataFrame:
     except Exception as e:
         app.logger.error("Database Error:" + str(e))
         raise error_handler.DatabaseError(str(e))
+
+@app.teardown_appcontext
+def close_db(error):
+    """Closes the database again at the end of the request."""
+    if hasattr(g, 'sqlite_db'):
+        g.db.close()
