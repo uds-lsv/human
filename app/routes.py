@@ -5,13 +5,13 @@ import pandas as pd
 from app import app
 from app import api
 from app import ap_parser
-from app.db import get_db
+from app.db import get_db, remove_annotation
 from app import user_handler
 from app import login_handler
 from app import error_handler
 from werkzeug.utils import secure_filename
 from flask_login import LoginManager, UserMixin, logout_user, login_user, login_required, current_user
-from datetime import timedelta
+from datetime import timedelta, datetime
 import json
 import os
 import io
@@ -480,27 +480,70 @@ def all_download():
 @login_required
 def load_profile():
     """
-    Function to load a profile to display it for admin
+    Function to load a profile
     """
     app.logger.debug("from load_profile admin user:{}".format(current_user.admin))
     app.logger.debug("from load_profile current user:{}".format(current_user.admin))
     uid = current_user.get_id()
 
     db = get_db()
-    annotations = db.execute(
+    annotations = get_annotations()
+    
+    user_annotations = db.execute(
         'SELECT annotated FROM user WHERE id = ?', (uid,)
         ).fetchone()
     try:
-        annotation_by_individual_user = len(annotations[0].split())
+        # get annotations for user
+        annotation_amount = len(user_annotations[0].split())
+        annotations = annotations.drop('timings', 1)
+        user_annotations = annotations.loc[annotations['user_id'] == int(uid)]
+        user_annotations = user_annotations.sort_values(by="timestamp", ascending=False).to_dict(orient='records')
+
+        # get amount of annotations for last week and last day
+        last_week = datetime.now() - timedelta(days=7)
+        last24 = datetime.now() - timedelta(hours=24)
+        last_week = [anno for anno in user_annotations if anno['timestamp'] > last_week]
+        last_week_annos = len(last_week)
+        last24_annos = len([anno for anno in last_week if anno['timestamp'] > last24])
+
     except Exception as e:
         app.logger.error("Exception:"+str(e))
-        annotation_by_individual_user = 0
-    # get user from database
+        annotation_amount = 0
 
     return render_template('profile.html', fname=current_user.fname, lname=current_user.lname,
                            username=current_user.username, user_type=current_user.user_type,
                            email=current_user.email, user=current_user.fname,
-                           admin=current_user.admin, annotation_by_individual_user = annotation_by_individual_user)
+                           admin=current_user.admin, annotation_amount = annotation_amount, 
+                           last_week_annos=last_week_annos, last24_annos=last24_annos,
+                           user_annotations = user_annotations)
+
+@app.route('/api/commentAnnotation', methods=["POST"])
+@login_required
+def commentAnnotation():
+    """
+    Sets a comment string to an annotation
+    """
+    annotation_id = request.form['id']
+    comment = request.form['comment']
+    db = get_db()
+    db.execute("UPDATE annotations SET comment=? WHERE id=?", (comment, annotation_id))
+    db.commit()
+    return redirect(request.referrer)
+
+    
+@app.route('/api/removeAnnotation', methods=["POST"])
+@login_required
+def removeAnnotation():
+    """
+    Removes an annotation from the database
+    """
+    annotation_id = request.form['id']
+    db = get_db()
+    remove_annotation(db, annotation_id)
+    db.commit()
+    app.logger.info("Removed annotation id %s" + annotation_id)
+    return redirect(request.referrer)
+
 
 @app.route('/api/changePassword', methods=["GET", "POST"])
 @login_required
@@ -725,8 +768,8 @@ def get_annotations() -> pd.DataFrame:
     """
     try:
         db = get_db()
-        df_annotations = pd.read_sql_query("SELECT * FROM annotations", db)
-        df_data = pd.read_sql_query("SELECT * FROM data", db)
+        df_annotations = pd.read_sql("SELECT * FROM annotations", db)
+        df_data = pd.read_sql("SELECT * FROM data", db)
     except Exception as e:
         app.logger.error("Database Error:"+str(e))
         raise error_handler.DatabaseError(str(e))
@@ -736,7 +779,7 @@ def get_annotations() -> pd.DataFrame:
 
         df_annotations.insert(loc=1,column='content',value=df_annotations['data_id'].map(contents_dict))
 
-        df_annotations = df_annotations.sort_values(by=['id'])
+        df_annotations = df_annotations.sort_values(by=['id'], ascending=False)
         #df_annotations.drop(['user'],inplace=True,axis=1)
         return df_annotations
     except Exception as e:
