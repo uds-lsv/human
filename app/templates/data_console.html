@@ -3,20 +3,20 @@
 {{super()}}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script type="text/javascript">
-  $(document).ready(function () {
-    $(document).on('click', '#remove_file', function () {
-      $(this).closest('div').remove()
+    $(document).ready(function () {
+        $(document).on('click', '#remove_file', function () {
+            $(this).closest('div').remove()
+        });
     });
-  });
 
-  $(document).ready(function () {
-    $(document).on('click', '#more_files', function () {
-      var $clone = $('<div class="div_file form-group form-inline btn col"></div>');
-      $clone.append('<input type="file" name="files[]" class="form-control btn btn-outline-secondary" multiple>');
-      $clone.append(" <a href=# id='remove_file' style='color:red'><img src=\"{{url_for('.static', filename='remove.png')}}\" alt='Remove files' style='width:20px;''></a><br/>");
-      $clone.insertBefore('form p:last');
+    $(document).ready(function () {
+        $(document).on('click', '#more_files', function () {
+            var $clone = $('<div class="div_file form-group form-inline btn col"></div>');
+            $clone.append('<input type="file" name="files[]" class="form-control btn btn-outline-secondary" multiple>');
+            $clone.append(" <a href=# id='remove_file' style='color:red'><img src=\"{{url_for('.static', filename='remove.png')}}\" alt='Remove files' style='width:20px;''></a><br/>");
+            $clone.insertBefore('form p:last');
+        });
     });
-  });
 </script>
 {% endblock %}
 
@@ -29,126 +29,236 @@
 {% endif %}
 <br />
 <div class='container'>
-  <div class="row ">
-    <div class="col card-body">
-      <p class="text-center">
-      <h3>Data Console</h3>
-      </p>
+    <div class="row ">
+        <div class="col card-body">
+            <p class="text-center">
+            <h3>Data Console</h3>
+            </p>
+        </div>
     </div>
-  </div>
-  <div class='row'>
-    <div class="col card text-center">
-      <div class="card-body">
-        <div style="display: flex; justify-content: space-between;">
-          <a style="width: 100%" data-toggle="collapse" href="#annotations-table" role="button" aria-expanded="false"
-            aria-controls="annotations-table">
-            <h3>Annotations</h3>
-          </a>
-          <form action="/annotations_download" method="POST" enctype=multipart/form-data class="form-group">
-            <!-- <input type="submit" class="btn btn-primary"></input> -->
-            <button type="submit" value="Submit" class="btn btn-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                class="bi bi-arrow-down-circle" viewBox="0 0 16 16">
-                <path fill-rule="evenodd"
-                  d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z" />
-              </svg>
-            </button>
-          </form>
+    <div class='row'>
+        <div class="col card text-center">
+            <div class="card-body">
+                <div style="display: flex; justify-content: space-between;">
+                    <a style="width: 100%" data-toggle="collapse" href="#annotations-table" role="button"
+                        aria-expanded="false" aria-controls="annotations-table">
+                        <h3>Annotations</h3>
+                    </a>
+                    <form action="/annotations_download" method="POST" enctype=multipart/form-data class="form-group">
+                        <!-- <input type="submit" class="btn btn-primary"></input> -->
+                        <button type="submit" value="Submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                class="bi bi-arrow-down-circle" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd"
+                                    d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+                {% if annotations %}
+                <div class="collapse" id="annotations-table">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                        class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                        <path
+                                            d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+                                    </svg>
+                                </th>
+                                <th>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                        class="bi bi-exclamation-circle" viewBox="0 0 16 16">
+                                        <path
+                                            d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                        <path
+                                            d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
+                                    </svg>
+                                </th>
+                                {% for header in annotations[0] %}
+                                <th>{{header}}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in annotations %}
+                            <tr>
+                                <td>
+                                    <button type="button" class="btn btn-primary" data-toggle="modal"
+                                        data-target="#removeModal" data-id="{{record['id']}}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                            <path
+                                                d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+                                        </svg>
+                                    </button>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-primary" data-toggle="modal"
+                                        data-target="#commentModal" data-id="{{record['id']}}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
+                                            <path
+                                                d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                            <path
+                                                d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
+                                        </svg>
+                                    </button>
+                                </td>
+                                {% for key in record %}
+                                <td>{{record[key]}}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                No annotations available yet.
+                {% endif %}
+            </div>
         </div>
-        {% if annotations %}
-        <div class="collapse" id="annotations-table">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                {% for header in annotations[0] %}
-                <th>{{header}}</th>
-                {% endfor %}
-              </tr>
-            </thead>
-            <tbody>
-              {% for record in annotations %}
-              <tr>
-                {% for key in record %}
-                <td>{{record[key]}}</td>
-                {% endfor %}
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% else %}
-        No annotations available yet.
-        {% endif %}
-      </div>
     </div>
-  </div>
-  <br>
-  <div class='row'>
-    <div class="col card text-center">
-      <div class="card-body">
-        <div style="display: flex; justify-content: space-between;">
-          <a style="width: 100%" data-toggle="collapse" href="#data-table" role="button" aria-expanded="false"
-            aria-controls="data-table">
-            <h3>Data
-            </h3>
-          </a>
-          <form action="/data_download" method="POST" enctype=multipart/form-data class="form-group">
-            <!-- <input type="submit" class="btn btn-primary"></input> -->
-            <button type="submit" value="Submit" class="btn btn-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                class="bi bi-arrow-down-circle" viewBox="0 0 16 16">
-                <path fill-rule="evenodd"
-                  d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z" />
-              </svg>
-            </button>
-          </form>
+    <br>
+    <div class='row'>
+        <div class="col card text-center">
+            <div class="card-body">
+                <div style="display: flex; justify-content: space-between;">
+                    <a style="width: 100%" data-toggle="collapse" href="#data-table" role="button" aria-expanded="false"
+                        aria-controls="data-table">
+                        <h3>Data
+                        </h3>
+                    </a>
+                    <form action="/data_download" method="POST" enctype=multipart/form-data class="form-group">
+                        <!-- <input type="submit" class="btn btn-primary"></input> -->
+                        <button type="submit" value="Submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                class="bi bi-arrow-down-circle" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd"
+                                    d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+                {% if data %}
+                <div class="collapse" id="data-table">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                {% for header in data[0] %}
+                                <th>{{header}}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in data %}
+                            <tr>
+                                {% for key in record %}
+                                <td>{{record[key]}}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                No data available yet.
+                {% endif %}
+            </div>
         </div>
-        {% if data %}
-        <div class="collapse" id="data-table">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                {% for header in data[0] %}
-                <th>{{header}}</th>
-                {% endfor %}
-              </tr>
-            </thead>
-            <tbody>
-              {% for record in data %}
-              <tr>
-                {% for key in record %}
-                <td>{{record[key]}}</td>
-                {% endfor %}
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% else %}
-        No data available yet.
-        {% endif %}
-      </div>
     </div>
-  </div>
-  <br />
-  <div class='row'>
-    <div class="col card text-center">
-      <div class="card-body">
-        <h3>Export everything as xlsx</h3>
-        <form action="/all_download" method="POST" enctype=multipart/form-data class="form-group">
-          <!-- <input type="submit" class="btn btn-primary"></input> -->
-          <button type="submit" value="Submit" class="btn btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-              class="bi bi-arrow-down-circle" viewBox="0 0 16 16">
-              <path fill-rule="evenodd"
-                d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z" />
-            </svg>
+    <br />
+    <div class='row'>
+        <div class="col card text-center">
+            <div class="card-body">
+                <h3>Export everything as xlsx</h3>
+                <form action="/all_download" method="POST" enctype=multipart/form-data class="form-group">
+                    <!-- <input type="submit" class="btn btn-primary"></input> -->
+                    <button type="submit" value="Submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-arrow-down-circle" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd"
+                                d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z" />
+                        </svg>
 
-          </button>
-        </form>
-      </div>
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
-  </div>
-  <br />
+    <br />
 </div>
+
+<!-- Comment Modal -->
+<div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="commentModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="commentModalLabel">Comment annotation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="comment-form" action="/api/commentAnnotation" method="POST">
+                    <input type="hidden" class="form-control" id="id" name="id">
+                    <input type="text" class="form-control" id="comment" name="comment">
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" form="comment-form" value="Submit" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Remove Modal -->
+<div class="modal fade" id="removeModal" tabindex="-1" role="dialog" aria-labelledby="removeModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeModalLabel">Remove annotation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-text"></div>
+                <form id="remove-form" action="/api/removeAnnotation" method="POST">
+                    <input type="hidden" class="form-control" id="id" name="id">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" form="remove-form" value="Submit" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $('#commentModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget) // Button that triggered the modal
+        var id = button.data('id') // Extract info from data-* attributes
+        // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+        var modal = $(this)
+        modal.find('.modal-title').text('Add comment for Annotation #' + id)
+        modal.find('#id').val(id)
+    })
+    $('#removeModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget) // Button that triggered the modal
+        var id = button.data('id') // Extract info from data-* attributes
+        // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+        var modal = $(this)
+        modal.find('#modal-text').text('Do you really want to remove Annotation #' + id + "? This can NOT be undone!")
+        modal.find('#id').val(id)
+    })
+
+</script>
 {% endblock %}
