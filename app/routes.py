@@ -248,7 +248,7 @@ def data_console():
         app.logger.info("upload_file requested by non-admin user")
         return render_template('login.html',error="login as admin to proceed")
     annotations=get_annotations()
-    daily = get_daily_annos(annotations)
+    daily = get_daily_annotations(annotations)
 
     annotations = annotations.to_dict(orient='records')
     data = get_data()
@@ -763,7 +763,7 @@ def row2dict(row):
     return dic
 
 
-def get_daily_annos(df: pd.DataFrame) -> list(int):
+def get_daily_annotations(df: pd.DataFrame):
     '''
     get amount of annotations per day
     '''
