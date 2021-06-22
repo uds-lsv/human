@@ -2,6 +2,8 @@
 {% block scripts%}
 {{super()}}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script type="text/javascript">
     $(document).ready(function () {
         $(document).on('click', '#remove_file', function () {
@@ -18,10 +20,45 @@
         });
     });
 </script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        const labels = [
+            {% for n in range(daily | length) %}
+                "{{ n }}",
+        {% endfor %}
+        ];
+    const data = {
+        labels: labels,
+        datasets: [{
+            label: 'Daily progress',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: [
+                {% for item in daily %}
+                    {{ item }},
+        {% endfor %}
+            ],
+        }]
+    };
+
+    const config = {
+        type: 'line',
+        data,
+        options: {}
+    };
+
+    var myChart = new Chart(
+        document.getElementById('annochart'),
+        config
+    );
+
+    })
+</script>
 {% endblock %}
 
 {% block content %}
-{% if success%}
+{% if success %}
 <p style="color:green"> {{ success }}</p>
 {% endif %}
 {% if error %}
@@ -40,11 +77,31 @@
         <div class="col card text-center">
             <div class="card-body">
                 <div style="display: flex; justify-content: space-between;">
+                    <a style="width: 100%" data-toggle="collapse" href="#statistics" role="button" aria-expanded="false"
+                        aria-controls="statistics">
+                        <h3>Statistics</h3>
+                    </a>
+                </div>
+                <div class="collapse" id="statistics">
+                    <div style="display: flex; flex-direction: column;">
+                        <canvas id="annochart" width="600" height="150"></canvas>
+                        <b>Progress :</b> {{ annotations|length }}/{{ data|length }}<br />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class='row'>
+        <div class="col card text-center">
+            <div class="card-body">
+                <div style="display: flex; justify-content: space-between;">
                     <a style="width: 100%" data-toggle="collapse" href="#annotations-table" role="button"
                         aria-expanded="false" aria-controls="annotations-table">
                         <h3>Annotations</h3>
                     </a>
-                    <form action="/annotations_download" method="POST" enctype=multipart/form-data class="form-group">
+                    <form action="/annotations_download" method="POST" enctype=multipart/form-data class="form-group"
+                        style="position: absolute; right: 5%;">
                         <!-- <input type="submit" class="btn btn-primary"></input> -->
                         <button type="submit" value="Submit" class="btn btn-primary">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -130,7 +187,8 @@
                         <h3>Data
                         </h3>
                     </a>
-                    <form action="/data_download" method="POST" enctype=multipart/form-data class="form-group">
+                    <form action="/data_download" method="POST" enctype=multipart/form-data class="form-group"
+                        style="position: absolute; right: 5%;">
                         <!-- <input type="submit" class="btn btn-primary"></input> -->
                         <button type="submit" value="Submit" class="btn btn-primary">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -210,7 +268,8 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="submit" form="comment-form" value="Submit" class="btn btn-primary">Save changes</button>
+                <button type="submit" form="comment-form" value="Submit" class="btn btn-primary">Save
+                    changes</button>
             </div>
         </div>
     </div>
@@ -235,7 +294,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="submit" form="remove-form" value="Submit" class="btn btn-primary">Save changes</button>
+                <button type="submit" form="remove-form" value="Submit" class="btn btn-primary">Save
+                    changes</button>
             </div>
         </div>
     </div>

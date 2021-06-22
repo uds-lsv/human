@@ -248,11 +248,13 @@ def data_console():
         app.logger.info("upload_file requested by non-admin user")
         return render_template('login.html',error="login as admin to proceed")
     annotations=get_annotations()
+    daily = get_daily_annos(annotations)
+
     annotations = annotations.to_dict(orient='records')
     data = get_data()
     data = data.to_dict(orient="records")
     return render_template('data_console.html',success=request.args.get('success'),
-                    error=request.args.get('error'), admin=current_user.admin, user=current_user.fname, annotations=annotations, data=data)
+                    error=request.args.get('error'), admin=current_user.admin, user=current_user.fname, annotations=annotations, data=data, daily=daily)
 
 @app.route('/upload_file', methods=["GET", "POST"])
 @login_required
@@ -760,6 +762,14 @@ def row2dict(row):
         dic[column] = row[column]
     return dic
 
+
+def get_daily_annos(df: pd.DataFrame) -> list(int):
+    '''
+    get amount of annotations per day
+    '''
+    df = df.set_index('timestamp')
+    days = [group[1].shape[0] for group in df.groupby([df.index.year,df.index.month,df.index.day])]
+    return days
 
 
 def get_annotations() -> pd.DataFrame:
