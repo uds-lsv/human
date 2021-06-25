@@ -484,7 +484,6 @@ def load_profile():
     """
     Function to load a profile
     """
-    app.logger.debug("from load_profile admin user:{}".format(current_user.admin))
     app.logger.debug("from load_profile current user:{}".format(current_user.admin))
     uid = current_user.get_id()
 
@@ -501,12 +500,13 @@ def load_profile():
         user_annotations = annotations.loc[annotations['user_id'] == int(uid)]
         user_annotations = user_annotations.sort_values(by="timestamp", ascending=False).to_dict(orient='records')
 
-        # get amount of annotations for last week and last day
-        last_week = datetime.now() - timedelta(days=7)
-        last24 = datetime.now() - timedelta(hours=24)
-        last_week = [anno for anno in user_annotations if anno['timestamp'] > last_week]
-        last_week_annos = len(last_week)
-        last24_annos = len([anno for anno in last_week if anno['timestamp'] > last24])
+        # get amount of annotations for this week and today
+        start_today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        start_week = start_today - timedelta(days=datetime.today().weekday())
+
+        this_week = [anno for anno in user_annotations if anno['timestamp'] > start_week]
+        last_week_annos = len(this_week)
+        last24_annos = len([anno for anno in this_week if anno['timestamp'] > start_today])
 
     except Exception as e:
         app.logger.error("Exception:"+str(e))
@@ -768,7 +768,7 @@ def get_daily_annotations(df: pd.DataFrame):
     get amount of annotations per day
     '''
     df = df.set_index('timestamp')
-    days = [group[1].shape[0] for group in df.groupby([df.index.year,df.index.month,df.index.day])]
+    days = [ (group[0], group[1].shape[0]) for group in df.groupby([df.index.year,df.index.month,df.index.day])]
     return days
 
 
