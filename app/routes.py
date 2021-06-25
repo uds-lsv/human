@@ -768,7 +768,7 @@ def get_daily_annotations(df: pd.DataFrame):
     get amount of annotations per day
     '''
     df = df.set_index('timestamp')
-    days = [ (group[0], group[1].shape[0]) for group in df.groupby([df.index.year,df.index.month,df.index.day])]
+    days = [group[1].shape[0] for group in df.groupby([df.index.year,df.index.month,df.index.day])]
     return days
 
 
