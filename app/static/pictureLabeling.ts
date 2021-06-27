@@ -624,6 +624,12 @@ function onClickPicture(
             borderStrokeWidth: 3,
             borderStroke: 'green',
             anchorSize: 5,
+            enabledAnchors: [
+                'top-left',
+                'top-right',
+                'bottom-left',
+                'bottom-right',
+            ],
         })
         layer.add(tr)
         tr.attachTo(e.target)
