@@ -65,7 +65,15 @@ export async function loadWords() {
         $('#pdf-meta').hide(),
         $('#pdf-contents').hide(),
         $('#picture_content').show(),
+        $('.gutter-vertical').remove(), // remove gutter to add it later again
+        $('#fzf-toggle').addClass('active'),
     ])
+    Split([ '#contentContainer', '#bottomContainer' ], {
+        sizes: [ 90, 10 ],
+        direction: 'vertical',
+        gutterSize: 8,
+        cursor: 'row-resize',
+    })
 }
 
 /**
@@ -267,7 +275,14 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
     $('#input-item, .word-list-item, #text-input')
         .off('keyup')
         .on('keyup', function(e) {
-            if (e.key === 'Enter') {
+            if (e.shiftKey && e.key === 'Enter') {
+                // $('#input-item').click();
+                e.preventDefault()
+                setAnnotation(task)
+                task.setCurrentIndex(
+                    task.currentIndex === 0 ? 0 : task.currentIndex - 1
+                )
+            } else if (e.key === 'Enter') {
                 // $('#input-item').click();
                 e.preventDefault()
                 setAnnotation(task)
@@ -277,13 +292,12 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
     $('#input-item, .word-list-item, #text-input')
         .off('keydown')
         .on('keydown', function(e) {
-            if (e.key === 'Tab' || e.key === 'ArrowDown') {
-                e.preventDefault()
-                activateNext()
-            }
             if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
                 e.preventDefault()
                 activatePrev()
+            } else if (e.key === 'Tab' || e.key === 'ArrowDown') {
+                e.preventDefault()
+                activateNext()
             }
         })
     $('#text-input').val(prediction[0])
