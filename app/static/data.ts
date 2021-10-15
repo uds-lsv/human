@@ -28,6 +28,7 @@ export let Data = {
     guiBBoxes: [],
     scales: { x: 1, y: 1 },
     active: -1,
+    timestamp: 0,
     reset: () => {
         Data.data = undefined
         Data.text = ''
@@ -40,6 +41,7 @@ export let Data = {
         Data.predicted_labels = []
         Data.guiBBoxes = []
         Data.scales = { x: 1, y: 1 }
+        Data.timestamp = 0
     },
 }
 window['data'] = Data

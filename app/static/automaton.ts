@@ -24,7 +24,6 @@ export class Automaton {
 
     currentannotation
     machine: any
-    timestamp = new Date().getTime()
 
     constructor() {}
 
@@ -33,9 +32,12 @@ export class Automaton {
      * @param data (optional) data object which is sent to next state as an event
      */
     next(target: string, data?: any) {
-        console.log(target)
-        let choice = { type: target, data }
-        this.CURRENTSTATE.send(choice)
+        return new Promise((resolve, reject) => {
+            console.log(target)
+            let choice = { type: target, data }
+            this.CURRENTSTATE.send(choice)
+            resolve(null)
+        })
     }
 
     initAutomaton(annotationProtocol, start?) {
@@ -160,10 +162,15 @@ export class Automaton {
         },
         showUI: (_, event, actionMeta) => {
             const timestamp2 = new Date().getTime()
-            Data.annotations['timings'].push(
-                (actionMeta.state.value, timestamp2 - this.timestamp)
-            )
-            this.timestamp = timestamp2
+            if (Data.timestamp) {
+                console.log(
+                    (actionMeta.state.value, timestamp2 - Data.timestamp)
+                )
+                Data.annotations['timings'].push(
+                    (actionMeta.state.value, timestamp2 - Data.timestamp)
+                )
+            }
+            Data.timestamp = timestamp2
 
             let meta =
                 actionMeta.state.meta[

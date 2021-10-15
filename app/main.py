@@ -6,7 +6,6 @@ from flask.ext.login import current_user, logout_user
 def create_app():
     return Flask(__name__)
 
-
 app = create_app()
 app.config['SECRET_KEY']='secret_session'
 socketio = SocketIO(app)
@@ -18,7 +17,6 @@ def create_session():
 @socketio.on('disconnect')
 def disconnect_user():
     session.pop('secret_session', None)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
