@@ -11,5 +11,6 @@ dependencies:
   - pandas
   - pip
   - pillow
-  - pip:
-    - requests-toolbelt
+  - pytables
+  - requests-toolbelt
+  - tqdm

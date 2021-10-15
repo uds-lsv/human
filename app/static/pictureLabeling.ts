@@ -413,9 +413,13 @@ export function showMultilabelBBox(
                 setAnnotation(multilabelBBoxTask)
                 buttonContainer.remove()
                 Data.active -= 2
-                automaton.next('NEXT', {
-                    labels: multilabelBBoxTask.annotations,
-                })
+                automaton
+                    .next('NEXT', {
+                        labels: multilabelBBoxTask.annotations,
+                    })
+                    .then(() => {
+                        Data.annotations['timings'].pop()
+                    })
             })
             $('#answer').prepend(back)
         }
