@@ -92,7 +92,7 @@ export class Automaton {
             )
         },
         showMultilabelBBox: async (_, event, actionMeta) => {
-            await loadWords()
+            await loadPicture()
             let meta =
                 actionMeta.state.meta[
                     'annotation.' + actionMeta.state.value
