@@ -2,6 +2,8 @@ import re
 import hashlib
 from app import login_handler
 from app.db import get_db
+from app.automaton import AnnotationAutomaton
+import pickle
 from app import app
 from app import error_handler
 
@@ -27,7 +29,7 @@ def authenticate_login(username, password):
     password_hash = password_hash_object.hexdigest()
 
     ## Obtain the hashed password from DB
-    row = db.execute('SELECT id,username,email,given_name,surname,password,user_type,is_approved,annotated FROM user WHERE username = ?', (username,)).fetchone()
+    row = db.execute('SELECT id,username,email,given_name,surname,password,user_type,is_approved,annotated,automaton FROM user WHERE username = ?', (username,)).fetchone()
 
     ## Check if the passwords match
     app.logger.debug("Password entered hash :  {}".format(password))
@@ -37,10 +39,14 @@ def authenticate_login(username, password):
         return None,"Incorrect password"
 
     ## obtain the `user` object
-    user = login_handler.User(uid=row[0],username=row[1],email=row[2],fname=row[3],lname=row[4],password=row[5],user_type=row[6],is_approved=row[7],annotated=row[8])
+    user = login_handler.User(uid=row[0],username=row[1],email=row[2],fname=row[3],lname=row[4],password=row[5],user_type=row[6],is_approved=row[7],annotated=row[8], automaton=row[9])
 
     if user.is_active():
         app.logger.debug("User is active")
+        if user.automaton is None:
+            automaton = pickle.dumps(AnnotationAutomaton.setup())
+            db.execute('UPDATE user SET automaton=? WHERE id=?',(automaton,user.uid))
+            db.commit()
         return user,None
     else:
         app.logger.debug("User is not active, returned None as user")

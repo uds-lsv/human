@@ -1,12 +1,13 @@
 from flask_login import LoginManager,UserMixin,logout_user,login_user,login_required,current_user
 from flask import Flask
+import pickle
 from app.db import get_db
 ## Custom import
 from app import login_manager
 from app import app
 from app import error_handler
 class User(UserMixin):
-    def __init__(self,uid,username,email,fname,lname,password,user_type,is_approved,annotated):
+    def __init__(self,uid,username,email,fname,lname,password,user_type,is_approved,annotated, automaton):
         """
         Params:
         uid : user id (unique userid for each user)
@@ -29,7 +30,7 @@ class User(UserMixin):
         self.is_approved = is_approved
         self.annotated = annotated
         self.active = False
-
+        self.automaton = (None if automaton is None else pickle.loads(automaton))
         self.admin = None
         if user_type == 'admin':
             self.admin='yes'
@@ -57,8 +58,9 @@ class User(UserMixin):
 
     def get_annotated(self):
         return ('' if self.annotated is None else self.annotated)
+    
     def __repr__(self):
-        return '<User %r>' % (self.username)
+        return '<User %r, %r>' % (self.username, self.automaton)
 
     
 @login_manager.user_loader
@@ -70,10 +72,10 @@ def load_user(user_id):
     app.logger.debug("from load_user()")
     db = get_db()
     try:
-        uid,username,email,fname,lname,password,user_type,is_approved,annotated = db.execute(
-            'SELECT id,username,email,given_name,surname,password,user_type,is_approved,annotated FROM user WHERE id = ?', 
+        uid,username,email,fname,lname,password,user_type,is_approved,annotated,automaton = db.execute(
+            'SELECT id,username,email,given_name,surname,password,user_type,is_approved,annotated,automaton FROM user WHERE id = ?', 
             (user_id,)).fetchone()
-        user = User(uid,username,email,fname,lname,password,user_type,is_approved,annotated)
+        user = User(uid,username,email,fname,lname,password,user_type,is_approved,annotated, automaton)
     except Exception as e:
         app.logger.error("Error occurred while loading the user {}".format(user_id))
         app.logger.error("Error occurred while loading the user error:".format(str(e)))

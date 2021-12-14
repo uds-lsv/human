@@ -9,6 +9,7 @@ from app.db import get_db, remove_annotation
 from app import user_handler
 from app import login_handler
 from app import error_handler
+from app.automaton import AnnotationAutomaton
 from werkzeug.utils import secure_filename
 from flask_login import LoginManager, UserMixin, logout_user, login_user, login_required, current_user
 from datetime import timedelta, datetime
@@ -18,12 +19,15 @@ import io
 import logging
 from collections import Counter
 
-# for flask run
+# logger
+# when running via flask run:
 app.logger = create_logger(app)
-
 # when running gunicorn
 # gunicorn_logger = logging.getLogger('gunicorn.error')
 # app.logger = gunicorn_logger
+
+# transition logger
+logging.getLogger('transitions').setLevel(logging.ERROR)
 
 ## API routes
 # Add custom api routes here. Be careful not to overwrite other routes or route function names.
@@ -34,6 +38,24 @@ app.logger = create_logger(app)
 
 #####################################
 
+@login_required
+@app.route('/dsm/transition', methods=["POST"])
+def transition():
+    req = request.get_json()
+    print('request', req)
+    trigger = req['trigger']
+    if  trigger == 'start':
+        automaton = AnnotationAutomaton.setup() # create
+        # automaton: AnnotationAutomaton = current_user.automaton
+        automaton.to_start()
+        response = automaton.get_response()
+    else:
+        automaton: AnnotationAutomaton = current_user.automaton
+        if '*' in automaton.get_triggers(automaton.current_state):
+            trigger = '*'
+        automaton.dispatch(trigger,data=req)
+        response = automaton.get_response()
+    return response
 
 @app.route('/api/callAPI', methods=["POST", "OPTIONS"])
 def call_api():
@@ -125,7 +147,7 @@ def choose_data():
             db.commit()
             return jsonify(row2dict(selected))
         else:
-            return 'No available data'
+            return 'No data left available for annotations. Please contact your admin.'
 
 @login_required
 @app.route('/api/write_to_db', methods=["POST", "OPTIONS"])
