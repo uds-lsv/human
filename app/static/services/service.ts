@@ -3,7 +3,7 @@ import { SETTINGS } from '../settings'
 export class Service {
     constructor() {}
 
-    static filesettings = {
+    static ajax_filesettings = {
         async: true,
         crossDomain: true,
         method: 'POST',
@@ -13,7 +13,7 @@ export class Service {
         mimeType: 'multipart/form-data',
     }
 
-    static jsonsettings = {
+    static ajax_jsonsettings = {
         async: true,
         crossDomain: true,
         method: 'POST',
@@ -21,6 +21,20 @@ export class Service {
         processData: false,
         contentType: 'application/json;charset=UTF-8',
         // mimeType: 'application/json'
+    }
+    static fetch_jsonsettings = {
+        async: true,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+    }
+    // TODO: test this
+    static fetch_filesettings = {
+        async: true,
+        method: 'POST',
+        headers: {},
+        processData: false,
+        contentType: false,
+        mimeType: 'multipart/form-data',
     }
 
     static get(url, params?) {
@@ -30,11 +44,11 @@ export class Service {
     static post(url: string, type?: 'json' | 'file', data?) {
         let settings: any = {}
         if (type === 'json') {
-            settings = Object.assign(settings, this.jsonsettings)
+            settings = Object.assign(settings, this.ajax_jsonsettings)
         } else if (type === 'file') {
-            settings = Object.assign(settings, this.filesettings)
+            settings = Object.assign(settings, this.ajax_filesettings)
         } else {
-            settings = Object.assign(settings, this.jsonsettings)
+            settings = Object.assign(settings, this.ajax_jsonsettings)
         }
         settings.url = SETTINGS.URL + url
         settings.data = data
@@ -42,5 +56,19 @@ export class Service {
     }
     static fetch(url: string) {
         return fetch(url)
+    }
+
+    static fetchpost(url: string, type?: 'json' | 'file', data?) {
+        let settings: any = {}
+        if (type === 'json') {
+            settings = Object.assign(settings, this.fetch_jsonsettings)
+        } else if (type === 'file') {
+            settings = Object.assign(settings, this.fetch_filesettings)
+        } else {
+            settings = Object.assign(settings, this.fetch_jsonsettings)
+        }
+        settings.url = SETTINGS.URL + url
+        settings.body = data
+        return fetch(url, settings)
     }
 }

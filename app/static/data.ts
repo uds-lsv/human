@@ -1,3 +1,5 @@
+import { Task } from './services/automaton'
+
 class DefaultDict {
     constructor(defaultInit) {
         return new Proxy(
@@ -15,21 +17,23 @@ class DefaultDict {
     }
 }
 
-export let Data = {
-    data: undefined,
-    text: '',
-    context: '',
-    picture: undefined,
-    pdf: undefined,
-    markers: [],
-    annotations: new DefaultDict(Array),
-    current_column: '',
-    predicted_labels: [],
-    guiBBoxes: [],
-    scales: { x: 1, y: 1 },
-    active: -1,
-    timestamp: 0,
-    reset: () => {
+export class Data {
+    static data = undefined
+    static text: string = ''
+    static content: string = ''
+    static context: string = ''
+    static picture = undefined
+    static pdf = undefined
+    static markers = []
+    static annotations = new DefaultDict(Array)
+    static current_column: string = ''
+    static predicted_labels: string[][]
+    static guiBBoxes: any
+    static scales: { x: number; y: number }
+    static active: number = -1
+    static timestamp: number = 0
+    static current_task: Task = undefined
+    static reset() {
         Data.data = undefined
         Data.text = ''
         Data.context = ''
@@ -42,6 +46,8 @@ export let Data = {
         Data.guiBBoxes = []
         Data.scales = { x: 1, y: 1 }
         Data.timestamp = 0
-    },
+        Data.current_task = undefined
+    }
 }
+
 window['data'] = Data

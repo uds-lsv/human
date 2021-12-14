@@ -1,10 +1,10 @@
-import { Automaton } from './automaton'
+import { nextState } from './services/automaton'
 import { SETTINGS } from './settings'
 
-String.prototype.format = function(args) {
+String.prototype.format = function (args) {
     var str = this
     let regex = new RegExp('{-?[0-9]+}', 'g')
-    return str.replace(regex, function(item) {
+    return str.replace(regex, function (item) {
         var intVal = parseInt(item.substring(1, item.length - 1))
         var replace
         if (intVal >= 0) {
@@ -20,7 +20,8 @@ String.prototype.format = function(args) {
     })
 }
 
-$(document).ready(function() {
+// document on ready
+$(function () {
     $('#text-input').hide()
     $('#text-input-group').hide()
     $('#word-list').hide()
@@ -31,8 +32,9 @@ $(document).ready(function() {
     $('#bodyContainer').height(
         'calc(100% - ' + $('.navbar').outerHeight() + 'px)'
     )
-    automaton = new Automaton()
-    automaton.initAutomaton(automaton.annotationProtocolParsed)
+    nextState('start', {})
+    // automaton = new Automaton()
+    // automaton.initAutomaton(automaton.annotationProtocolParsed)
     // automaton.initAutomaton(automaton.annotationProtocolExample1)
     // automaton.initAutomaton(automaton.annotationProtocolExample2)
 })
