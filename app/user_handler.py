@@ -1,5 +1,5 @@
 import re
-import hashlib
+import bcrypt
 from app import login_handler
 from app.db import get_db
 from app.automaton import AnnotationAutomaton
@@ -7,7 +7,9 @@ import pickle
 from app import app
 from app import error_handler
 
-def authenticate_login(username, password):
+SALT_ROUNDS = 12
+
+def authenticate_login(username, password:str):
     """
     Function that accepts the username and password, verifies the match between username and password.
     Params:
@@ -24,17 +26,11 @@ def authenticate_login(username, password):
     if db.execute('SELECT id,username FROM user WHERE username = ?', (username,)).fetchone() is None:
         return None, "Username does not exist"
 
-    ## Hash the password
-    password_hash_object = hashlib.sha256(password.encode('utf-8'))
-    password_hash = password_hash_object.hexdigest()
-
     ## Obtain the hashed password from DB
     row = db.execute('SELECT id,username,email,given_name,surname,password,user_type,is_approved,annotated,automaton FROM user WHERE username = ?', (username,)).fetchone()
 
     ## Check if the passwords match
-    app.logger.debug("Password entered hash :  {}".format(password))
-    app.logger.debug("Password retrieved hash: {}".format(row[5]))
-    if password_hash != row[5]:
+    if not bcrypt.checkpw(password.encode(), row[5]):
         app.logger.debug("Password mismatch")
         return None,"Incorrect password"
 
@@ -54,7 +50,7 @@ def authenticate_login(username, password):
 
     return user,None
 
-def register_user(username,email,fname,lname,password,confirm_password):
+def register_user(username,email,fname,lname,password: str,confirm_password):
     """
     Function that creates a new user by adding an entry to the database.
     Params:
@@ -96,9 +92,7 @@ def register_user(username,email,fname,lname,password,confirm_password):
         return None, "username already exists!"
 
     ## hash the password before storing
-
-    password_hash_object = hashlib.sha256(password.encode('utf-8'))
-    password_hash = password_hash_object.hexdigest()
+    password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt(SALT_ROUNDS))
 
     try:
         ## Insert the data into the database
@@ -115,7 +109,7 @@ def register_user(username,email,fname,lname,password,confirm_password):
         raise error_handler.DatabaseError(str(e))
 
 
-def change_password(username,password,confirm_password,new_password,confirm_new_password):
+def change_password(username,password: str,confirm_password,new_password: str,confirm_new_password):
     """
     Function that changes the user login password. Databse is updated upon password change.
     Params:
@@ -143,21 +137,17 @@ def change_password(username,password,confirm_password,new_password,confirm_new_
         error_message += " The entered new password is not same as the confirmation password!"
 
     db = get_db()
-
     row = db.execute('SELECT password FROM user WHERE username = ?', (username,)).fetchone()
 
-    old_password_hash_object = hashlib.sha256((password).encode('utf-8'))
-    old_password_hash = old_password_hash_object.hexdigest()
-
-    if old_password_hash!=row[0]:
+    if not bcrypt.checkpw(password.encode(), row[0]):
         error_message = "Incorrect Current Password!"
 
     if error_message != "":
         ## Return Failure
         return None, error_message
 
-    new_password_hash_object = hashlib.sha256(new_password.encode('utf-8'))
-    new_password_hash = new_password_hash_object.hexdigest()
+    new_password_hash = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt(SALT_ROUNDS))
+
 
     try:
         db.execute('UPDATE user SET password=? WHERE username=?',(new_password_hash,username))
@@ -214,7 +204,7 @@ def deactivate_user(username):
         app.logger.error("Error occurred while adding user, DB rolled-back")
         raise error_handler.DatabaseError(str(e))
 
-def change_password_admin(username,password,confirm_password,admin_username,admin_password):
+def change_password_admin(username,password: str,confirm_password,admin_username,admin_password: str):
     """
     Function that changes the user login password through an admin user. Databse is updated upon password change.
     Params:
@@ -237,19 +227,17 @@ def change_password_admin(username,password,confirm_password,admin_username,admi
 
     ## Authenticate admin password
     row = db.execute('SELECT password FROM user WHERE username = ?', (admin_username,)).fetchone()
-    admin_password_hash_object = hashlib.sha256(admin_password.encode('utf-8'))
-    admin_password_hash = admin_password_hash_object.hexdigest()
 
-    if admin_password_hash!=row[0]:
+    if not bcrypt.checkpw(admin_password.encode(), row[0]):
         error_message += " Incorrect Password"
 
     if error_message != "":
         return None, error_message
     
-    password_hash_object = hashlib.sha256(password.encode('utf-8'))
-    password_hash = password_hash_object.hexdigest()
+    new_password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt(SALT_ROUNDS))
+
     try:
-        db.execute('UPDATE user SET password=? WHERE username=?',(password_hash,username))
+        db.execute('UPDATE user SET password=? WHERE username=?',(new_password_hash,username))
         db.commit()
         return "Successfully changed password for user "+username,None
 
