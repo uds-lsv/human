@@ -2,7 +2,15 @@ import { automaton } from './start'
 import { loadFullSizePDF } from './services/pdf'
 import { Task, nextState } from './services/automaton'
 import { Data } from './data'
-import { add_spans } from './utils'
+import { add_spans, cleanPaperProjects } from './utils'
+import {
+    loadPicture,
+    loadWords,
+    showAnnotatePicture,
+    showLabelBBoxes,
+    showMultilabelBBox,
+    showPictureBBox,
+} from './pictureLabeling'
 
 // --------------------------------------------------------------
 // GUI
@@ -40,7 +48,9 @@ export function showText() {
  * Shows a boolean type question in the sidebar
  */
 export class BooleanTask implements Task {
-    constructor() {}
+    constructor(state, data) {
+        this.onEntry(state['question'])
+    }
 
     async onEntry(question) {
         // await loadWords()
@@ -73,7 +83,9 @@ export class BooleanTask implements Task {
  * Shows a select type question in the sidebar allowing a single answer
  */
 export class SelectTask implements Task {
-    constructor() {}
+    constructor(state, data) {
+        this.onEntry(state['question'], state['answer'], state['options'])
+    }
 
     async onEntry(question: string, answer: string = 'Continue', options) {
         $('#question').append(question) // append question text
@@ -129,7 +141,9 @@ export class SelectTask implements Task {
  * Shows a checkmark type question in the sidebar allowing multiple answers
  */
 export class CheckmarkTask implements Task {
-    constructor() {}
+    constructor(state, data) {
+        this.onEntry(state['question'], state['answer'], state['options'])
+    }
 
     async onEntry(question: string, answer: string = 'Continue', options) {
         $('#question').append(question) // append question text
@@ -187,7 +201,9 @@ export class CheckmarkTask implements Task {
  * of the current page in a pdf to the state machine
  */
 export class ChoosePageTask implements Task {
-    constructor() {}
+    constructor(state, data) {
+        this.onEntry(state['question'], state['answer'])
+    }
 
     async onEntry(question: string, answer: string = 'Correct Page') {
         $('#question').append(question)
@@ -230,7 +246,9 @@ export class ChoosePageTask implements Task {
 // Text
 // --------------------------------------------------------------
 export class ReadTask implements Task {
-    constructor() {}
+    constructor(state, data) {
+        this.onEntry(state['question'], state['answer'])
+    }
 
     async onEntry(question: string, answer: string = 'Continue') {
         $('#question').append(question)
@@ -250,7 +268,16 @@ export class ReadTask implements Task {
 }
 
 export class LabelTextTask implements Task {
-    constructor() {}
+    constructor(state, data) {
+        let options
+        if (state['options']) {
+            options = state['options']
+        } else {
+            console.log(data)
+            options = JSON.parse(data['annotation'])
+        }
+        this.onEntry(state['question'], state['answer'], options)
+    }
 
     markers = {}
     /**
@@ -338,20 +365,151 @@ export class LabelTextTask implements Task {
 // Image
 // --------------------------------------------------------------
 
+/**
+ * add bounding boxes to picture
+ */
 export class LabelPictureTask implements Task {
-    constructor() {}
+    constructor(state, data) {
+        this.onEntry(state['question'], state['answer'], state['max_bboxes'])
+    }
 
-    async onEntry(question: string, answer: string = 'Continue') {}
+    async onEntry(
+        question: string,
+        answer: string = 'Continue',
+        predictions: number[][] = [],
+        max_bboxes: number = undefined
+    ) {
+        await loadPicture()
+        showAnnotatePicture(
+            Data.picture,
+            predictions,
+            question,
+            answer,
+            max_bboxes
+        )
+    }
+    async onExit() {
+        $('#question').empty()
+        $('#answer').empty()
+    }
+}
+/**
+ * label bounding boxes with one label each
+ */
+export class LabelBBoxesTask implements Task {
+    constructor(state, data) {
+        let bboxes
+        if (data['bboxes']) {
+            bboxes = data['bboxes']
+        } else if (data['annotation']) {
+            bboxes = data['annotation']
+        } else {
+            alert(
+                'Bounding box prediction or annotation from previous state missing.'
+            )
+            // TODO: automaton error handling
+        }
+        let labels = [[]]
+
+        if (data['labels']) {
+            labels = data['labels']
+        }
+        this.onEntry(state['question'], state['answer'], bboxes, labels)
+    }
+
+    async onEntry(
+        question: string,
+        answer: string = 'Continue',
+        bboxes,
+        predicted_labels: string[][] = []
+    ) {
+        await loadPicture()
+        await loadWords()
+
+        showLabelBBoxes(
+            Data.picture,
+            bboxes,
+            predicted_labels,
+            question,
+            answer
+        )
+    }
     async onExit() {
         $('#question').empty()
         $('#answer').empty()
     }
 }
 
-export class LabelBBoxesTask implements Task {
-    constructor() {}
+/**
+ * Multiple labels for one bounding box
+ */
+export class MultilabelBBoxTask implements Task {
+    constructor(state, data) {
+        let bboxes
+        if (data['bboxes']) {
+            bboxes = data['bboxes']
+        } else if (data['annotation']) {
+            bboxes = data['annotation']
+            // make sure this is length 1
+        } else {
+            alert(
+                'Bounding box prediction or annotation from previous state missing.'
+            )
+            // TODO: automaton error handling
+        }
+        let labels = [[]]
+        if (data['predictions']) {
+            labels = data['predictions']
+        }
+        this.onEntry(
+            state['question'],
+            state['answer'],
+            bboxes,
+            labels
+            // data['bbox'],
+            // data['predictions']
+        )
+    }
 
-    async onEntry(question: string, answer: string = 'Continue') {}
+    async onEntry(
+        question: string,
+        answer: string = 'Continue',
+        bbox,
+        predicted_labels
+    ) {
+        await loadPicture()
+        await loadWords() // TODO order significant? YES!
+
+        showMultilabelBBox(
+            Data.picture,
+            bbox,
+            predicted_labels,
+            question,
+            answer
+        )
+    }
+    async onExit() {
+        $('#question').empty()
+        $('#answer').empty()
+    }
+}
+
+/**
+ * what does this do again? only show picture for displaying other things?
+ */
+export class PictureBBoxesTask implements Task {
+    constructor(state, data) {}
+
+    async onEntry(
+        question: string,
+        answer: string = 'Continue',
+        bboxes,
+        active
+    ) {
+        await loadPicture()
+
+        showPictureBBox(Data.picture, bboxes, active)
+    }
     async onExit() {
         $('#question').empty()
         $('#answer').empty()

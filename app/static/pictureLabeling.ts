@@ -1,9 +1,10 @@
 import Konva from 'konva'
-import { automaton } from './start'
+// import { automaton } from './start'
 import { Data } from './data'
 // import settings from './settings.json';
 import autocomplete_list from '../data/autocomplete.json'
 import { FZF } from './fuzzy'
+import { nextState } from './services/automaton'
 
 declare var Split
 
@@ -24,8 +25,8 @@ export async function loadPicture() {
         // await $('.contentContainer').height('80%')
         // await $('.bottomContainer').height('20%')
     ])
-    Split([ '#contentContainer', '#bottomContainer' ], {
-        sizes: [ 90, 10 ],
+    Split(['#contentContainer', '#bottomContainer'], {
+        sizes: [90, 10],
         direction: 'vertical',
         gutterSize: 8,
         cursor: 'row-resize',
@@ -46,8 +47,8 @@ export async function loadPDF() {
         $('.context-content').hide(),
         $('.gutter-vertical').remove(),
     ])
-    Split([ '#contentContainer', '#bottomContainer' ], {
-        sizes: [ 90, 10 ],
+    Split(['#contentContainer', '#bottomContainer'], {
+        sizes: [90, 10],
         direction: 'vertical',
         gutterSize: 8,
         cursor: 'row-resize',
@@ -68,8 +69,8 @@ export async function loadWords() {
         $('.gutter-vertical').remove(), // remove gutter to add it later again
         $('#fzf-toggle').addClass('active'),
     ])
-    Split([ '#contentContainer', '#bottomContainer' ], {
-        sizes: [ 90, 10 ],
+    Split(['#contentContainer', '#bottomContainer'], {
+        sizes: [90, 10],
         direction: 'vertical',
         gutterSize: 8,
         cursor: 'row-resize',
@@ -88,7 +89,7 @@ function _flatten_grouped(grouped: Object): any[] {
         element = element.concat(grouped[group])
         const uniqueNames = []
         const obj = {}
-        element = element.filter(function(item) {
+        element = element.filter(function (item) {
             return obj.hasOwnProperty(item) ? false : (obj[item] = true)
         })
     }
@@ -105,14 +106,17 @@ export function showLabelBBoxes(
     if (!answer) {
         answer = 'Finish'
     }
-
     const annotations = []
     Data.predicted_labels = predicted_labels
     predicted_labels.forEach((element, index) => {
-        annotations.push([ element[0], element[0] ])
+        annotations.push([element[0], element[0]])
     })
-    drawImage(src).then(([ stage, layer, Kimage ]) => {
+    console.log(bboxs)
+    drawImage(src).then(([stage, layer, Kimage]) => {
         const scaledbboxes = bboxs.map((bbox) => {
+            console.log(bbox)
+            console.log(new BBox(bbox))
+            console.log(new BBox(bbox).scaleFromDefault())
             return new BBox(bbox).scaleFromDefault()
         })
         Data.guiBBoxes = []
@@ -150,20 +154,20 @@ export function showLabelBBoxes(
 
 function setupAutocompleteList(prediction: string[], task: ITask) {
     // onclick to add active class to element when clicked
-    var activeOnClick = function() {
+    var activeOnClick = function () {
         // console.log($(this));
         if ($(this).text() != '') {
-            $('#input-item, .word-list-item').each(function() {
+            $('#input-item, .word-list-item').each(function () {
                 $(this).removeClass('active')
             })
             $(this).addClass('active')
         }
     }
 
-    var activatePrev = function() {
+    var activatePrev = function () {
         let listitems = $('#input-item, .word-list-item:visible')
         let index = listitems.length - 1
-        listitems.each(function(i) {
+        listitems.each(function (i) {
             if ($(this).hasClass('active')) {
                 index = i
                 $(this).removeClass('active')
@@ -180,10 +184,10 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
         })
         $(listitems[index]).addClass('active').trigger('focus')
     }
-    var activateNext = function() {
+    var activateNext = function () {
         let index = 0
         let listitems = $('#input-item, .word-list-item:visible')
-        listitems.each(function(i) {
+        listitems.each(function (i) {
             if ($(this).hasClass('active')) {
                 index = i
                 $(this).removeClass('active')
@@ -204,8 +208,8 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
     }
 
     // shows filtered list
-    var listController = function(autocomplete_filtered) {
-        $('.word-list-item, .word-list-item:hidden').each(function(index) {
+    var listController = function (autocomplete_filtered) {
+        $('.word-list-item, .word-list-item:hidden').each(function (index) {
             let element =
                 index > autocomplete_filtered.length - 1
                     ? ''
@@ -222,35 +226,37 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
     let autocomplete_list_filtered = prediction
 
     // input filter
-    $('#text-input').off('input').on('input', function() {
-        let inp = <string>$(this).val()
-        if (inp.trim() === '') {
-            autocomplete_list_filtered = prediction
-            $('#input-item')
-                .empty()
-                .on('click', activeOnClick)
-                .append('/empty/')
-        } else {
-            // search fuzzy if toggle is on
-            if ($('#fzf-toggle').hasClass('active')) {
-                autocomplete_list_filtered = FZF.fzf_sort(
-                    inp.toLowerCase(),
-                    autocomplete_list
-                ).map((el) => el.string)
+    $('#text-input')
+        .off('input')
+        .on('input', function () {
+            let inp = <string>$(this).val()
+            if (inp.trim() === '') {
+                autocomplete_list_filtered = prediction
+                $('#input-item')
+                    .empty()
+                    .on('click', activeOnClick)
+                    .append('/empty/')
             } else {
-                autocomplete_list_filtered = autocomplete_list.filter(
-                    (element) => {
-                        return element
-                            .toLowerCase()
-                            .startsWith(inp.toLowerCase())
-                    }
-                )
+                // search fuzzy if toggle is on
+                if ($('#fzf-toggle').hasClass('active')) {
+                    autocomplete_list_filtered = FZF.fzf_sort(
+                        inp.toLowerCase(),
+                        autocomplete_list
+                    ).map((el) => el.string)
+                } else {
+                    autocomplete_list_filtered = autocomplete_list.filter(
+                        (element) => {
+                            return element
+                                .toLowerCase()
+                                .startsWith(inp.toLowerCase())
+                        }
+                    )
+                }
+                $('#input-item').empty().on('click', activeOnClick).append(inp)
             }
-            $('#input-item').empty().on('click', activeOnClick).append(inp)
-        }
-        listController(autocomplete_list_filtered)
-        $('#input-item').trigger('click')
-    })
+            listController(autocomplete_list_filtered)
+            $('#input-item').trigger('click')
+        })
 
     // build initial list
     $('#word-list').empty()
@@ -274,7 +280,7 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
 
     $('#input-item, .word-list-item, #text-input')
         .off('keyup')
-        .on('keyup', function(e) {
+        .on('keyup', function (e) {
             if (e.shiftKey && e.key === 'Enter') {
                 // $('#input-item').click();
                 e.preventDefault()
@@ -291,7 +297,7 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
         })
     $('#input-item, .word-list-item, #text-input')
         .off('keydown')
-        .on('keydown', function(e) {
+        .on('keydown', function (e) {
             if ((e.shiftKey && e.key === 'Tab') || e.key === 'ArrowUp') {
                 e.preventDefault()
                 activatePrev()
@@ -308,7 +314,7 @@ function setupAutocompleteList(prediction: string[], task: ITask) {
 // TODO refactor this and probably better transform into superclass method
 function setAnnotation(task: ITask) {
     let listitems = $('#input-item, .word-list-item:visible')
-    listitems.each(function(i) {
+    listitems.each(function (i) {
         if ($(this).hasClass('active')) {
             task.annotations[task.currentIndex][0] = $(this).text()
             task.predicted_labels[task.currentIndex][0] = $(this).text()
@@ -333,10 +339,10 @@ export function showMultilabelBBox(
 
     Data.predicted_labels = predicted_labels
     predicted_labels.forEach((element, index) => {
-        annotations.push([ element[0], element[0] ])
+        annotations.push([element[0], element[0]])
     })
     // draw image in background layer
-    MultilabelBBoxTask.drawImage(src).then(([ stage, layer, Kimage ]) => {
+    MultilabelBBoxTask.drawImage(src).then(([stage, layer, Kimage]) => {
         // add bounding box to background layer
         const scaledBBox = new BBox(bbox).scaleFromDefault()
         const rect = new Konva.Rect({
@@ -372,22 +378,24 @@ export function showMultilabelBBox(
         const buttonContainer = $('<div style="display: flex"></div>')
         $('.bottomContainer').append(buttonContainer)
         buttonContainer.append(
-            $(
-                '<button class="btn btn-primary">< +</button>'
-            ).on('click', () => {
-                multilabelBBoxTask.insertLabel(
-                    multilabelBBoxTask.currentIndex
-                )
-            })
+            $('<button class="btn btn-primary">< +</button>').on(
+                'click',
+                () => {
+                    multilabelBBoxTask.insertLabel(
+                        multilabelBBoxTask.currentIndex
+                    )
+                }
+            )
         )
         buttonContainer.append(
-            $(
-                '<button class="btn btn-primary">+ ></button>'
-            ).on('click', () => {
-                multilabelBBoxTask.insertLabel(
-                    multilabelBBoxTask.currentIndex + 1
-                )
-            })
+            $('<button class="btn btn-primary">+ ></button>').on(
+                'click',
+                () => {
+                    multilabelBBoxTask.insertLabel(
+                        multilabelBBoxTask.currentIndex + 1
+                    )
+                }
+            )
         )
 
         // controls in right side container
@@ -399,8 +407,8 @@ export function showMultilabelBBox(
             yes.off('click')
             setAnnotation(multilabelBBoxTask)
             buttonContainer.remove()
-            automaton.next('NEXT', {
-                labels: multilabelBBoxTask.annotations,
+            nextState('next', {
+                annotation: multilabelBBoxTask.annotations,
             })
         })
         $('#answer').empty().append(yes)
@@ -413,13 +421,11 @@ export function showMultilabelBBox(
                 setAnnotation(multilabelBBoxTask)
                 buttonContainer.remove()
                 Data.active -= 2
-                automaton
-                    .next('NEXT', {
-                        labels: multilabelBBoxTask.annotations,
-                    })
-                    .then(() => {
-                        Data.annotations['timings'].pop()
-                    })
+                nextState('next', {
+                    annotation: multilabelBBoxTask.annotations,
+                }).then(() => {
+                    Data.annotations['timings'].pop()
+                })
             })
             $('#answer').prepend(back)
         }
@@ -434,7 +440,7 @@ export function showPictureBBox(
     active: number
 ) {
     console.log(bboxs)
-    drawImage(src).then(([ stage, layer, Kimage ]) => {
+    drawImage(src).then(([stage, layer, Kimage]) => {
         const scaledbboxes = bboxs.map((bbox) => {
             return new BBox(bbox).scaleFromDefault()
         })
@@ -477,7 +483,7 @@ export function showAnnotatePicture(
     max_bboxes: number = null
 ) {
     console.log(bboxs)
-    drawImage(src).then(([ stage, layer, Kimage ]) => {
+    drawImage(src).then(([stage, layer, Kimage]) => {
         onClickPicture(stage, layer, Kimage, max_bboxes)
         const scaledbboxes = bboxs.map((bbox) => {
             return new BBox(bbox).scaleFromDefault()
@@ -512,7 +518,7 @@ export function showAnnotatePicture(
                 .map((bbox) => {
                     return bbox.scaleToDefault().toArray()
                 })
-            automaton.next('NEXT', { bboxes: scaledbboxes })
+            nextState('next', { annotation: scaledbboxes })
         })
         $('#answer').append(yes)
     })
@@ -567,7 +573,7 @@ function drawImage(
             // set onclickmethod
             // onClickPicture(stage, layer, Kimage);
             // onClickPictureWords(stage, layer, Kimage);
-            resolve([ stage, layer, Kimage ])
+            resolve([stage, layer, Kimage])
         }
         // image.src = URL + '/api/getpicture';
         // load image
@@ -581,16 +587,11 @@ function drawImage(
  * 2. if not rect: deactivate transformer
  * 3. if not rect and no transformer: add new
  * 4. if transformer also set onkeylistener for backspace
- * @param {Konva.Stage} stage 
+ * @param {Konva.Stage} stage
  */
-function onClickPicture(
-    stage,
-    layer: Konva.Layer,
-    Kimage,
-    max_bboxes = null
-) {
+function onClickPicture(stage, layer: Konva.Layer, Kimage, max_bboxes = null) {
     stage.off('click tap')
-    stage.on('click tap', function(e) {
+    stage.on('click tap', function (e) {
         // if click on empty area - remove all transformers
         // console.log(e)
         if (e.target === Kimage) {
@@ -603,10 +604,7 @@ function onClickPicture(
                 // layer.draw();
                 return
             } else {
-                if (
-                    max_bboxes &&
-                    layer.getChildren().length >= max_bboxes
-                ) {
+                if (max_bboxes && layer.getChildren().length >= max_bboxes) {
                     return
                 }
                 let rect = new Konva.Rect({
@@ -636,7 +634,7 @@ function onClickPicture(
         // create new transformer
         const tr = new Konva.Transformer({
             rotateEnabled: false,
-            borderDash: [ 4, 4 ],
+            borderDash: [4, 4],
             keepRatio: false,
             ignoreStroke: true,
             borderStrokeWidth: 3,
@@ -726,7 +724,7 @@ class LabelBBoxTask extends Task {
             yes.on('click', () => {
                 yes.off('click')
                 const self = this
-                $('#input-item, .word-list-item').each(function() {
+                $('#input-item, .word-list-item').each(function () {
                     if ($(this).hasClass('active')) {
                         self.annotations[index][0] = $(this).text()
                         $(this).removeClass('active')
@@ -741,8 +739,8 @@ class LabelBBoxTask extends Task {
         } else {
             yes.append('Finish')
             yes.on('click', () =>
-                automaton.next('NEXT', {
-                    labels: this.annotations,
+                nextState('next', {
+                    annotation: this.annotations,
                 })
             )
         }
@@ -817,10 +815,7 @@ class MultilabelBBoxTask extends Task {
                 // make image fit into picture_content
 
                 let scale = $('#picture_content').width() / image.width
-                if (
-                    scale * image.height >
-                    $('#picture_content').height()
-                ) {
+                if (scale * image.height > $('#picture_content').height()) {
                     scale = $('#picture_content').height() / image.height
                     image.width = scale * image.width
                     image.height = $('#picture_content').height()
@@ -861,7 +856,7 @@ class MultilabelBBoxTask extends Task {
                 // set onclickmethod
                 // onClickPicture(stage, layer, Kimage);
                 // onClickPictureWords(stage, layer, Kimage);
-                resolve([ stage, layer, Kimage ])
+                resolve([stage, layer, Kimage])
             }
             // image.src = URL + '/api/getpicture';
             // load image
@@ -892,16 +887,13 @@ class MultilabelBBoxTask extends Task {
             $('#text-input').trigger('focus').trigger('input')
         }
         // update autocomplete list
-        setupAutocompleteList(
-            this.predicted_labels[this.currentIndex],
-            this
-        )
+        setupAutocompleteList(this.predicted_labels[this.currentIndex], this)
         // TODO: set label colors at bottom
     }
 
     insertLabel(index) {
-        this.predicted_labels.splice(index, 0, [ '/empty/' ])
-        this.annotations.splice(index, 0, [ '/empty/', '/empty/' ])
+        this.predicted_labels.splice(index, 0, ['/empty/'])
+        this.annotations.splice(index, 0, ['/empty/', '/empty/'])
         this.drawBBoxLabels()
         this.setCurrentIndex(index)
     }
@@ -968,7 +960,7 @@ class MultilabelBBoxTask extends Task {
 
 /**
  * extract konva rectangles from layer
- * @param {Konva.Layer} layer 
+ * @param {Konva.Layer} layer
  */
 function extractBBoxes(layer): BBox[] {
     // console.log(layer.find('.rect'))
@@ -1004,7 +996,7 @@ function rescaleGuiBBoxes() {
 
 /**
  * Redraw Boxes in a Konva Layer e.g. when they were transformed by Transformer
- * @param {Konva.Layer} layer 
+ * @param {Konva.Layer} layer
  * @param {Array<float>} bboxes (x,y,width,height)
  */
 function redrawBoxes(layer, bboxes: BBox[]): void {
@@ -1052,7 +1044,7 @@ export class BBox implements BBoxI {
         this.height = rect.height() * scaley
     }
     toArray(): number[] {
-        return [ this.x, this.y, this.width, this.height ]
+        return [this.x, this.y, this.width, this.height]
     }
     scaleFromDefault(): BBox {
         this.x = this.x / Data.scales.x
@@ -1096,16 +1088,12 @@ class GuiBBox {
         return 0
     }
     toBBox(): BBox {
-        const scalex = this.guiBox.attrs.scaleX
-            ? this.guiBox.attrs.scaleX
-            : 1
-        const scaley = this.guiBox.attrs.scaleY
-            ? this.guiBox.attrs.scaleY
-            : 1
+        const scalex = this.guiBox.attrs.scaleX ? this.guiBox.attrs.scaleX : 1
+        const scaley = this.guiBox.attrs.scaleY ? this.guiBox.attrs.scaleY : 1
         const x = this.guiBox.x()
         const y = this.guiBox.y()
         const width = this.guiBox.width() * scalex
         const height = this.guiBox.height() * scaley
-        return new BBox([ x, y, width, height ])
+        return new BBox([x, y, width, height])
     }
 }

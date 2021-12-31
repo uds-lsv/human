@@ -11,6 +11,7 @@ import {
     LabelPictureTask,
     LabelBBoxesTask,
     showText,
+    MultilabelBBoxTask,
 } from '../tasks'
 
 export async function nextState(trigger, data) {
@@ -37,105 +38,82 @@ export async function nextState(trigger, data) {
         } else if (contentType?.indexOf('multipart/form-data') !== -1) {
             const fd = await response.formData()
             const state = JSON.parse(<string>fd.get('state'))
-            // console.log(state)
+            const data = JSON.parse(<string>fd.get('data'))
+            console.log(state)
+            console.log(data)
             window['state'] = state
             const type = state['type']
             let task: Task
             switch (type) {
-                case 'load':
+                case 'loadText':
                     Data.reset()
-                    Data.data = JSON.parse(<string>fd.get('data'))
+                    Data.data = data
                     Data.annotations['data_id'] = Data.data.id
                     showText()
                     nextState('next', {})
                     break
-                case 'loadfile':
-                    // fd.forEach((val, key) => {
-                    //     // if type file
-                    //     if (key == 'file') {
-                    //         const file = val as File
-                    //         file.arrayBuffer().then(async (buffer) => {
-                    //             const blob = new Blob([buffer], {
-                    //                 type: 'octet/stream',
-                    //             })
-                    //             const url = await blobToDataURL(blob)
-                    //             if (file.name.endsWith('.pdf')) {
-                    //                 Data.pdf = url
-                    //             } else if (
-                    //                 file.name.endsWith('.jpg') ||
-                    //                 file.name.endsWith('.jpeg') ||
-                    //                 file.name.endsWith('.png')
-                    //             ) {
-                    //                 Data.picture = url
-                    //             } else {
-                    //                 throw Error(
-                    //                     'Wrong file ending: ' +
-                    //                         file.name +
-                    //                         'Has to be one of pdf, jpg, jpeg, png'
-                    //                 )
-                    //             }
-                    //         })
-                    //     } else {
-                    //         Data[key] = JSON.parse(val.toString())
-                    //     }
-                    // })
+                case 'loadPdf':
+                case 'loadImage':
+                    fd.forEach((val, key) => {
+                        // if type file
+                        if (key == 'file') {
+                            const file = val as File
+                            file.arrayBuffer().then(async (buffer) => {
+                                const blob = new Blob([buffer], {
+                                    type: 'octet/stream',
+                                })
+                                const url = await blobToDataURL(blob)
+                                if (file.name.endsWith('.pdf')) {
+                                    Data.pdf = url
+                                } else if (
+                                    file.name.endsWith('.jpg') ||
+                                    file.name.endsWith('.jpeg') ||
+                                    file.name.endsWith('.png')
+                                ) {
+                                    Data.picture = url
+                                } else {
+                                    throw Error(
+                                        'Wrong file ending: ' +
+                                            file.name +
+                                            'Has to be one of pdf, jpg, jpeg, png'
+                                    )
+                                }
+                            })
+                        } else {
+                            Data[key] = JSON.parse(val.toString())
+                        }
+                    })
+                    nextState('next', {})
                     break
                 case 'read':
-                    task = new ReadTask()
-                    ;(<ReadTask>task).onEntry(
-                        // TODO do this for ever task
-                        state['question'],
-                        state['answer']
-                    )
+                    task = new ReadTask(state, data)
                     break
-
                 case 'boolean':
-                    task = new BooleanTask()
-                    task.onEntry(state['question'])
+                    task = new BooleanTask(state, data)
                     break
                 case 'select':
-                    task = new SelectTask()
-                    task.onEntry(
-                        state['question'],
-                        state['answer'],
-                        state['options']
-                    )
+                    task = new SelectTask(state, data)
                     break
                 case 'checkmark':
-                    task = new CheckmarkTask()
-                    task.onEntry(
-                        state['question'],
-                        state['answer'],
-                        state['options']
-                    )
+                    task = new CheckmarkTask(state, data)
                     break
-                case 'label': //TODO rename labeltext
-                    task = new LabelTextTask()
-                    let options
-                    if (state['options']) {
-                        options = state['options']
-                    } else {
-                        console.log(data)
-                        options = JSON.parse(data['annotation'])
-                    }
-                    task.onEntry(state['question'], state['answer'], options)
+                case 'labelText': //TODO rename labeltext
+                    task = new LabelTextTask(state, data)
                     break
                 case 'choosePage':
-                    task = new ChoosePageTask()
-                    task.onEntry(state['question'], state['answer'])
+                    task = new ChoosePageTask(state, data)
                     break
-
                 case 'labelPicture':
-                    console.log('labeling')
                     // loadPicture()
-                    task = new LabelPictureTask()
-                    task.onEntry(state['question'], state['answer'])
-
+                    task = new LabelPictureTask(state, data)
                     break
                 case 'labelBBoxes':
                     // loadWords()
-                    task = new LabelBBoxesTask()
-                    task.onEntry(state['question'], state['answer'])
+                    task = new LabelBBoxesTask(state, data)
+                    break
+                case 'multilabelBBoxes':
+                    // loadWords()
+                    task = new MultilabelBBoxTask(state, data)
                     break
                 default:
                     throw Error('Unknown Annotation type: ' + type)

@@ -29,7 +29,7 @@ export class Data {
     static current_column: string = ''
     static predicted_labels: string[][]
     static guiBBoxes: any
-    static scales: { x: number; y: number }
+    static scales: { x: number; y: number } = { x: 0, y: 0 }
     static active: number = -1
     static timestamp: number = 0
     static current_task: Task = undefined
