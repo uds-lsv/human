@@ -1,5 +1,6 @@
 import { nextState } from './services/automaton'
 import { SETTINGS } from './settings'
+import './css/app.css'
 
 String.prototype.format = function (args) {
     var str = this
