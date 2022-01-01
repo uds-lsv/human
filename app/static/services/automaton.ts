@@ -51,40 +51,42 @@ export async function nextState(trigger, data) {
                     Data.annotations['data_id'] = Data.data.id
                     showText()
                     nextState('next', {})
-                    break
+                    return
                 case 'loadPdf':
                 case 'loadImage':
-                    fd.forEach((val, key) => {
+                    for (const keyval of fd.entries()) {
+                        const key = keyval[0]
+                        const val = keyval[1]
+
                         // if type file
                         if (key == 'file') {
                             const file = val as File
-                            file.arrayBuffer().then(async (buffer) => {
-                                const blob = new Blob([buffer], {
-                                    type: 'octet/stream',
-                                })
-                                const url = await blobToDataURL(blob)
-                                if (file.name.endsWith('.pdf')) {
-                                    Data.pdf = url
-                                } else if (
-                                    file.name.endsWith('.jpg') ||
-                                    file.name.endsWith('.jpeg') ||
-                                    file.name.endsWith('.png')
-                                ) {
-                                    Data.picture = url
-                                } else {
-                                    throw Error(
-                                        'Wrong file ending: ' +
-                                            file.name +
-                                            'Has to be one of pdf, jpg, jpeg, png'
-                                    )
-                                }
+                            const buffer = await file.arrayBuffer()
+                            const blob = new Blob([buffer], {
+                                type: 'octet/stream',
                             })
+                            const url = await blobToDataURL(blob)
+                            if (file.name.endsWith('.pdf')) {
+                                Data.pdf = url
+                            } else if (
+                                file.name.endsWith('.jpg') ||
+                                file.name.endsWith('.jpeg') ||
+                                file.name.endsWith('.png')
+                            ) {
+                                Data.picture = url
+                            } else {
+                                throw Error(
+                                    'Wrong file ending: ' +
+                                        file.name +
+                                        'Has to be one of pdf, jpg, jpeg, png'
+                                )
+                            }
                         } else {
                             Data[key] = JSON.parse(val.toString())
                         }
-                    })
+                    }
                     nextState('next', {})
-                    break
+                    return
                 case 'read':
                     task = new ReadTask(state, data)
                     break
