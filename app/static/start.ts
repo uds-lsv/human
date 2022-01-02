@@ -31,7 +31,7 @@ $(function () {
     $('#pdf-meta').hide()
     // dynamically fullscreen the page (- height and margin of navbar)
     $('#bodyContainer').height(
-        'calc(100% - ' + $('.navbar').outerHeight() + 'px)'
+        'calc(100% - ' + $('#brandContainer').height() + 'px - 1rem)'
     )
     nextState('start', {})
     // automaton = new Automaton()
