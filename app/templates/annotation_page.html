@@ -2,71 +2,81 @@
 
 {% block scripts %}
 {{super()}}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.min.js">
-</script>
-<script src="https://unpkg.com/xstate@4/dist/xstate.js"></script>
+<!-- DEPENDENCIES -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.min.js"></script>
 <script src="https://unpkg.com/konva@4.0.0/konva.min.js"></script>
 
-<script src="{{url_for('.static', filename='dist/bundle.js')}}"></script>
+<script defer src="{{url_for('.static', filename='dist/bundle.js')}}"></script>
 <style>
+    .textTask,
+    .pdfTask,
+    .pictureTask {
+        display: none;
+    }
+
     .contentContainer,
     .bottomContainer,
     .sidebarContainer {
         border: 2px solid;
-        overflow: scroll
+        overflow: scroll;
     }
 
     .gutter {
-        color: #afafff
+        color: #afafff;
     }
 
     .gutter-vertical {
-        cursor: row-resize
+        cursor: row-resize;
     }
 
     .gutter-horizontal {
-        cursor: col-resize
+        cursor: col-resize;
     }
 </style>
 
-{% endblock %}
-
-{% block content %}
-<div id="bodyContainer" style="display:flex; height: 100%" class="container-fluid">
+{% endblock %} {% block content %}
+<div id="bodyContainer" style="display: flex; height: 100%" class="container-fluid">
     <div id="mainContainer" class="mainContainer">
         <div id="contentContainer" class="contentContainer">
-            <h3 class="card-subtitle">Content</h3>
-            <div class="pictureContainer">
-                <div id="pdf-contents" style="height: 100%;display: flex;justify-content: space-between;">
-                    <div id="pdf-preview" style="height: 100%; width: 25%; overflow: scroll;"></div>
-                    <canvas id="pdf-canvas"
-                        style="height: 100%; max-width: 75%; box-shadow: -3px 5px 9px 0px grey;"></canvas>
-                    <div id="page-loader">Loading page ...</div>
-                </div>
-                <div id="picture_content" style="height: 100%;     justify-content: center;
-                display: flex;">
-                    <canvas id="picture-canvas" style="width: 100%;"></canvas>
+            <div id="pictureContainer" class="pictureContainer pictureTask">
+                <div id="picture_content" style="height: 100%;justify-content: space-evenly;display: flex;">
+                    <div style=" width: 30%; display: flex; flex-direction: column;" id="picture-preview">
+                        <canvas id="picture-preview-canvas" style="max-width: 100%"></canvas>
+                    </div>
+                    <canvas id="picture-canvas" style="width: 75%"></canvas>
                 </div>
             </div>
-            <div class="textContainer  card-resizable-vertical">
-                <div id="color-bar"></div>
-                <div class="comment-content"></div>
+            <div id="textContainer" class="textTask">
+                <h3 class="card-subtitle">Content</h3>
+                <div class="textContainer card-resizable-vertical">
+                    <div id="color-bar"></div>
+                    <div class="comment-content"></div>
+                </div>
             </div>
+            <div id="pdf-contents" class="pdfTask" style="height: 100%; display: flex; justify-content: space-between">
+                <div id="pdf-preview" style="height: 100%; width: 25%; overflow: scroll"></div>
+                <canvas id="pdf-canvas"
+                    style="height: 100%; max-width: 75%; box-shadow: -3px 5px 9px 0px grey"></canvas>
+                <div id="page-loader">Loading page ...</div>
+            </div>
+
         </div>
-        <div id="bottomContainer" class="bottomContainer ">
-            <h3 class="card-subtitle">Context</h3>
-
-            <div class="context-content " style="color:#505080">
+        <div id="bottomContainer" class="bottomContainer">
+            <div class="textTask">
+                <h3 class="card-subtitle">Context</h3>
+                <div class="context-content" style="color: #505080"></div>
             </div>
-
             <!-- pdf controls -->
-            <div id="pdf-meta" style="height: 10% ;padding: 10px">
+            <div id="pdf-meta" class="pdfTask" style="height: 10%; padding: 10px">
                 <div id="pdf-buttons" style="height: 10%; float: left">
                     <button class="btn btn-primary" id="pdf-prev">Previous</button>
                     <button class="btn btn-primary" bid="pdf-next">Next</button>
                 </div>
-                <div class="page-count-container">Page <div class="pdf-current-page"></div> of <div
-                        class="pdf-total-pages"></div>
+                <div class="page-count-container">
+                    Page
+                    <div class="pdf-current-page"></div>
+                    of
+                    <div class="pdf-total-pages"></div>
                 </div>
             </div>
         </div>
@@ -74,22 +84,26 @@
     <div id="sidebarContainer" class="sidebarContainer">
         <div class="">
             <div id="question" class="question"></div>
-            <div class="input-group" id="text-input-group">
-                <input id="text-input" class="form-control" type="text">
+            <div class="input-group pictureTask" id="text-input-group">
+                <input id="text-input" class="form-control" type="text" />
                 <div class="input-group-append">
-                    <button class="btn btn-outline-secondary active" data-toggle="button" type="button"
-                        id="fzf-toggle">fzf</button>
+                    <button class="btn btn-outline-secondary active" data-toggle="button" type="button" id="fzf-toggle">
+                        fzf
+                    </button>
                 </div>
             </div>
-            <ul style="overflow: scroll; margin-top: 10px; -webkit-overflow-scrolling: touch;"
-                id="word-list" class="list-group">
-                <button id="input-item" class="list-group-item" style="text-align: left;"></button>
+            <ul style="overflow: scroll; margin-top: 10px; -webkit-overflow-scrolling: touch; " id="word-list"
+                class="list-group pictureTask">
+                <button id="input-item" class="list-group-item" style="text-align: left"></button>
             </ul>
             <div id="answer" class="answer"></div>
         </div>
+        <div id="sidebarBottom">
+            <div id="controls" class="controls"></div>
+        </div>
     </div>
     <div id="endToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true"
-        style="display: none; position: absolute;top: 0;right: 0;">
+        style="display: none; position: absolute; top: 0; right: 0">
         <div class="toast-header">
             <!-- <img src="..." class="rounded mr-2" alt="..."> -->
             <strong class="mr-auto">Message</strong>
@@ -98,7 +112,7 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-        <div class="toast-body" style="color: green;">
+        <div class="toast-body" style="color: green">
             Annotation successfully saved.
         </div>
     </div>
@@ -125,10 +139,5 @@
         },
     })
 
-    Split(['#contentContainer', '#bottomContainer'], {
-        direction: 'vertical',
-        gutterSize: 8,
-        cursor: 'row-resize'
-    })
 </script>
 {% endblock %}

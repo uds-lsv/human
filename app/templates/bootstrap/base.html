@@ -2,35 +2,67 @@
 <html lang="en">
 
 <head>
-    {% block head %}
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  {% block head %}
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- DEPENDENCIES -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
-        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  {% block styles %}
+  <!-- DEPENDENCIES -->
+  <!-- Bootstrap CSS -->
+  <link id="theme" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+    crossorigin="anonymous">
+  {% endblock %}
 
-    {% block styles %}
-    <!-- Bootstrap CSS -->
-    <link id="theme" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
-        crossorigin="anonymous">
-    {% endblock %}
+  <script type="text/javascript">
+    function setCookie(name, value, days) {
+      var expires = "";
+      if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (date * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+      }
+      document.cookie = name + "=" + (value || "") + expires + "; path=/";
+    }
 
-    <title>HUMAN Annotator</title>
-    {% endblock %}
+    function getCookie(name) {
+      var nameEQ = name + "=";
+      var ca = document.cookie.split(";");
+      for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == " ") c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ == 0)) return c.substring(nameEQ.length, c.length);
+      }
+
+      return null;
+    }
+
+    if (!getCookie("theme")) {
+      setCookie("theme", "/static/css/bootstrap.css", 365);
+    } else {
+      $("#theme").attr("href", getCookie("theme"));
+    }
+  </script>
+
+  <title>HUMAN Annotator</title>
+  {% endblock %}
 </head>
 
 <body>
-    <!-- Your page content -->
-    {% block navbar%}{% endblock %}
-    {% block content %}{% endblock %}
+  <!-- Your page content -->
+  {% block navbar%}{% endblock %}
+  {% block content %}{% endblock %}
 
-    {% block scripts %}
-    <!-- Optional JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
-        crossorigin="anonymous"></script>
-    {% endblock %}
+  {% block scripts %}
+  <!-- DEPENDENCIES -->
+  <!-- Bootstrap Javascript -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+    crossorigin="anonymous"></script>
+  {% endblock %}
 </body>
 
 </html>
