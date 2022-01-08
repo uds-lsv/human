@@ -1,5 +1,4 @@
 const path = require('path')
-const webpack = require('webpack')
 
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
@@ -23,12 +22,7 @@ module.exports = {
             new CssMinimizerPlugin(),
         ],
     },
-    plugins: [
-        new MiniCssExtractPlugin({ filename: 'app.css' }),
-        // new webpack.ProvidePlugin({
-        //     $: 'jQuery',
-        // }),
-    ],
+    plugins: [new MiniCssExtractPlugin({ filename: 'app.css' })],
     module: {
         rules: [
             {
@@ -61,6 +55,6 @@ module.exports = {
         clean: true,
     },
     stats: {
-        orphanModules: true,
+        // orphanModules: true,
     },
 }
