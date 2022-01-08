@@ -41,6 +41,9 @@
         "useTabs": false,
         "semi": false,
         "singleQuote": true,
-        "quoteProps": "consistent"
+        "quoteProps": "consistent",
+        "bracketSameLine": true,
+        "htmlWhitespaceSensitivity": "ignore",
+        "embeddedLanguageFormatting": "off"
     }
 }
