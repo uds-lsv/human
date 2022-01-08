@@ -132,13 +132,16 @@ def choose_data():
     else: # find new not-yet annotated data
         # select all the data ids which have less than max_annotations
         selected = None
-        # get max_annotations from options
-        max_annotations = int(db.execute("SELECT max_annotations FROM options").fetchone()["max_annotations"])
         # query list string of all annotated ids by current user
         already_annotated = "(" + ", ".join(user['annotated'].split()) + ")"
-        # choose first instance with annotation_count < max_annotations which was not annotated by user already
-        selected = db.execute("SELECT * FROM data WHERE annotation_count < " + str(max_annotations) + 
-            " AND id NOT IN " + already_annotated).fetchone()
+        # get max_annotations from options
+        max_annotations = int(db.execute("SELECT max_annotations FROM options").fetchone()["max_annotations"])
+        if max_annotations > 0:
+            # choose first instance with annotation_count < max_annotations which was not annotated by user already
+            selected = db.execute(f"SELECT * FROM data WHERE annotation_count < {str(max_annotations)} AND id NOT IN {already_annotated}").fetchone()
+        else:
+            # same but ignore max_annotations
+            selected = db.execute("SELECT * FROM data WHERE id NOT IN " + already_annotated).fetchone()
 
         if selected is not None:
             # assign selected instance to current user and count up annotation count

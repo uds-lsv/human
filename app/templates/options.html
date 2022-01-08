@@ -13,9 +13,9 @@
     <div class="card-body">
         <form action="/options" method="post" class="form-group form-signin">
             <p class="h2 text-center"> Configurations</p>
-            Maximum annotations per instance: <input type="text" name="max_annotations" class="form-control" placeholder="{{ max_annotations }}" 
-            autofocus /><br />
-            
+            Maximum annotations per instance (no limit when &lt;1): <input type="text" name="max_annotations"
+                class="form-control" placeholder="{{ max_annotations }}" autofocus /><br />
+
             <p class="text-center"><input type="submit" value="Update options" class="btn btn-danger" /></p>
         </form>
     </div>

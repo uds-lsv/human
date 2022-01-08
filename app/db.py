@@ -7,8 +7,10 @@ from flask import current_app, g
 from flask.cli import with_appcontext
 
 import pandas as pd
-import hashlib
+import bcrypt
 from getpass import getpass
+
+SALT_ROUNDS = 12
 
 def get_db():
     """Connect to the application's configured database. The connection
@@ -41,7 +43,16 @@ def init_db():
 
     with current_app.open_resource('schema.sql') as f:
         db.executescript(f.read().decode('utf8'))
+    columns_from_automaton()
 
+def columns_from_automaton():
+    from app.automaton import AnnotationAutomaton
+
+    db = get_db()
+    columns = AnnotationAutomaton.setup().get_db_columns()
+    for column in columns:
+        db.execute(f'ALTER TABLE annotations ADD COLUMN "{column}" text;')
+    db.commit()
 
 def save_db(table):
     db = get_db()
@@ -114,8 +125,8 @@ def add_admin():
     annotated = ''
     password = 0
     password = getpass()
-    password_hash_object = hashlib.sha256(password.encode('utf-8'))
-    password_hash = password_hash_object.hexdigest()
+    password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt(SALT_ROUNDS))
+
     db_cursor.execute("INSERT INTO user (username, email, given_name, surname, password, user_type, is_approved, annotated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     (username, email, given_name, surname, password_hash, user_type, is_approved, annotated))
     db.commit()
