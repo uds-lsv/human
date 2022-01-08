@@ -41,7 +41,7 @@ def authenticate_login(username, password:str):
         app.logger.debug("User is active")
         if user.automaton is None:
             automaton = pickle.dumps(AnnotationAutomaton.setup())
-            db.execute('UPDATE user SET automaton=? WHERE id=?',(automaton,user.uid))
+            db.execute('UPDATE user SET automaton=? WHERE id=?',(automaton,user.id))
             db.commit()
         return user,None
     else:

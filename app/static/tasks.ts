@@ -18,7 +18,11 @@ import {
 
 declare var Split
 
-export function showText() {
+export async function showText() {
+    $('.pictureTask').hide()
+    $('.pdfTask').hide()
+    $('.textTask').show()
+
     $('.card-subtitle').show()
     $('#text-input').hide()
     $('#text-input-group').hide()
@@ -124,7 +128,6 @@ export class SelectTask implements Task {
                 if ((<HTMLInputElement>$('#form' + i)[0]).checked) {
                     nextState($('#form' + i).val(), {
                         annotation: $('#form' + i).val(),
-                        data: [$('#form' + i).val()], //TODO this is here why exactly? To be compatible with text labeling? Maybe solve this more elegantly
                     })
                     break
                 }
@@ -321,7 +324,7 @@ export class LabelTextTask implements Task {
             'lavender',
             'lightgrey',
         ]
-        let width = 100 / options.length
+        const width = 100 / options.length
 
         for (let i = 0; i < options.length; i++) {
             $('#color-bar').append(
@@ -334,14 +337,14 @@ export class LabelTextTask implements Task {
                 })
             )
         }
-        let button = $(
+        const button = $(
             '<button type="button" class="btn btn-primary"></button>'
         ) // next button
         button.append(answer)
         button.on('click', (event) => {
             $('.comment-content').off('click tap')
-            let markers2 = JSON.stringify(this.markers)
-            nextState('NEXT', { annotation: markers2 })
+            const markers_copy = JSON.stringify(this.markers)
+            nextState('NEXT', { annotation: markers_copy })
         })
         // $('#question').empty();
         // $('#answer').empty();
@@ -355,7 +358,7 @@ export class LabelTextTask implements Task {
         // revert colors
         const word_elements = $('.individual_word')
         for (let i = 0; i < word_elements.length; i++) {
-            let word_element = word_elements[i]
+            const word_element = word_elements[i]
             word_element.style.backgroundColor = ''
         }
     }
@@ -370,7 +373,12 @@ export class LabelTextTask implements Task {
  */
 export class LabelPictureTask implements Task {
     constructor(state, data) {
-        this.onEntry(state['question'], state['answer'], state['max_bboxes'])
+        this.onEntry(
+            state['question'],
+            state['answer'],
+            data['predictions'],
+            state['maxbboxes']
+        )
     }
 
     async onEntry(
@@ -403,6 +411,8 @@ export class LabelBBoxesTask implements Task {
             bboxes = data['bboxes']
         } else if (data['annotation']) {
             bboxes = data['annotation']
+        } else if (state['bboxes']) {
+            bboxes = state['bboxes']
         } else {
             alert(
                 'Bounding box prediction or annotation from previous state missing.'
@@ -445,18 +455,20 @@ export class LabelBBoxesTask implements Task {
  */
 export class MultilabelBBoxTask implements Task {
     constructor(state, data) {
-        let bboxes
-        if (data['bboxes']) {
-            bboxes = data['bboxes']
+        let bbox = []
+        if (data['bbox']) {
+            bbox = data['bbox']
         } else if (data['annotation']) {
-            bboxes = data['annotation']
+            bbox = data['annotation'][0]
             // make sure this is length 1
         } else {
             alert(
                 'Bounding box prediction or annotation from previous state missing.'
             )
+            return
             // TODO: automaton error handling
         }
+
         let labels = [[]]
         if (data['predictions']) {
             labels = data['predictions']
@@ -464,7 +476,7 @@ export class MultilabelBBoxTask implements Task {
         this.onEntry(
             state['question'],
             state['answer'],
-            bboxes,
+            bbox,
             labels
             // data['bbox'],
             // data['predictions']

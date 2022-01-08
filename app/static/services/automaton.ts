@@ -32,9 +32,8 @@ export async function nextState(trigger, data) {
         window['response'] = response
         const contentType = response.headers.get('content-type')
         if (contentType?.indexOf('text/html') !== -1) {
-            response.text().then((text) => {
-                throw Error(text)
-            })
+            const errorMsg = await response.text()
+            throw Error(errorMsg)
         } else if (contentType?.indexOf('multipart/form-data') !== -1) {
             const fd = await response.formData()
             const state = JSON.parse(<string>fd.get('state'))
@@ -49,8 +48,8 @@ export async function nextState(trigger, data) {
                     Data.reset()
                     Data.data = data
                     Data.annotations['data_id'] = Data.data.id
-                    showText()
-                    nextState('next', {})
+                    await showText()
+                    await nextState('next', {})
                     return
                 case 'loadPdf':
                 case 'loadImage':
