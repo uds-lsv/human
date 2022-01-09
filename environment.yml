@@ -15,5 +15,5 @@ dependencies:
     - requests-toolbelt
     - tqdm
     - transitions
-    - ruamel.yaml=0.17.17
+    - ruamel.yaml=0.17.20
     - bcrypt
