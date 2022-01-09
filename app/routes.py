@@ -1,13 +1,12 @@
-from flask import request, jsonify, render_template, redirect, url_for, flash, Response, send_file, send_from_directory, stream_with_context, g
-from flask.logging import create_logger
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, Response, send_file, send_from_directory, stream_with_context, current_app
 from requests_toolbelt import MultipartEncoder
 import pandas as pd
-from app import app
+# from app import app
 from app import api
 from app import ap_parser
 from app.db import get_db, remove_annotation
 from app import user_handler
-from app import login_handler
+# from app import login_handler
 from app import error_handler
 from app.automaton import AnnotationAutomaton
 from werkzeug.utils import secure_filename
@@ -19,15 +18,8 @@ import io
 import logging
 from collections import Counter
 
-# logger
-# when running via flask run:
-app.logger = create_logger(app)
-# when running gunicorn
-# gunicorn_logger = logging.getLogger('gunicorn.error')
-# app.logger = gunicorn_logger
+app = Blueprint("routes", __name__, url_prefix="/")
 
-# transition logger
-logging.getLogger('transitions').setLevel(logging.ERROR)
 
 ## API routes
 # Add custom api routes here. Be careful not to overwrite other routes or route function names.
@@ -40,13 +32,14 @@ logging.getLogger('transitions').setLevel(logging.ERROR)
 
 @login_required
 @app.route('/dsm/transition', methods=["POST"])
-def transition():
+def trigger_transition():
     req = request.get_json()
     print('request', req)
     trigger = req['trigger']
     if  trigger == 'start':
-        automaton = AnnotationAutomaton.setup() # create
         # automaton: AnnotationAutomaton = current_user.automaton
+        # if automaton is None:
+        automaton = AnnotationAutomaton.setup() # create
         automaton.to_start()
         response = automaton.get_response()
     else:
@@ -87,7 +80,7 @@ def choose_data_file():
         data = chosen.json
     else:
         return chosen
-    app.logger.debug(data)
+    current_app.logger.debug(data)
     # return a multipart encoded form with data being the fields from the line of the database
     # and file being the file which is found at the path where content field leads to.
     datafile = "./uploaded_files/"+data['content']
@@ -196,18 +189,18 @@ def login():
     """
     Function to display the login page and handle user logins
     """
-    app.logger.debug("Entered login method -- login()")
+    current_app.logger.debug("Entered login method -- login()")
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         user, error = user_handler.authenticate_login(username, password)
         if user is None:
-            app.logger.debug("user-None")
+            current_app.logger.debug("user-None")
             return render_template('login.html', error=error)
         login_user(user, remember=False, duration=timedelta(minutes=30))
-        app.logger.debug("Current User: {}".format(current_user.fname))
-        app.logger.debug("User logged in successfully")
-        return redirect(url_for('home'))
+        current_app.logger.debug("Current User: {}".format(current_user.username))
+        current_app.logger.debug("User logged in successfully")
+        return redirect(url_for('routes.home'))
     return render_template('login.html')
 
 @app.route('/register_user', methods=["GET", "POST"])
@@ -215,7 +208,7 @@ def register_user_frontend():
     """
     Function to display the registration page and also handle user registration request.
     """
-    app.logger.debug("Requested for new user registration -- register_user")
+    current_app.logger.debug("Requested for new user registration -- register_user")
     success, failure = None, None
     if request.method == 'POST':
         fname = request.form['fname']
@@ -225,14 +218,14 @@ def register_user_frontend():
         password = request.form['password']
         confirm_password = request.form['confirm_password']
 
-        app.logger.debug("Requested resource: fname:{} lname: {} email:{}, username:{}, password:{}, confirm_passowrd:{}".format(
+        current_app.logger.debug("Requested resource: fname:{} lname: {} email:{}, username:{}, password:{}, confirm_passowrd:{}".format(
                          fname, lname, email, username, password, confirm_password))
         success, failure = user_handler.register_user(username, email, fname, lname, password, confirm_password)
-        app.logger.debug("Success message:{}".format(success if success else "None"))
-        app.logger.debug("Failure message:{}".format(failure if failure else "None"))
+        current_app.logger.debug("Success message:{}".format(success if success else "None"))
+        current_app.logger.debug("Failure message:{}".format(failure if failure else "None"))
 
         if success:
-            app.logger.info("User {} added succesfully".format(username))
+            current_app.logger.info("User {} added succesfully".format(username))
             return render_template('login.html',success=success, user=username)
 
     return render_template('register_user.html', error = failure)
@@ -244,33 +237,33 @@ def upload_console():
     """
     Function to load upload console, contains options to upload files and folders.
     """
-    app.logger.debug("Requested file/folder upload console")
+    current_app.logger.debug("Requested file/folder upload console")
     ## Verify if the logged in user is admin
     if not current_user.admin:
-        app.logger.info("upload_file requested by non-admin user")
+        current_app.logger.info("upload_file requested by non-admin user")
         return render_template('login.html',error="login as admin to proceed")
     annotations=get_annotations()
     annotations = annotations.to_dict(orient='records')
     data = get_data()
     data = data.to_dict(orient="records")
     return render_template('upload_console.html',success=request.args.get('success'),
-                    error=request.args.get('error'),admin=current_user.admin,user=current_user.fname, annotations=annotations, data=data)
+                    error=request.args.get('error'),admin=current_user.admin,user=current_user.username, annotations=annotations, data=data)
 
 @app.route("/instructions", methods=["GET"])
 @login_required
 def instructions():
-    return render_template('instructions.html', admin=current_user.admin, user=current_user.fname)
+    return render_template('instructions.html', admin=current_user.admin, user=current_user.username)
 
 @app.route("/data_console", methods=["GET"])
 @login_required
 def data_console():
     "Function to display data such as annotations and 'data'"
 
-    app.logger.debug("Requested data view")
+    current_app.logger.debug("Requested data view")
 
     ## Verify if the logged in user is admin
     if not current_user.admin:
-        app.logger.info("upload_file requested by non-admin user")
+        current_app.logger.info("upload_file requested by non-admin user")
         return render_template('login.html',error="login as admin to proceed")
     annotations=get_annotations()
     daily = get_daily_annotations(annotations)
@@ -279,7 +272,7 @@ def data_console():
     data = get_data()
     data = data.to_dict(orient="records")
     return render_template('data_console.html',success=request.args.get('success'),
-                    error=request.args.get('error'), admin=current_user.admin, user=current_user.fname, annotations=annotations, data=data, daily=daily)
+                    error=request.args.get('error'), admin=current_user.admin, user=current_user.username, annotations=annotations, data=data, daily=daily)
 
 @app.route('/upload_file', methods=["GET", "POST"])
 @login_required
@@ -289,22 +282,22 @@ def upload_file():
     (Uploading of the file to be restricted to the admin.)
     """
 
-    app.logger.debug("Requested file upload page")
+    current_app.logger.debug("Requested file upload page")
     ## Verify if the logged in user is admin
     if not current_user.admin:
-        app.logger.info("upload_file requested by non-admin user")
+        current_app.logger.info("upload_file requested by non-admin user")
         return render_template('login.html',error="login as admin to proceed")
 
     if request.method == 'POST':
         files = request.files.getlist('files[]')
 
-        app.logger.info("Files: " + str(files))
+        current_app.logger.info("Files: " + str(files))
         ## Handling Zero inputs
         if len(files) == 1:
             if files[0].filename == '':
-                app.logger.info("Submitted 0 (zero) files")
+                current_app.logger.info("Submitted 0 (zero) files")
                 return render_template('upload_console.html', error=str("Upload atleast one file"), 
-                                       user=current_user.fname, admin=current_user.admin)
+                                       user=current_user.username, admin=current_user.admin)
 
         # Save the files on the server.
         for file_ in files:
@@ -322,11 +315,11 @@ def upload_file():
                 if int(i[0]) > init_id:
                     init_id = int(i[0])
 
-            app.logger.debug('from: upload_file: init_id:{}; len_list:{}'
+            current_app.logger.debug('from: upload_file: init_id:{}; len_list:{}'
                              .format(init_id, len(id_list)))
 
         except Exception as e:
-            app.logger.critical('Exception occurred while processing the database while uploading the file:'+str(e))
+            current_app.logger.critical('Exception occurred while processing the database while uploading the file:'+str(e))
             raise error_handler.UnknownError(e)
 
         for file_ in files:
@@ -343,23 +336,23 @@ def upload_file():
                 success_files += 1
             except Exception as e:
                 failed_files += file_.filename+" "
-                app.logger.error("Exception occurred while processing the database while uploading the file:"+str(e))
+                current_app.logger.error("Exception occurred while processing the database while uploading the file:"+str(e))
 
         if failed_files != "":
-            app.logger.error("Failed to upload one or more files:"+str(failed_files))
+            current_app.logger.error("Failed to upload one or more files:"+str(failed_files))
             if success_files == 0:
                 return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files),
-                                       user=current_user.fname, admin=current_user.admin)
+                                       user=current_user.username, admin=current_user.admin)
             else:
                 return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files),
-                                       success=str(success_files)+" files uploaded successfully", user=current_user.fname, admin=current_user.admin)
+                                       success=str(success_files)+" files uploaded successfully", user=current_user.username, admin=current_user.admin)
 
-        app.logger.info("Files uploaded successfully:" + str(success_files))
+        current_app.logger.info("Files uploaded successfully:" + str(success_files))
         return render_template('upload_console.html', success=str(success_files)+" files uploaded successfully",
-                               user=current_user.fname, admin=current_user.admin)
+                               user=current_user.username, admin=current_user.admin)
     else:
-        app.logger.debug("from upload_file current User:{}".format(current_user.fname))
-        return render_template('upload_console.html', user=current_user.fname, admin=current_user.admin)
+        current_app.logger.debug("from upload_file current User:{}".format(current_user.username))
+        return render_template('upload_console.html', user=current_user.username, admin=current_user.admin)
 
 @app.route('/upload_folder', methods=["GET", "POST"])
 @login_required
@@ -369,30 +362,30 @@ def upload_folder():
     (Uploading of the file to be restricted to the admin.)
     """
 
-    app.logger.debug("Requested folder upload page")
+    current_app.logger.debug("Requested folder upload page")
     ## Verify if the logged in user is admin
     if not current_user.admin:
-        app.logger.info("upload_file requested by non-admin user")
+        current_app.logger.info("upload_file requested by non-admin user")
         return render_template('login.html',error="login as admin to proceed")
 
     if request.method == 'POST':
         folder = request.files.getlist('folder')
-        app.logger.info("Folders: " + str(folder))
+        current_app.logger.info("Folders: " + str(folder))
 
         ## Handling Zero inputs
         if len(folder) == 1:
             if folder[0].filename == '':
-                app.logger.info("Submitted 0 (zero) folder")
+                current_app.logger.info("Submitted 0 (zero) folder")
                 return render_template('upload_folder.html', error=str("Upload atleast one folder"),
-                                       user=current_user.fname, admin=current_user.admin)
+                                       user=current_user.username, admin=current_user.admin)
 
         #Check if the folder exists
         try:
             os.makedirs(os.path.join('uploaded_files/', '/'.join([subdir for subdir in folder[0].filename.split('/')[:-1]])), exist_ok=False)
         except Exception as e:
-            app.logger.info("Folder already exists")
-            app.logger.info("Error: "+str(e))
-            return render_template('upload_console.html', error=str("Folder already exists"), user=current_user.fname, admin=current_user.admin)
+            current_app.logger.info("Folder already exists")
+            current_app.logger.info("Error: "+str(e))
+            return render_template('upload_console.html', error=str("Folder already exists"), user=current_user.username, admin=current_user.admin)
 
         failed_files = ""
         success_files = 0
@@ -405,23 +398,23 @@ def upload_folder():
                 file_.save('uploaded_files/'+file_.filename)
                 success_files += 1
             except Exception as e:
-                app.logger.error("Error uploading file from the folder: "+str(e))
+                current_app.logger.error("Error uploading file from the folder: "+str(e))
                 failed_files += str(file_.filename)+" "
 
 
         if failed_files != "":
-            app.logger.error("Failed to upload one or more files:"+str(failed_files))
+            current_app.logger.error("Failed to upload one or more files:"+str(failed_files))
             if success_files == 0:
-                return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files), user=current_user.fname, admin=current_user.admin)
+                return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files), user=current_user.username, admin=current_user.admin)
             else:
-                return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files), success=str(success_files)+" files uploaded successfully", user=current_user.fname, admin=current_user.admin)
+                return render_template('upload_console.html', error=str("Error uploading the files: "+failed_files), success=str(success_files)+" files uploaded successfully", user=current_user.username, admin=current_user.admin)
 
-        app.logger.info("Files uploaded successfully:" + str(success_files))
-        return render_template('upload_console.html', success=str(success_files)+" files uploaded successfully",user=current_user.fname, admin=current_user.admin)
+        current_app.logger.info("Files uploaded successfully:" + str(success_files))
+        return render_template('upload_console.html', success=str(success_files)+" files uploaded successfully",user=current_user.username, admin=current_user.admin)
 
     ## GET request
-    app.logger.debug("from upload_file current User:{}".format(current_user.fname))
-    return render_template('upload_console.html', user=current_user.fname, admin=current_user.admin)
+    current_app.logger.debug("from upload_file current User:{}".format(current_user.username))
+    return render_template('upload_console.html', user=current_user.username, admin=current_user.admin)
 
 @app.route('/data_download', methods=["GET", "POST"])
 @login_required
@@ -430,10 +423,10 @@ def data_download():
     Download data in database after converting it to csv/tsv.
     Downloading of the data is restricted to the admin.
     """
-    app.logger.debug("Requested data dowload page")
+    current_app.logger.debug("Requested data dowload page")
     ## Verify if the logged in user is admin
     if not current_user.admin:
-        app.logger.info("data_download requested by non-admin user")
+        current_app.logger.info("data_download requested by non-admin user")
         return render_template('login.html',error="Login as admin to proceed.")
     if request.method == 'POST':
         df = get_data()
@@ -448,10 +441,10 @@ def annotations_download():
     Download annotations in database as csv/tsv.
     Restricted to the admin.
     """
-    app.logger.debug("Requested annotations dowload page")
+    current_app.logger.debug("Requested annotations dowload page")
     # Verify if the logged in user is admin
     if not current_user.admin:
-        app.logger.info("annotations_download requested by non-admin user")
+        current_app.logger.info("annotations_download requested by non-admin user")
         return render_template('login.html',error="Login as admin to proceed.")
     if request.method == 'POST':
         df = get_annotations()
@@ -466,7 +459,7 @@ def user_download():
     """
     # Verify if the logged in user is admin
     if not current_user.admin:
-        app.logger.info("annotations_download requested by non-admin user")
+        current_app.logger.info("annotations_download requested by non-admin user")
         return render_template('login.html',error="Login as admin to proceed.")
     if request.method == 'POST':
         df = get_users()
@@ -482,7 +475,7 @@ def all_download():
     """
     # Verify if the logged in user is admin
     if not current_user.admin:
-        app.logger.info("all_download requested by non-admin user")
+        current_app.logger.info("all_download requested by non-admin user")
         return render_template('login.html',error="Login as admin to proceed.")
     try:
         # write relevant database tables to xlsx buffer
@@ -509,7 +502,7 @@ def load_profile():
     """
     Function to load a profile
     """
-    app.logger.debug("from load_profile current user:{}".format(current_user.admin))
+    current_app.logger.debug("from load_profile current user:{}".format(current_user.admin))
     uid = current_user.get_id()
 
     db = get_db()
@@ -534,12 +527,12 @@ def load_profile():
         last24_annos = len([anno for anno in this_week if anno['timestamp'] > start_today])
 
     except Exception as e:
-        app.logger.error("Exception:"+str(e))
+        current_app.logger.error("Exception:"+str(e))
         annotation_amount = 0
 
     return render_template('profile.html', fname=current_user.fname, lname=current_user.lname,
                            username=current_user.username, user_type=current_user.user_type,
-                           email=current_user.email, user=current_user.fname,
+                           email=current_user.email, user=current_user.username,
                            admin=current_user.admin, annotation_amount = annotation_amount, 
                            last_week_annos=last_week_annos, last24_annos=last24_annos,
                            user_annotations = user_annotations)
@@ -568,7 +561,7 @@ def removeAnnotation():
     db = get_db()
     remove_annotation(db, annotation_id)
     db.commit()
-    app.logger.info("Removed annotation id %s" + annotation_id)
+    current_app.logger.info("Removed annotation id %s" + annotation_id)
     return redirect(request.referrer)
 
 
@@ -579,21 +572,21 @@ def change_password():
     Function to change the user password.
     returns to the same page with "Success or Failure Message"
     """
-    app.logger.debug("from load_profile admin user:{}".format(current_user.username))
+    current_app.logger.debug("from load_profile admin user:{}".format(current_user.username))
     success, failure = None, None
     if request.method == 'POST':
         password = request.form['password']
         confirm_password = request.form['confirm_password']
         new_password = request.form['new_password']
         confirm_new_password = request.form['confirm_new_password']
-        app.logger.debug("Requested resource: password:{} confirm_password: {} new_password:{}, confirm_new_password:{}".format(
+        current_app.logger.debug("Requested resource: password:{} confirm_password: {} new_password:{}, confirm_new_password:{}".format(
                          password, confirm_password, new_password, confirm_new_password))
         success, failure = user_handler.change_password(current_user.username, password,
                                                         confirm_password, new_password,
                                                         confirm_new_password)
-        app.logger.debug("Success message:{}".format(success if success else "None"))
-        app.logger.debug("Failure message:{}".format(failure if failure else "None"))
-    return render_template('changePassword.html', user=current_user.fname,
+        current_app.logger.debug("Success message:{}".format(success if success else "None"))
+        current_app.logger.debug("Failure message:{}".format(failure if failure else "None"))
+    return render_template('changePassword.html', user=current_user.username,
                            admin=current_user.admin, success = success, error = failure)
 
 @app.route('/adminConsole', methods=["GET", "POST"])
@@ -607,10 +600,10 @@ def admin_console():
         1. activate or deactivate a user.
         2. change password for the user.
     """
-    app.logger.debug("from admin_console")
+    current_app.logger.debug("from admin_console")
     ## Verify if the logged in user is a admin user
     if not current_user.admin:
-        app.logger.info("the user {} is not admin".format(current_user))
+        current_app.logger.info("the user {} is not admin".format(current_user))
         return render_template('login.html', error="login as admin to proceed")
 
     db = get_db()
@@ -625,23 +618,23 @@ def admin_console():
 
     if request.method == 'POST':
         username = request.form['user_select']
-        user1 = login_handler.load_user_by_name(username)
-        app.logger.debug("Selected user object: {}".format(user1))
-        app.logger.debug("Selected user fname: {}".format(user1.fname))
+        user1 = user_handler.load_user_by_name(username)
+        current_app.logger.debug("Selected user object: {}".format(user1))
+        current_app.logger.debug("Selected user fname: {}".format(user1.username))
         annotations = db.execute(
         'SELECT annotated FROM user WHERE id = ?', (user1.get_id(),)
         ).fetchone()
         try:
             annotation_by_individual_user = len(annotations[0].split())
         except Exception as e:
-            app.logger.error("Exception:"+str(e))
+            current_app.logger.error("Exception:"+str(e))
             annotation_by_individual_user = 0
-        return render_template('adminConsole.html', user=current_user.fname, admin=current_user.admin,
+        return render_template('adminConsole.html', user=current_user.username, admin=current_user.admin,
                                active_users=active_users['username'], inactive_users=inactive_users['username'],
                                all_users=df['username'], fname=user1.fname, lname=user1.lname, username=user1.username,
                                user_type=user1.user_type, email=user1.email, active_account=user1.is_approved,annotation_by_individual_user=annotation_by_individual_user)
 
-    return render_template('adminConsole.html', user=current_user.fname, admin=current_user.admin,
+    return render_template('adminConsole.html', user=current_user.username, admin=current_user.admin,
                            active_users=active_users['username'], inactive_users=inactive_users['username'],
                            all_users=df['username'],success=request.args.get('success'),
                            error=request.args.get('failure'))
@@ -657,10 +650,10 @@ def change_options():
         1. activate or deactivate a user.
         2. change password for the user.
     """
-    app.logger.debug("from options")
+    current_app.logger.debug("from options")
     ## Verify if the logged in user is a admin user
     if not current_user.admin:
-        app.logger.info("the user {} is not admin".format(current_user))
+        current_app.logger.info("the user {} is not admin".format(current_user))
         return render_template('login.html', error="login as admin to proceed")
 
     success, failure = "",""
@@ -669,31 +662,31 @@ def change_options():
     row = db.execute('SELECT max_annotations FROM options').fetchone()
     max_annotations = row['max_annotations']
 
-    app.logger.debug("max_annotations in database: "+str(max_annotations))
+    current_app.logger.debug("max_annotations in database: "+str(max_annotations))
 
     if request.method == 'POST':
         max_annotations = request.form['max_annotations']
         try:
             max_annotations = int(max_annotations)
         except Exception as e:
-            app.logger.error("max_annotations entered is not integer")
-            return render_template('options.html', user=current_user.fname, admin=current_user.admin, error = failure)
+            current_app.logger.error("max_annotations entered is not integer")
+            return render_template('options.html', user=current_user.username, admin=current_user.admin, error = failure)
 
-        app.logger.debug("max_annotations: {}".format(max_annotations))
+        current_app.logger.debug("max_annotations: {}".format(max_annotations))
 
         try:
             db.execute('UPDATE options set max_annotations = ?',(max_annotations,))
             db.commit()
             success = "Successfully changed Maximum annotations per data item: {}".format(max_annotations)
         except Exception as e:
-            app.logger.error("Exception occurred : {}".format(str(e)))
-            app.logger.error("rolling back DB")
+            current_app.logger.error("Exception occurred : {}".format(str(e)))
+            current_app.logger.error("rolling back DB")
             db.rollback()
-            app.logger.error("Error occurred while updating option, DB rolled-back")
+            current_app.logger.error("Error occurred while updating option, DB rolled-back")
             raise error_handler.DatabaseError(str(e))
-        return render_template('options.html', user=current_user.fname, admin=current_user.admin, max_annotations=int(max_annotations), success=success)
+        return render_template('options.html', user=current_user.username, admin=current_user.admin, max_annotations=int(max_annotations), success=success)
 
-    return render_template('options.html', user=current_user.fname, admin=current_user.admin, max_annotations=int(max_annotations))
+    return render_template('options.html', user=current_user.username, admin=current_user.admin, max_annotations=int(max_annotations))
 
 @app.route('/api/activate_user', methods=["POST"])
 @login_required
@@ -701,18 +694,18 @@ def activate_user():
     """
     Activate the user by calling the method in user_handler
     """
-    app.logger.debug("from activate_user")
+    current_app.logger.debug("from activate_user")
     db = get_db()
 
     username = request.form['user_select']
 
-    app.logger.debug("Requested username {}".format(username))
+    current_app.logger.debug("Requested username {}".format(username))
     success, failure = user_handler.activate_user(username)
 
-    app.logger.debug("Success message:{}".format(success if success else "None"))
-    app.logger.debug("Failure message:{}".format(failure if failure else "None"))
+    current_app.logger.debug("Success message:{}".format(success if success else "None"))
+    current_app.logger.debug("Failure message:{}".format(failure if failure else "None"))
 
-    return redirect(url_for('admin_console', success=success, failure=failure))
+    return redirect(url_for('routes.admin_console', success=success, failure=failure))
 
 @app.route('/api/deactivate_user',methods=["POST"])
 @login_required
@@ -720,16 +713,16 @@ def deactivate_user():
     """
     Dectivate the user by calling the method in user_handler
     """
-    app.logger.debug("from deactivate_user")
+    current_app.logger.debug("from deactivate_user")
     db = get_db()
 
     username = request.form['user_select']
-    app.logger.debug("Requested username {}".format(username))
+    current_app.logger.debug("Requested username {}".format(username))
 
     success, failure = user_handler.deactivate_user(username)
-    app.logger.debug("Success message:{}".format(success if success else "None"))
-    app.logger.debug("Failure message:{}".format(failure if failure else "None"))
-    return redirect(url_for('admin_console', success=success, failure=failure))
+    current_app.logger.debug("Success message:{}".format(success if success else "None"))
+    current_app.logger.debug("Failure message:{}".format(failure if failure else "None"))
+    return redirect(url_for('routes.admin_console', success=success, failure=failure))
 
 @app.route('/api/change_password_admin', methods=["POST"])
 @login_required
@@ -738,7 +731,7 @@ def change_password_admin():
     Change the password for normal user by calling the method in user_handler.
     (Action performed by the admin on behalf of other user)
     """
-    app.logger.debug("from change_password_user")
+    current_app.logger.debug("from change_password_user")
     db = get_db()
     username = request.form['user_select']
     password = request.form['password']
@@ -748,9 +741,9 @@ def change_password_admin():
     admin_username = current_user.username
     success, failure = user_handler.change_password_admin(username, password, confirm_password,
                                                           admin_username, admin_password)
-    app.logger.debug("Success message:{}".format(success if success else "None"))
-    app.logger.debug("Failure message:{}".format(failure if failure else "None"))
-    return redirect(url_for('admin_console', success=success, failure=failure))
+    current_app.logger.debug("Success message:{}".format(success if success else "None"))
+    current_app.logger.debug("Failure message:{}".format(failure if failure else "None"))
+    return redirect(url_for('routes.admin_console', success=success, failure=failure))
 
 
 @app.route('/logout')
@@ -759,10 +752,10 @@ def logout():
     """
     Function to logout the user
     """
-    app.logger.debug("from logout()")
+    current_app.logger.debug("from logout()")
     logout_user()
-    app.logger.info("User logged out")
-    return redirect(url_for('login'))
+    current_app.logger.info("User logged out")
+    return redirect(url_for('routes.login'))
 
 ## Template routes
 
@@ -772,8 +765,8 @@ def home():
     """
     Route for home page
     """
-    app.logger.debug("from / (home_page)")
-    return render_template('annotation_page.html', user=current_user.fname, admin=current_user.admin)
+    current_app.logger.debug("from / (home_page)")
+    return render_template('annotation_page.html', user=current_user.username, admin=current_user.admin)
 
 
 ########## MISC Functions
@@ -808,7 +801,7 @@ def get_annotations() -> pd.DataFrame:
         df_annotations = pd.read_sql("SELECT * FROM annotations", db)
         df_data = pd.read_sql("SELECT * FROM data", db)
     except Exception as e:
-        app.logger.error("Database Error:"+str(e))
+        current_app.logger.error("Database Error:"+str(e))
         raise error_handler.DatabaseError(str(e))
     try:
 
@@ -820,7 +813,7 @@ def get_annotations() -> pd.DataFrame:
         #df_annotations.drop(['user'],inplace=True,axis=1)
         return df_annotations
     except Exception as e:
-        app.logger.error("Error:"+str(e))
+        current_app.logger.error("Error:"+str(e))
         raise error_handler.UnknownError(str(e))
 
 def get_data() -> pd.DataFrame:
@@ -834,7 +827,7 @@ def get_data() -> pd.DataFrame:
 
         df_annotations_per_data = pd.read_sql_query("SELECT data_id, COUNT(*) FROM annotations GROUP BY data_id", db)
     except Exception as e:
-        app.logger.error("Database Error:" + str(e))
+        current_app.logger.error("Database Error:" + str(e))
         raise error_handler.DatabaseError(str(e))
 
     try:
@@ -845,7 +838,7 @@ def get_data() -> pd.DataFrame:
         df_data = df_data.sort_values(by=['id'])
         return df_data
     except Exception as e:
-        app.logger.error("Error:" + str(e))
+        current_app.logger.error("Error:" + str(e))
         raise error_handler.UnknownError(str(e))
 
 def get_users() -> pd.DataFrame:
@@ -857,11 +850,5 @@ def get_users() -> pd.DataFrame:
         df_user['annotated_amount'] = annotated_amount
         return df_user
     except Exception as e:
-        app.logger.error("Database Error:" + str(e))
+        current_app.logger.error("Database Error:" + str(e))
         raise error_handler.DatabaseError(str(e))
-
-@app.teardown_appcontext
-def close_db(error):
-    """Closes the database again at the end of the request."""
-    if hasattr(g, 'sqlite_db'):
-        g.db.close()

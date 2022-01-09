@@ -159,7 +159,7 @@ class AnnotationAutomaton(Machine):
 
 
     @staticmethod
-    def setup():
+    def setup(protocol:str='protocol.yml'):
         # TODO: Check Correctness
         # needs: Transition to end, no unreachable nodes, no unknown task types
         # Build database
@@ -167,7 +167,7 @@ class AnnotationAutomaton(Machine):
 
         automaton = AnnotationAutomaton()
 
-        with open('protocol.yml') as f:
+        with open(protocol) as f:
             yaml = YAML(typ='safe')
             protocol: dict = next(yaml.load_all(f))
 

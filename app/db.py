@@ -43,7 +43,6 @@ def init_db():
 
     with current_app.open_resource('schema.sql') as f:
         db.executescript(f.read().decode('utf8'))
-    columns_from_automaton()
 
 def columns_from_automaton():
     from app.automaton import AnnotationAutomaton
@@ -89,6 +88,8 @@ def init_db_command():
                 break
         save_db('all')
         init_db()
+        columns_from_automaton()
+
     click.echo('Initialized the database.')
 
 @click.command('db-from-csv')
