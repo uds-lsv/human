@@ -73,8 +73,8 @@ body {
 }
 ::-webkit-scrollbar-thumb {
     border-radius: 4px;
-    background-color: rgba(0, 0, 0, .5);
-    -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+    background-color: rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
 ::-webkit-scrollbar-corner {
@@ -97,4 +97,8 @@ body {
 
 .word-list-item {
     text-align: left;
+}
+
+.hidden {
+    display: none;
 }

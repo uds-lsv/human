@@ -98,7 +98,7 @@ export async function nextState(trigger, data) {
                 case 'checkmark':
                     task = new CheckmarkTask(state, data)
                     break
-                case 'labelText': //TODO rename labeltext
+                case 'labelText':
                     task = new LabelTextTask(state, data)
                     break
                 case 'choosePage':

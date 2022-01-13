@@ -19,9 +19,9 @@ import {
 declare var Split
 
 export async function showText() {
-    $('.pictureTask').hide()
-    $('.pdfTask').hide()
-    $('.textTask').show()
+    $('.pdfTask').addClass('hidden')
+    $('.pictureTask').addClass('hidden')
+    $('.textTask').removeClass('hidden')
 
     $('.card-subtitle').show()
     $('#text-input').hide()

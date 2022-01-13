@@ -17,9 +17,9 @@ declare var Split
 export async function loadPicture() {
     console.log('loadpic')
     // await $('#contentContainer').load('fragments #pictureContainer')
-    $('.pdfTask').hide()
-    $('.textTask').hide()
-    $('.pictureTask').show()
+    $('.pdfTask').addClass('hidden')
+    $('.textTask').addClass('hidden')
+    $('.pictureTask').removeClass('hidden')
     await Promise.all([
         $('.card-subtitle').hide(),
         $('#text-input').hide(),
@@ -44,9 +44,9 @@ export async function loadPicture() {
 }
 
 export async function loadPDF() {
-    $('.textTask').hide()
-    $('.pictureTask').hide()
-    $('.pdfTask').show()
+    $('.pictureTask').addClass('hidden')
+    $('.textTask').addClass('hidden')
+    $('.pdfTask').removeClass('hidden')
 
     await Promise.all([
         $('.card-subtitle').hide(),
