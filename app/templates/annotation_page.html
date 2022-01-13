@@ -3,14 +3,12 @@
 {% block scripts %}
 {{super()}}
 <!-- DEPENDENCIES -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
 <script src="https://unpkg.com/konva@4.0.0/konva.min.js"></script>
 
 <script defer src="{{url_for('static', filename='dist/bundle.js')}}"></script>
 <style>
-    .textTask,
-    .pdfTask,
-    .pictureTask {
+    .hidden {
         display: none;
     }
 
@@ -38,7 +36,7 @@
 <div id="bodyContainer" style="display: flex; height: 100%" class="container-fluid">
     <div id="mainContainer" class="mainContainer">
         <div id="contentContainer" class="contentContainer">
-            <div id="pictureContainer" class="pictureContainer pictureTask">
+            <div id="pictureContainer" class="pictureContainer pictureTask hidden">
                 <div id="picture_content" style="height: 100%;justify-content: space-evenly;display: flex;">
                     <div style=" width: 30%; display: flex; flex-direction: column;" id="picture-preview">
                         <canvas id="picture-preview-canvas" style="max-width: 100%"></canvas>
@@ -46,14 +44,15 @@
                     <canvas id="picture-canvas" style="width: 75%"></canvas>
                 </div>
             </div>
-            <div id="textContainer" class="textTask">
+            <div id="textContainer" class="textTask hidden">
                 <h3 class="card-subtitle">Content</h3>
                 <div class="textContainer card-resizable-vertical">
                     <div id="color-bar"></div>
                     <div class="comment-content"></div>
                 </div>
             </div>
-            <div id="pdf-contents" class="pdfTask" style="height: 100%; display: flex; justify-content: space-between">
+            <div id="pdf-contents" class="pdfTask hidden"
+                style="height: 100%; display: flex; justify-content: space-between">
                 <div id="pdf-preview" style="height: 100%; width: 25%; overflow: scroll"></div>
                 <canvas id="pdf-canvas"
                     style="height: 100%; max-width: 75%; box-shadow: -3px 5px 9px 0px grey"></canvas>
@@ -62,12 +61,12 @@
 
         </div>
         <div id="bottomContainer" class="bottomContainer">
-            <div class="textTask">
+            <div class="textTask hidden">
                 <h3 class="card-subtitle">Context</h3>
-                <div class="context-content" style="color: #505080"></div>
+                <div class="context-content"></div>
             </div>
             <!-- pdf controls -->
-            <div id="pdf-meta" class="pdfTask" style="height: 10%; padding: 10px">
+            <div id="pdf-meta" class="pdfTask hidden" style="height: 10%; padding: 10px">
                 <div id="pdf-buttons" style="height: 10%; float: left">
                     <button class="btn btn-primary" id="pdf-prev">Previous</button>
                     <button class="btn btn-primary" bid="pdf-next">Next</button>
@@ -84,7 +83,7 @@
     <div id="sidebarContainer" class="sidebarContainer">
         <div class="">
             <div id="question" class="question"></div>
-            <div class="input-group pictureTask" id="text-input-group">
+            <div class="input-group pictureTask hidden" id="text-input-group">
                 <input id="text-input" class="form-control" type="text" />
                 <div class="input-group-append">
                     <button class="btn btn-outline-secondary active" data-toggle="button" type="button" id="fzf-toggle">
@@ -93,7 +92,7 @@
                 </div>
             </div>
             <ul style="overflow: scroll; margin-top: 10px; -webkit-overflow-scrolling: touch; " id="word-list"
-                class="list-group pictureTask">
+                class="list-group pictureTask hidden">
                 <button id="input-item" class="list-group-item" style="text-align: left"></button>
             </ul>
             <div id="answer" class="answer"></div>

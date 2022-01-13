@@ -1,0 +1,41 @@
+%YAML 1.2
+---
+start:
+    type: loadPdf
+    transitions:
+        - next:
+              target: '0'
+
+'0':
+    type: choosePage
+    question: Draw a bounding box around a line with english animal names.
+    # maxbboxes: 1
+    transitions:
+        - '*':
+              target: '1'
+
+'1':
+    type: labelBBoxes
+    question: Draw a bounding box around a line with english animal names.
+    # api_call: api_singlelabel
+    from: '0'
+    transitions:
+        - '*':
+              target: '2'
+
+'2':
+    type: multilabelBBoxes
+    question: Draw a bounding box around a line with english animal names.
+    # api_call: api_multilabel
+    from: '0'
+    transitions:
+        - '*':
+              target: 'end'
+# '1':
+#     type: labelBBoxes
+#     question: Draw a bounding box around a line with english animal names.
+#     saveAll: true
+#     column: test1
+#     transitions:
+#         - '*':
+#               target: 'end'

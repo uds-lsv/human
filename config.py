@@ -1,2 +1,2 @@
 SECRET_KEY='dev' # IMPORTANT: Change secret key to a random secure string (eg. GDtfDCFYjD)
-# DATABASE='/path/to/database.sqlite' # set custom path to database. Default: './instance/database.sqlite'
+# DATABASE='/path/to/human/instance/database.sqlite' # set custom (full!) path to database. Default: 'instance/database.sqlite'

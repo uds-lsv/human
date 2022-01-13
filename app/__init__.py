@@ -11,7 +11,6 @@ from app.error_handler import handle_database_error,  handle_unknown_error, Unkn
 
 
 def create_app(test_config=None, debug=True):
-    print('went into __init__')
     app = Flask(__name__)
     CORS(app)
     app.config.from_mapping(
@@ -22,12 +21,11 @@ def create_app(test_config=None, debug=True):
     )
     if test_config is None:
         # load the instance config, if it exists, when not testing
-        app.config.from_pyfile("config.py", silent=True)
+        app.config.from_pyfile("../config.py", silent=False)
     else:
         # load the test config if passed in
         app.config.update(test_config)
 
-    print(app.debug)
     init_app(app)
 
     login_manager = LoginManager(app)
