@@ -42,7 +42,6 @@ class AnnotationAutomaton(Machine):
         return self.get_model_state(self)
 
     def add_state_to_history(self, data=None, **kwargs):
-        # print(kwargs)
         self.history.append(HistoryState(self.current_state.name,data))
 
     def save(self, data=None, **kwargs): 
@@ -51,8 +50,6 @@ class AnnotationAutomaton(Machine):
             # self.current_state.data = data['data']
             self.annotations[self.current_state.name] = data['data']['annotation']
         
-        # if 'column' in self.current_state.meta:
-
 
     def write_to_db(self, **kwargs):
         self.to_start()
@@ -105,20 +102,20 @@ class AnnotationAutomaton(Machine):
     def get_response(self):
         meta = self.current_state.meta
         payload = {}
-        if meta['type'] == 'loadtext':
+        if meta['type'] == 'loadText':
             self.annotations = {}
             # import here to circumvent circular import
             from app.routes import choose_data
             chosen = choose_data()
-            data = chosen.json
             if chosen and not isinstance(chosen, str):
+                data = chosen.json
                 payload = {'state': json.dumps(meta), 'data': json.dumps(data)}
             else:
                 return chosen
             self.annotations['data_id'] = data['id']
             self.current_state.data = data
 
-        elif meta['type'] == 'loadimage' or meta['type'] == 'loadpdf':
+        elif meta['type'] == 'loadImage' or meta['type'] == 'loadPdf':
             self.annotations = {}
             # import here to circumvent circular import
             from app.routes import choose_data
@@ -144,11 +141,14 @@ class AnnotationAutomaton(Machine):
                     # TODO better handling of automaton failures
                     return 'API call did not return dict type'
                 payload = {'state': json.dumps(meta), 'data': json.dumps(api_ret)}
+            elif 'from' in self.current_state.meta:
+                from_state = self.current_state.meta['from']
+                data = [state for state in self.history if state.name == from_state][-1].data
+                payload = {'state': json.dumps(meta), 'data':json.dumps(data['data'])}
             else:
-                print(self.history[-1])
-                print(self.history[-1].data)
-                payload = {'state': json.dumps(meta), 'data':json.dumps(self.history[-1].data)}
-
+                # payload = {'state': json.dumps(meta), 'data':json.dumps(self.history[-1].data)}
+                payload = {'state': json.dumps(meta), 'data':json.dumps({})}
+        print('payload', payload)
         multipart = MultipartEncoder(fields=payload)
         self.save_machine()
         return (multipart.to_string(), {'Content-Type': multipart.content_type})
@@ -159,7 +159,7 @@ class AnnotationAutomaton(Machine):
 
 
     @staticmethod
-    def setup():
+    def setup(protocol:str='protocol.yml'):
         # TODO: Check Correctness
         # needs: Transition to end, no unreachable nodes, no unknown task types
         # Build database
@@ -167,7 +167,7 @@ class AnnotationAutomaton(Machine):
 
         automaton = AnnotationAutomaton()
 
-        with open('protocol.yml') as f:
+        with open(protocol) as f:
             yaml = YAML(typ='safe')
             protocol: dict = next(yaml.load_all(f))
 
@@ -235,8 +235,12 @@ class AnnotationAutomaton(Machine):
         # boolean needs transition yes no or *
         # picture tasks need picture loaded
         # text tasks need text loaded
-        
+        # from: state must be available before from
         ...
+
+    def get_db_columns(self):
+        return [state for state in list(self.states) if state not in ["start", "end", "failure"]]
+        
 
 
 if __name__ == '__main__':

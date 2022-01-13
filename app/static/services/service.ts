@@ -1,5 +1,3 @@
-import { SETTINGS } from '../settings'
-
 export class Service {
     constructor() {}
 
@@ -38,7 +36,7 @@ export class Service {
     }
 
     static get(url, params?) {
-        return $.get(SETTINGS.URL + url, params)
+        return $.get(url, params)
     }
 
     static post(url: string, type?: 'json' | 'file', data?) {
@@ -50,7 +48,7 @@ export class Service {
         } else {
             settings = Object.assign(settings, this.ajax_jsonsettings)
         }
-        settings.url = SETTINGS.URL + url
+        settings.url = url
         settings.data = data
         return $.ajax(settings)
     }
@@ -67,7 +65,7 @@ export class Service {
         } else {
             settings = Object.assign(settings, this.fetch_jsonsettings)
         }
-        settings.url = SETTINGS.URL + url
+        settings.url = url
         settings.body = data
         return fetch(url, settings)
     }

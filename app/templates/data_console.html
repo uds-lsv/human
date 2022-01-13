@@ -15,7 +15,7 @@
         $(document).on('click', '#more_files', function () {
             var $clone = $('<div class="div_file form-group form-inline btn col"></div>');
             $clone.append('<input type="file" name="files[]" class="form-control btn btn-outline-secondary" multiple>');
-            $clone.append(" <a href=# id='remove_file' style='color:red'><img src=\"{{url_for('.static', filename='remove.png')}}\" alt='Remove files' style='width:20px;''></a><br/>");
+            $clone.append(" <a href=# id='remove_file' style='color:red'><img src=\"{{url_for('static', filename='remove.png')}}\" alt='Remove files' style='width:20px;''></a><br/>");
             $clone.insertBefore('form p:last');
         });
     });

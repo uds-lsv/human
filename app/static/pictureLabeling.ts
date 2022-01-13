@@ -5,11 +5,21 @@ import { Data } from './data'
 import autocomplete_list from '../data/autocomplete.json'
 import { FZF } from './fuzzy'
 import { nextState } from './services/automaton'
+import { default as paperGlobal } from 'paper'
+
+var paperMain = new paperGlobal.PaperScope()
+var paperPreview = new paperGlobal.PaperScope()
+
+window['paper'] = paperMain
 
 declare var Split
 
 export async function loadPicture() {
     console.log('loadpic')
+    // await $('#contentContainer').load('fragments #pictureContainer')
+    $('.pdfTask').addClass('hidden')
+    $('.textTask').addClass('hidden')
+    $('.pictureTask').removeClass('hidden')
     await Promise.all([
         $('.card-subtitle').hide(),
         $('#text-input').hide(),
@@ -34,6 +44,10 @@ export async function loadPicture() {
 }
 
 export async function loadPDF() {
+    $('.pictureTask').addClass('hidden')
+    $('.textTask').addClass('hidden')
+    $('.pdfTask').removeClass('hidden')
+
     await Promise.all([
         $('.card-subtitle').hide(),
         $('#text-input').hide(),
@@ -604,7 +618,10 @@ function onClickPicture(stage, layer: Konva.Layer, Kimage, max_bboxes = null) {
                 // layer.draw();
                 return
             } else {
-                if (max_bboxes && layer.getChildren().length >= max_bboxes) {
+                if (
+                    max_bboxes &&
+                    layer.getChildren().length >= max_bboxes + 1
+                ) {
                     return
                 }
                 let rect = new Konva.Rect({

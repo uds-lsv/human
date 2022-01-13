@@ -32,9 +32,8 @@ export async function nextState(trigger, data) {
         window['response'] = response
         const contentType = response.headers.get('content-type')
         if (contentType?.indexOf('text/html') !== -1) {
-            response.text().then((text) => {
-                throw Error(text)
-            })
+            const errorMsg = await response.text()
+            throw Error(errorMsg)
         } else if (contentType?.indexOf('multipart/form-data') !== -1) {
             const fd = await response.formData()
             const state = JSON.parse(<string>fd.get('state'))
@@ -49,42 +48,44 @@ export async function nextState(trigger, data) {
                     Data.reset()
                     Data.data = data
                     Data.annotations['data_id'] = Data.data.id
-                    showText()
-                    nextState('next', {})
-                    break
+                    await showText()
+                    await nextState('next', {})
+                    return
                 case 'loadPdf':
                 case 'loadImage':
-                    fd.forEach((val, key) => {
+                    for (const keyval of fd.entries()) {
+                        const key = keyval[0]
+                        const val = keyval[1]
+
                         // if type file
                         if (key == 'file') {
                             const file = val as File
-                            file.arrayBuffer().then(async (buffer) => {
-                                const blob = new Blob([buffer], {
-                                    type: 'octet/stream',
-                                })
-                                const url = await blobToDataURL(blob)
-                                if (file.name.endsWith('.pdf')) {
-                                    Data.pdf = url
-                                } else if (
-                                    file.name.endsWith('.jpg') ||
-                                    file.name.endsWith('.jpeg') ||
-                                    file.name.endsWith('.png')
-                                ) {
-                                    Data.picture = url
-                                } else {
-                                    throw Error(
-                                        'Wrong file ending: ' +
-                                            file.name +
-                                            'Has to be one of pdf, jpg, jpeg, png'
-                                    )
-                                }
+                            const buffer = await file.arrayBuffer()
+                            const blob = new Blob([buffer], {
+                                type: 'octet/stream',
                             })
+                            const url = await blobToDataURL(blob)
+                            if (file.name.endsWith('.pdf')) {
+                                Data.pdf = url
+                            } else if (
+                                file.name.endsWith('.jpg') ||
+                                file.name.endsWith('.jpeg') ||
+                                file.name.endsWith('.png')
+                            ) {
+                                Data.picture = url
+                            } else {
+                                throw Error(
+                                    'Wrong file ending: ' +
+                                        file.name +
+                                        'Has to be one of pdf, jpg, jpeg, png'
+                                )
+                            }
                         } else {
                             Data[key] = JSON.parse(val.toString())
                         }
-                    })
+                    }
                     nextState('next', {})
-                    break
+                    return
                 case 'read':
                     task = new ReadTask(state, data)
                     break
@@ -97,7 +98,7 @@ export async function nextState(trigger, data) {
                 case 'checkmark':
                     task = new CheckmarkTask(state, data)
                     break
-                case 'labelText': //TODO rename labeltext
+                case 'labelText':
                     task = new LabelTextTask(state, data)
                     break
                 case 'choosePage':
