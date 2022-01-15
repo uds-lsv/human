@@ -33,7 +33,8 @@ export async function nextState(trigger, data) {
         const contentType = response.headers.get('content-type')
         if (contentType?.indexOf('text/html') !== -1) {
             const errorMsg = await response.text()
-            throw Error(errorMsg)
+            $('body').html(errorMsg)
+            // throw Error(errorMsg)
         } else if (contentType?.indexOf('multipart/form-data') !== -1) {
             const fd = await response.formData()
             const state = JSON.parse(<string>fd.get('state'))
