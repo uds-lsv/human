@@ -1,5 +1,5 @@
-from typing import Optional, OrderedDict, List
-# from collections import OrderedDict
+from flask import current_app
+from typing import List
 from collections import namedtuple
 from transitions import Machine, State as Transitions_State
 import json
@@ -24,11 +24,12 @@ class State(Transitions_State):
         return "<%s('%s')@%s,%s>" % (type(self).__name__, self.name, id(self), self.meta)
 
 HistoryState = namedtuple('HistoryState',['name','data'])
+LoopState = namedtuple('LoopState',['index','data'])
 class AnnotationAutomaton(Machine):
 
     def __init__(self):
         self.annotations = {}
-
+        self.for_loops = {}
         self.history: List[HistoryState] = []
         Machine.__init__(self,initial='start', auto_transitions=False,before_state_change=[self.add_state_to_history])
         self.add_state(State(name='end',meta={},on_enter=['write_to_db']))
@@ -45,13 +46,21 @@ class AnnotationAutomaton(Machine):
         self.history.append(HistoryState(self.current_state.name,data))
 
     def save(self, data=None, **kwargs): 
-        print(self.current_state)
-        if self.current_state.name not in ('start','end','failure') and data:
+        current_app.logger.debug(f'saving state: {self.current_state}')
+        if self.current_state.name in self.get_db_columns() and data:
             # self.current_state.data = data['data']
-            self.annotations[self.current_state.name] = data['data']['annotation']
+            if self.for_loops:
+                key = ".".join([f"{a}{b.index}" for a,b in self.for_loops.items()])
+                if self.current_state.name in self.annotations:
+                    self.annotations[self.current_state.name][key] = data['data']['annotation']
+                else:
+                    self.annotations[self.current_state.name] = {key: data['data']['annotation']}
+            else:
+                self.annotations[self.current_state.name] = data['data']['annotation']
         
 
     def write_to_db(self, **kwargs):
+        print('write to db', self.annotations)
         self.to_start()
         return
         data = self.annotations
@@ -131,15 +140,42 @@ class AnnotationAutomaton(Machine):
             payload = {'state': json.dumps(meta),
                     'data': json.dumps(data),
                     'file': (datafile, open(datafile, 'rb'))}
+
+        elif meta['type'] == 'loop':
+            # get values
+            for_state = self.current_state.meta['for']
+            values = [state for state in self.history if state.name == for_state][-1].data['data']
+            print('values', values)
+
+            if self.current_state.name not in self.for_loops:
+                # initialize
+                self.for_loops[self.current_state.name] = LoopState(0, values)
+                index = 0
+            else:
+                # get index 
+                index = self.for_loops[self.current_state.name].index
+
+            if index < len(values['annotation']):
+                # increment index before going to the next state
+                self.for_loops[self.current_state.name] = LoopState(index+1, values)
+                values['loop_index'] = index # add index to data
+                # continue to next state
+                self.dispatch('continue',data={'data': values})
+                return self.get_response()
+            else:
+                # remove loop from current loops
+                del self.for_loops[self.current_state.name]
+                # continue to final state
+                self.dispatch('finally',data=None)
+                return self.get_response()
+
         else:
-            # TODO handle API calls here
-            # TODO possibly add previous states data here as well
             if 'api_call' in self.current_state.meta:
                 api_call = getattr(api, self.current_state.meta['api_call'])
                 api_ret = api_call(self)
                 if type(api_ret) != dict:
-                    # TODO better handling of automaton failures
-                    return 'API call did not return dict type'
+                    raise error_handler.AutomatonError('API call did not return dict type')
+                    # return 'API call did not return dict type'
                 payload = {'state': json.dumps(meta), 'data': json.dumps(api_ret)}
             elif 'from' in self.current_state.meta:
                 from_state = self.current_state.meta['from']
@@ -148,7 +184,7 @@ class AnnotationAutomaton(Machine):
             else:
                 # payload = {'state': json.dumps(meta), 'data':json.dumps(self.history[-1].data)}
                 payload = {'state': json.dumps(meta), 'data':json.dumps({})}
-        print('payload', payload)
+        # current_app.logger.debug(f'payload {payload}')
         multipart = MultipartEncoder(fields=payload)
         self.save_machine()
         return (multipart.to_string(), {'Content-Type': multipart.content_type})
@@ -190,10 +226,12 @@ class AnnotationAutomaton(Machine):
         # print(automaton.states)
         # print(automaton.get_transitions())
         illegal = automaton.check_machine_validity()
-        if len(illegal['unreachable']) !=0 or len(illegal['undefined']) !=0:
-            print(f'Unreachable states: {illegal["unreachable"]}')
-            print(f'Undefined states: {illegal["undefined"]}')
-            exit(0) 
+        if len(illegal['unreachable']) !=0 and len(illegal['undefined']) !=0:
+            raise error_handler.AutomatonError(f'Unreachable states: {illegal["unreachable"]} and Undefined states: {illegal["undefined"]}')
+        elif len(illegal['unreachable']) !=0:
+            raise error_handler.AutomatonError(f'Unreachable states: {illegal["unreachable"]}')
+        elif len(illegal['undefined']) !=0:
+            raise error_handler.AutomatonError(f'Undefined states: {illegal["undefined"]}')
         return automaton
     
     
@@ -239,7 +277,9 @@ class AnnotationAutomaton(Machine):
         ...
 
     def get_db_columns(self):
-        return [state for state in list(self.states) if state not in ["start", "end", "failure"]]
+        return [name for name, state in self.states.items() 
+                if name not in ["start", "end", "failure"] 
+                and state.meta['type'] != 'loop']
         
 
 

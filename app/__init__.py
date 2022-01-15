@@ -7,7 +7,7 @@ import logging
 from flask.logging import create_logger
 from flask_cors import CORS
 from app.user_handler import User, load_user
-from app.error_handler import handle_database_error,  handle_unknown_error, UnknownError, DatabaseError, page_not_found
+from app.error_handler import AutomatonError, handle_automaton_error, handle_database_error,  handle_unknown_error, UnknownError, DatabaseError, page_not_found
 
 
 def create_app(test_config=None, debug=True):
@@ -21,7 +21,7 @@ def create_app(test_config=None, debug=True):
     )
     if test_config is None:
         # load the instance config, if it exists, when not testing
-        app.config.from_pyfile("../config.py", silent=False)
+        app.config.from_pyfile(os.path.join(app.root_path, "../config.py"), silent=False)
     else:
         # load the test config if passed in
         app.config.update(test_config)
@@ -35,7 +35,8 @@ def create_app(test_config=None, debug=True):
     login_manager.user_loader(load_user)
     # logger
     # when running via flask run:
-    # logging.basicConfig(level=logging.DEBUG)
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
 
     # app.logger = create_logger(app)
     # when running gunicorn
