@@ -110,12 +110,12 @@
 
 <script type="text/javascript">
   $("#theme-button").click(function () {
-    if (getCookie("theme") === "/static/css/bootstrap.css") {
+    if (getCookie("theme") === "https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css") {
       $("#theme").attr("href", "/static/css/darkly.css");
       setCookie("theme", "/static/css/darkly.css", 365);
     } else {
       $("#theme").attr("href", "https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css");
-      setCookie("theme", "/static/css/bootstrap.css", 365);
+      setCookie("theme", "https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css", 365);
     }
   });
 </script>

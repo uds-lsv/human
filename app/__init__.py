@@ -1,12 +1,10 @@
 from flask import Flask
-from setuptools import setup
 from app.db import get_db, init_app
 from flask_login import LoginManager
 import os
 import logging
-from flask.logging import create_logger
 from flask_cors import CORS
-from app.user_handler import User, load_user
+from app.user_handler import load_user
 from app.error_handler import AutomatonError, handle_automaton_error, handle_database_error,  handle_unknown_error, UnknownError, DatabaseError, page_not_found
 
 
@@ -38,7 +36,6 @@ def create_app(test_config=None, debug=True):
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # app.logger = create_logger(app)
     # when running gunicorn
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers.extend(gunicorn_logger.handlers)
@@ -49,8 +46,14 @@ def create_app(test_config=None, debug=True):
     from app import routes
     app.register_blueprint(routes.app)
 
-    app.register_error_handler(DatabaseError, handle_database_error)
-    app.register_error_handler(UnknownError, handle_unknown_error)
-    app.register_error_handler(404, page_not_found)
+    if not debug:
+        app.register_error_handler(DatabaseError, handle_database_error)
+        app.register_error_handler(UnknownError, handle_unknown_error)
+        app.register_error_handler(AutomatonError, handle_automaton_error)
+        app.register_error_handler(404, page_not_found)
 
+    if debug:
+        @app.shell_context_processor
+        def imports():
+            return {"db": get_db()}
     return app
