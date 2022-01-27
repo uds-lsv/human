@@ -13,8 +13,10 @@
   {% block styles %}
   <!-- DEPENDENCIES -->
   <!-- Bootstrap CSS -->
-  <link id="theme" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
-    crossorigin="anonymous">
+  <!-- <link id="theme" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+    crossorigin="anonymous"> -->
+  <link id="theme" rel="stylesheet" href="/static/css/darkly.css" crossorigin="anonymous">
+
   {% endblock %}
 
   <script type="text/javascript">
@@ -41,7 +43,8 @@
     }
 
     if (!getCookie("theme")) {
-      setCookie("theme", "/static/css/bootstrap.css", 365);
+      // setCookie("theme", "https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css", 365);
+      setCookie("theme", "/static/css/darkly.css", 365);
     } else {
       $("#theme").attr("href", getCookie("theme"));
     }

@@ -1,31 +1,23 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.css')}}">
-</head>
-
-<body>
-    {% if success%}
-    <p style="color:green"> {{ success }} {{user}}</p>
-    {% endif %}
-    {% if error %}
-    <p style="color:red"> {{ error }}</p>
-    {% endif %}
-    <div class="card align-middle" style="width:600px;margin:auto;vertical-align: middle">
-        <div class="card-body">
-            <form action="/login" method="post" class="form-group form-signin">
-                <p class="h2 text-center"> Login</p>
-                Username: <input type="text" name="username" class="form-control" placeholder="Enter username here"
-                    required autofocus /><br />
-                Password: <input type="password" name="password" class="form-control" placeholder="Enter password here"
-                    required />
-                <br />
-                <p class="text-center"><input type="submit" value="Login" class="btn btn-success" /></p>
-                <p> New User? <a href="/register_user">Click here to register.</a></p>
-            </form>
-        </div>
+{% extends "bootstrap/base.html"%}
+{% block content %}
+{% if success%}
+<p style="color:green"> {{ success }} {{user}}</p>
+{% endif %}
+{% if error %}
+<p style="color:red"> {{ error }}</p>
+{% endif %}
+<div class="card align-middle" style="width:600px;margin:auto;vertical-align: middle">
+    <div class="card-body">
+        <form action="/login" method="post" class="form-group form-signin">
+            <p class="h2 text-center"> Login</p>
+            Username: <input type="text" name="username" class="form-control" placeholder="Enter username here" required
+                autofocus /><br />
+            Password: <input type="password" name="password" class="form-control" placeholder="Enter password here"
+                required />
+            <br />
+            <p class="text-center"><input type="submit" value="Login" class="btn btn-success" /></p>
+            <p> New User? <a href="/register_user">Click here to register.</a></p>
+        </form>
     </div>
-</body>
-
-</html>
+</div>
+{% endblock %}
