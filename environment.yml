@@ -12,6 +12,7 @@ dependencies:
     - pip
     - pillow
     - pytables
+    - python-dotenv
     - requests-toolbelt
     - tqdm
     - transitions
