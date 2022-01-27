@@ -10,7 +10,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+# dist/
 downloads/
 eggs/
 .eggs/
@@ -110,5 +110,7 @@ venv.bak/
 node_modules/
 uploaded_files/
 output/*
+backup/
+tests/
 
 # Allow

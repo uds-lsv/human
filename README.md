@@ -15,8 +15,7 @@ See our Demo on http://human.lsv.uni-saarland.de
 
 ## Prerequisites
 
-The only requirements are a working version of node and python 3.9. Using anaconda or miniconda for a python environment is highly recommended.
-To make it easier to install, update and remove node, especially if you plan to maybe use it in other projects we recommend using the node version manager https://github.com/nvm-sh/nvm.
+The only requirement is a working version of python 3.9.x. Using anaconda or [https://docs.conda.io/en/latest/miniconda.html](miniconda) for a python environment is highly recommended.
 
 ## Setup
 
@@ -38,14 +37,16 @@ conda activate human
 
 OR install from requirements.txt with pip or whatever you fancy.
 
+```sh
+pip install -r requirements.txt
+```
+
 ### Setup script
 
 Run `setup.sh` to finish the setup. This script will run the following tasks for you:
 
-1. Installing dependencies for javascript
-2. Sets up javascript code
-3. Ask you to set up an admin account (necessary for data upload).
-4. Set up the database for you
+1. Ask you to set up an admin account (necessary for data upload).
+2. Set up the database for you
 
 ### Annotation protocol
 
@@ -57,7 +58,7 @@ To run the server locally for testing purposes run
 flask start
 ```
 
-Whenever you changed any state names in protocol.yml be sure to run
+Whenever you change any state names in protocol.yml, afterwards be sure to run
 
 ```sh
 flask run reset-annotations
@@ -80,7 +81,9 @@ A Dockerfile to build an image and them run it in a container is also provided.
 
 # Try our Examples!
 
-Picture Annotation:
+WIP
+
+<!-- Picture Annotation:
 
 1. Copy and rename `/example/protocol_example_picture.json` to `/protocol.json`
 2. Run `setup.sh`
@@ -93,9 +96,11 @@ Text Annotation:
 1. Copy and rename `/example/protocol_example_text.json` to `/protocol.json`
 2. Run `setup.sh`
 3. Log in with your administrator account and upload the file `/example/data_example_text.csv`
-4. Go back to home and start annotating.
+4. Go back to home and start annotating. -->
 
 # Development
+
+To make it easier to install, update and remove node, especially if you plan to maybe use it in other projects we recommend using the node version manager https://github.com/nvm-sh/nvm.
 
 When debugging and working on client side code it is very convenient to let webpack watch file changes and transpile your code automatically: `npm run watch`
 
