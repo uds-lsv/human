@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.1 (tbd)
+
+### Added
+
+### Removed
+
+### Changed
+
+-   darkmode is now the default
+-   node is only required for development from now on
+    -   dist folder contains minified js and css
+    -   when developing client side node is still needed for webpack
+
 ## 2.0.0 (13-01-2022)
 
 ### Added
