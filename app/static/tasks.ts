@@ -188,8 +188,8 @@ export class CheckmarkTask implements Task {
                 }
             }
             nextState('NEXT', {
-                data: checkedVals, // TODO: see SelectTask, why is this here?
-                annotation: JSON.stringify(checkedVals),
+                annotation: checkedVals, // TODO: see SelectTask, why is this here?
+                // annotation: JSON.stringify(checkedVals),
             }) // for checkboxes
         })
     }
@@ -456,11 +456,15 @@ export class LabelBBoxesTask implements Task {
 export class MultilabelBBoxTask implements Task {
     constructor(state, data) {
         let bbox = []
+        let image
         if (data['bbox']) {
             bbox = data['bbox']
         } else if (data['annotation']) {
+            if (data['loop_index']) {
+                bbox = data['annotation'][data['loop_index']]
+            } else {
             bbox = data['annotation'][0]
-            // make sure this is length 1
+            }
         } else {
             alert(
                 'Bounding box prediction or annotation from previous state missing.'
@@ -477,7 +481,8 @@ export class MultilabelBBoxTask implements Task {
             state['question'],
             state['answer'],
             bbox,
-            labels
+            labels,
+            data['image']
             // data['bbox'],
             // data['predictions']
         )
@@ -487,18 +492,13 @@ export class MultilabelBBoxTask implements Task {
         question: string,
         answer: string = 'Continue',
         bbox,
-        predicted_labels
+        predicted_labels,
+        image = Data.picture
     ) {
         await loadPicture()
         await loadWords() // TODO order significant? YES!
 
-        showMultilabelBBox(
-            Data.picture,
-            bbox,
-            predicted_labels,
-            question,
-            answer
-        )
+        showMultilabelBBox(image, bbox, predicted_labels, question, answer)
     }
     async onExit() {
         $('#question').empty()
