@@ -15,7 +15,7 @@
   <!-- Bootstrap CSS -->
   <!-- <link id="theme" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
     crossorigin="anonymous"> -->
-  <link id="theme" rel="stylesheet" href="/static/css/darkly.css" crossorigin="anonymous">
+  <link id="theme" rel="stylesheet" href="/static/dist/darkly.css" crossorigin="anonymous">
 
   {% endblock %}
 
@@ -44,8 +44,13 @@
 
     if (!getCookie("theme")) {
       // setCookie("theme", "https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css", 365);
-      setCookie("theme", "/static/css/darkly.css", 365);
+      setCookie("theme", "/static/dist/darkly.css", 365);
+      $("#theme").attr("href", getCookie("theme"));
     } else {
+      // compatibility to older cookies
+      if (getCookie("theme").startsWith("/static/css/")) {
+        setCookie("theme", "/static/dist/darkly.css", 365);
+      }
       $("#theme").attr("href", getCookie("theme"));
     }
   </script>

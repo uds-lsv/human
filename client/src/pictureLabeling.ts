@@ -2,7 +2,7 @@ import Konva from 'konva'
 // import { automaton } from './start'
 import { Data } from './data'
 // import settings from './settings.json';
-import autocomplete_list from '../data/autocomplete.json'
+// import autocomplete_list from '../../data/autocomplete.json'
 import { FZF } from './fuzzy'
 import { nextState } from './services/automaton'
 import { paperMain, paperPreview } from './tasks'
@@ -162,6 +162,17 @@ export function showLabelBBoxes(
 }
 
 function setupAutocompleteList(prediction: string[], task: ITask) {
+    // TODO: make this an option to switch between autocomplete lists?
+    $.getJSON('/static/data/autocomplete.json', (autocomplete_list) => {
+        setupAutocompleteList_(prediction, task, autocomplete_list)
+    })
+}
+
+function setupAutocompleteList_(
+    prediction: string[],
+    task: ITask,
+    autocomplete_list
+) {
     // onclick to add active class to element when clicked
     var activeOnClick = function () {
         // console.log($(this));
