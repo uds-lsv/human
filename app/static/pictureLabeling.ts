@@ -5,12 +5,7 @@ import { Data } from './data'
 import autocomplete_list from '../data/autocomplete.json'
 import { FZF } from './fuzzy'
 import { nextState } from './services/automaton'
-import { default as paperGlobal } from 'paper'
-
-var paperMain = new paperGlobal.PaperScope()
-var paperPreview = new paperGlobal.PaperScope()
-
-window['paper'] = paperMain
+import { paperMain, paperPreview } from './tasks'
 
 declare var Split
 

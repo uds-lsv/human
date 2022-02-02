@@ -1,16 +1,26 @@
-import { automaton } from './start'
-import { loadFullSizePDF } from './services/pdf'
 import { Task, nextState } from './services/automaton'
 import { Data } from './data'
-import { add_spans, cleanPaperProjects } from './utils'
+import { add_spans } from './utils'
 import {
     loadPicture,
+    loadPDF,
     loadWords,
     showAnnotatePicture,
     showLabelBBoxes,
     showMultilabelBBox,
     showPictureBBox,
 } from './pictureLabeling'
+import { PDFService } from './services/pdf'
+
+import { default as paperGlobal } from 'paper/dist/paper-core'
+// import { default as paperGlobal } from 'paper' //paper-full
+
+export var paperMain = new paperGlobal.PaperScope()
+export var paperPreview = new paperGlobal.PaperScope()
+
+window['paper'] = paperMain
+window['paper2'] = paperPreview
+window['paperGlobal'] = paperGlobal
 
 // --------------------------------------------------------------
 // GUI
@@ -188,8 +198,8 @@ export class CheckmarkTask implements Task {
                 }
             }
             nextState('NEXT', {
-                data: checkedVals, // TODO: see SelectTask, why is this here?
-                annotation: JSON.stringify(checkedVals),
+                annotation: checkedVals, // TODO: see SelectTask, why is this here?
+                // annotation: JSON.stringify(checkedVals),
             }) // for checkboxes
         })
     }
@@ -205,7 +215,7 @@ export class CheckmarkTask implements Task {
  */
 export class ChoosePageTask implements Task {
     constructor(state, data) {
-        this.onEntry(state['question'], state['answer'])
+        loadPDF().then(() => this.onEntry(state['question'], state['answer']))
     }
 
     async onEntry(question: string, answer: string = 'Correct Page') {
@@ -214,11 +224,11 @@ export class ChoosePageTask implements Task {
         yes.append(answer)
         yes.on('click', async (e) => {
             yes.off('click')
-            automaton.next(
+            nextState(
                 'NEXT',
                 await new Promise((resolve, reject) => {
                     console.log('loadfullsize')
-                    loadFullSizePDF().then((canvas) => {
+                    PDFService.loadFullSizePDF().then((canvas) => {
                         canvas.toBlob(
                             (blob) => {
                                 resolve(blob)
@@ -238,6 +248,7 @@ export class ChoosePageTask implements Task {
             )
         })
         $('#answer').append(yes)
+        PDFService.showPDF(Data.pdf)
     }
     async onExit() {
         $('#question').empty()
@@ -260,7 +271,7 @@ export class ReadTask implements Task {
         )
         answer_button.on('click', (event) => {
             answer_button.off('click')
-            automaton.next('NEXT')
+            nextState('NEXT', {})
         })
         $('#answer').append(answer_button)
     }
@@ -456,11 +467,15 @@ export class LabelBBoxesTask implements Task {
 export class MultilabelBBoxTask implements Task {
     constructor(state, data) {
         let bbox = []
+        let image
         if (data['bbox']) {
             bbox = data['bbox']
         } else if (data['annotation']) {
-            bbox = data['annotation'][0]
-            // make sure this is length 1
+            if (data['loop_index']) {
+                bbox = data['annotation'][data['loop_index']]
+            } else {
+                bbox = data['annotation'][0]
+            }
         } else {
             alert(
                 'Bounding box prediction or annotation from previous state missing.'
@@ -477,7 +492,8 @@ export class MultilabelBBoxTask implements Task {
             state['question'],
             state['answer'],
             bbox,
-            labels
+            labels,
+            data['image']
             // data['bbox'],
             // data['predictions']
         )
@@ -487,18 +503,13 @@ export class MultilabelBBoxTask implements Task {
         question: string,
         answer: string = 'Continue',
         bbox,
-        predicted_labels
+        predicted_labels,
+        image = Data.picture
     ) {
         await loadPicture()
         await loadWords() // TODO order significant? YES!
 
-        showMultilabelBBox(
-            Data.picture,
-            bbox,
-            predicted_labels,
-            question,
-            answer
-        )
+        showMultilabelBBox(image, bbox, predicted_labels, question, answer)
     }
     async onExit() {
         $('#question').empty()
@@ -506,24 +517,24 @@ export class MultilabelBBoxTask implements Task {
     }
 }
 
-/**
- * what does this do again? only show picture for displaying other things?
- */
-export class PictureBBoxesTask implements Task {
-    constructor(state, data) {}
+// /**
+//  * what does this do again? only show picture for displaying other things?
+//  */
+// export class PictureBBoxesTask implements Task {
+//     constructor(state, data) {}
 
-    async onEntry(
-        question: string,
-        answer: string = 'Continue',
-        bboxes,
-        active
-    ) {
-        await loadPicture()
+//     async onEntry(
+//         question: string,
+//         answer: string = 'Continue',
+//         bboxes,
+//         active
+//     ) {
+//         await loadPicture()
 
-        showPictureBBox(Data.picture, bboxes, active)
-    }
-    async onExit() {
-        $('#question').empty()
-        $('#answer').empty()
-    }
-}
+//         showPictureBBox(Data.picture, bboxes, active)
+//     }
+//     async onExit() {
+//         $('#question').empty()
+//         $('#answer').empty()
+//     }
+// }

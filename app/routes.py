@@ -34,7 +34,7 @@ app = Blueprint("routes", __name__, url_prefix="/")
 @app.route('/dsm/transition', methods=["POST"])
 def trigger_transition():
     req = request.get_json()
-    print('request', req)
+    current_app.logger.debug(f'request: {req}')
     trigger = req['trigger']
     if  trigger == 'start':
         # automaton: AnnotationAutomaton = current_user.automaton
