@@ -1,6 +1,6 @@
 import { Task, nextState } from './services/automaton'
 import { Data } from './data'
-import { add_spans, cleanPaperProjects } from './utils'
+import { add_spans } from './utils'
 import {
     loadPicture,
     loadPDF,
@@ -10,6 +10,7 @@ import {
     showMultilabelBBox,
     showPictureBBox,
 } from './pictureLabeling'
+import { PDFService } from './services/pdf'
 
 import { default as paperGlobal } from 'paper/dist/paper-core'
 // import { default as paperGlobal } from 'paper' //paper-full
@@ -214,7 +215,7 @@ export class CheckmarkTask implements Task {
  */
 export class ChoosePageTask implements Task {
     constructor(state, data) {
-        this.onEntry(state['question'], state['answer'])
+        loadPDF().then(() => this.onEntry(state['question'], state['answer']))
     }
 
     async onEntry(question: string, answer: string = 'Correct Page') {
@@ -223,11 +224,11 @@ export class ChoosePageTask implements Task {
         yes.append(answer)
         yes.on('click', async (e) => {
             yes.off('click')
-            automaton.next(
+            nextState(
                 'NEXT',
                 await new Promise((resolve, reject) => {
                     console.log('loadfullsize')
-                    loadFullSizePDF().then((canvas) => {
+                    PDFService.loadFullSizePDF().then((canvas) => {
                         canvas.toBlob(
                             (blob) => {
                                 resolve(blob)
@@ -247,6 +248,7 @@ export class ChoosePageTask implements Task {
             )
         })
         $('#answer').append(yes)
+        PDFService.showPDF(Data.pdf)
     }
     async onExit() {
         $('#question').empty()
@@ -269,7 +271,7 @@ export class ReadTask implements Task {
         )
         answer_button.on('click', (event) => {
             answer_button.off('click')
-            automaton.next('NEXT')
+            nextState('NEXT', {})
         })
         $('#answer').append(answer_button)
     }
@@ -472,7 +474,7 @@ export class MultilabelBBoxTask implements Task {
             if (data['loop_index']) {
                 bbox = data['annotation'][data['loop_index']]
             } else {
-            bbox = data['annotation'][0]
+                bbox = data['annotation'][0]
             }
         } else {
             alert(
@@ -515,24 +517,24 @@ export class MultilabelBBoxTask implements Task {
     }
 }
 
-/**
- * what does this do again? only show picture for displaying other things?
- */
-export class PictureBBoxesTask implements Task {
-    constructor(state, data) {}
+// /**
+//  * what does this do again? only show picture for displaying other things?
+//  */
+// export class PictureBBoxesTask implements Task {
+//     constructor(state, data) {}
 
-    async onEntry(
-        question: string,
-        answer: string = 'Continue',
-        bboxes,
-        active
-    ) {
-        await loadPicture()
+//     async onEntry(
+//         question: string,
+//         answer: string = 'Continue',
+//         bboxes,
+//         active
+//     ) {
+//         await loadPicture()
 
-        showPictureBBox(Data.picture, bboxes, active)
-    }
-    async onExit() {
-        $('#question').empty()
-        $('#answer').empty()
-    }
-}
+//         showPictureBBox(Data.picture, bboxes, active)
+//     }
+//     async onExit() {
+//         $('#question').empty()
+//         $('#answer').empty()
+//     }
+// }
