@@ -13,6 +13,7 @@ import {
     showText,
     MultilabelBBoxTask,
 } from '../tasks'
+import { PictureBBoxesTask, PicturePolygonTask } from '../imageTasks'
 
 export async function nextState(trigger, data) {
     // wrap to catch all GUI errors in one place
@@ -33,7 +34,7 @@ export async function nextState(trigger, data) {
         const contentType = response.headers.get('content-type')
         if (contentType?.indexOf('text/html') !== -1) {
             const errorMsg = await response.text()
-            $('body').html(errorMsg)
+            $('#bodyContainer').html(errorMsg)
             // throw Error(errorMsg)
         } else if (contentType?.indexOf('multipart/form-data') !== -1) {
             const fd = await response.formData()
@@ -116,6 +117,12 @@ export async function nextState(trigger, data) {
                 case 'multilabelBBoxes':
                     // loadWords()
                     task = new MultilabelBBoxTask(state, data)
+                    break
+                case 'polygonPicture':
+                    task = new PicturePolygonTask(state, data)
+                    break
+                case 'boundingBoxPicture':
+                    task = new PictureBBoxesTask(state, data)
                     break
                 default:
                     throw Error('Unknown Annotation type: ' + type)

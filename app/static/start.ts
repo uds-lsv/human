@@ -48,6 +48,3 @@ export function setupPage() {
     $('.comment-content').empty()
     $('.context-content').empty()
 }
-
-// export var automaton;
-export var automaton

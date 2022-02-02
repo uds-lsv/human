@@ -12,6 +12,16 @@ import {
     showPictureBBox,
 } from './pictureLabeling'
 
+import { default as paperGlobal } from 'paper/dist/paper-core'
+// import { default as paperGlobal } from 'paper' //paper-full
+
+export var paperMain = new paperGlobal.PaperScope()
+export var paperPreview = new paperGlobal.PaperScope()
+
+window['paper'] = paperMain
+window['paper2'] = paperPreview
+window['paperGlobal'] = paperGlobal
+
 // --------------------------------------------------------------
 // GUI
 // --------------------------------------------------------------
