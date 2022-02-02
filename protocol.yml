@@ -1,42 +1,76 @@
 %YAML 1.2
 ---
 start:
-    type: loadText
+    type: loadImage
     transitions:
         - next:
-              target: 'hateful'
+              target: 'boundingbox'
 
-'hateful':
-    type: boolean
-    question: Is this a hateful comment?
-    column: test
+# 'paragraph_bb':
+#     type: labelPicture
+#     question: Draw a bounding box around the paragraph with english text.
+#     maxbboxes: 1
+#     transitions:
+#         - '*':
+#               target: 'topic'
+
+# 'topic':
+#     type: labelBBoxes
+#     question: What is the topic of this paragraph.
+#     api_call: api_singlelabel
+#     # from: 'paragraph_bb'
+#     transitions:
+#         - '*':
+#               target: 'first_line'
+
+'boundingbox':
+    type: boundingBoxPicture
+    question: Draw bounding boxes in the image
     transitions:
-        - 'YES':
-              target: 'primary_target'
-        - 'NO':
+        - '*':
+              target: 'polygons'
+
+'polygons':
+    type: polygonPicture
+    question: Draw polygons in the image.
+    transitions:
+        - '*':
               target: 'end'
+# 'polygons':
+#     type: polygonPicture
+#     question: Bla
+#     transitions:
+#         - '*':
+#               target: 'lines_bb'
 
-'primary_target':
-    type: select
-    question: Who is the primary target?
-    options: ['refugee', 'politician', 'other']
-    transitions:
-        - '*':
-              target: 'targets'
-
-'targets':
-    type: checkmark
-    question: Check all targets.
-    options: ['refugee', 'politician', 'other']
-    transitions:
-        - '*':
-              target: 'labels'
-
-'labels':
-    type: labelText
-    question: Label all targets in the text.
-    from: 'targets'
-    # options: ['refugee', 'politician']
-    transitions:
-        - '*':
-              target: end
+# 'lines_bb':
+#     type: labelPicture
+#     question: Draw a bounding box around each line in the second paragraph.
+#     transitions:
+#         - '*':
+#               target: 'for_loop'
+# 'for_loop':
+#     type: loop
+#     for: lines_bb
+#     transitions:
+#         - 'continue':
+#               target: 'line_trans'
+#         - 'finally':
+#               target: 'end'
+# 'line_trans':
+#     type: multilabelBBoxes
+#     question: Transcribe the first line of the paragraph.
+#     api_call: api_multilabel
+#     # api_call: transform_image
+#     from: 'for_loop'
+#     transitions:
+#         - '*':
+#               target: 'for_loop'
+# # '1':
+# #     type: labelBBoxes
+# #     question: Draw a bounding box around a line with english animal names.
+# #     saveAll: true
+# #     column: test1
+# #     transitions:
+# #         - '*':
+# #               target: 'end'

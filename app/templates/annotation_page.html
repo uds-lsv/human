@@ -33,14 +33,74 @@
 </style>
 
 {% endblock %} {% block content %}
-<div id="bodyContainer" style="display: flex; height: 100%" class="container-fluid">
+<div id="bodyContainer" class="container-fluid">
+    <div id="sidebarContainer" class="sidebarContainer">
+        <div style="display: flex; justify-content: space-between;flex-direction: column;">
+            <div id="question" class="question"></div>
+            <!-- <div class="progress progress-bar-vertical">
+                <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"
+                    style="height: 60%;">
+                    <span class="sr-only">60% Complete</span>
+                </div>
+            </div>
+            <ul class="carousel-list">
+                <li class="">Vorherige Aufgabe</li>
+                <li id="question" class="question"></li>
+                <li class="">Nächste Aufgabe</li>
+            </ul> -->
+            <div id="answer" class="answer" style="margin-left: 10px;"></div>
+        </div>
+        <div id="controls" class="controls" style="flex: 0 0 auto; border: 1px solid; margin: 20px 0"></div>
+
+        <div style=" width: 100%; display: flex; flex-direction: column; flex: 1 1 auto; justify-content: center; margin-bottom: 10px; align-items: center;"
+            id="picture-preview">
+            <canvas id="picture-preview-canvas" style="max-width: 100%"></canvas>
+        </div>
+
+        <div
+            style="width: 100%; display: flex; justify-content: space-evenly; flex: 0 0 auto; padding: 5px 0; border: 1px solid;">
+            <button id="instruction-b" class="btn btn-primary"><svg xmlns="http://www.w3.org/2000/svg" width="16"
+                    height="16" fill="currentColor" class="bi bi-question-circle" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                    <path
+                        d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z" />
+                </svg></button>
+            <button id="patientrecord-b" class="btn btn-primary"><svg xmlns="http://www.w3.org/2000/svg" width="16"
+                    height="16" fill="currentColor" class="bi bi-file-earmark-medical" viewBox="0 0 16 16">
+                    <path
+                        d="M7.5 5.5a.5.5 0 0 0-1 0v.634l-.549-.317a.5.5 0 1 0-.5.866L6 7l-.549.317a.5.5 0 1 0 .5.866l.549-.317V8.5a.5.5 0 1 0 1 0v-.634l.549.317a.5.5 0 1 0 .5-.866L8 7l.549-.317a.5.5 0 1 0-.5-.866l-.549.317V5.5zm-2 4.5a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 2a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5z" />
+                    <path
+                        d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z" />
+                </svg></button>
+        </div>
+
+        <!-- <div class="display: none">
+            <div id="question" class="question"></div>
+            <div class="input-group pictureTask hidden" id="text-input-group">
+                <input id="text-input" class="form-control" type="text" />
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary active" data-toggle="button" type="button" id="fzf-toggle">
+                        fzf
+                    </button>
+                </div>
+            </div>
+            <ul style="overflow: scroll; margin-top: 10px; -webkit-overflow-scrolling: touch; " id="word-list"
+                class="list-group pictureTask hidden">
+                <button id="input-item" class="list-group-item" style="text-align: left"></button>
+            </ul>
+            <div id="answer" class="answer"></div>
+        </div> -->
+        <!-- <div id="sidebarBottom">
+            <div id="controls" class="controls"></div>
+        </div> -->
+    </div>
     <div id="mainContainer" class="mainContainer">
         <div id="contentContainer" class="contentContainer">
             <div id="pictureContainer" class="pictureContainer pictureTask hidden">
                 <div id="picture_content" style="height: 100%;justify-content: space-evenly;display: flex;">
-                    <div style=" width: 30%; display: flex; flex-direction: column;" id="picture-preview">
+                    <!-- <div style=" width: 30%; display: flex; flex-direction: column;" id="picture-preview">
                         <canvas id="picture-preview-canvas" style="max-width: 100%"></canvas>
-                    </div>
+                    </div> -->
                     <canvas id="picture-canvas" style="width: 75%"></canvas>
                 </div>
             </div>
@@ -80,27 +140,7 @@
             </div>
         </div>
     </div>
-    <div id="sidebarContainer" class="sidebarContainer">
-        <div class="">
-            <div id="question" class="question"></div>
-            <div class="input-group pictureTask hidden" id="text-input-group">
-                <input id="text-input" class="form-control" type="text" />
-                <div class="input-group-append">
-                    <button class="btn btn-outline-secondary active" data-toggle="button" type="button" id="fzf-toggle">
-                        fzf
-                    </button>
-                </div>
-            </div>
-            <ul style="overflow: scroll; margin-top: 10px; -webkit-overflow-scrolling: touch; " id="word-list"
-                class="list-group pictureTask hidden">
-                <button id="input-item" class="list-group-item" style="text-align: left"></button>
-            </ul>
-            <div id="answer" class="answer"></div>
-        </div>
-        <div id="sidebarBottom">
-            <div id="controls" class="controls"></div>
-        </div>
-    </div>
+
     <div id="endToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true"
         style="display: none; position: absolute; top: 0; right: 0">
         <div class="toast-header">
@@ -111,7 +151,7 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-        <div class="toast-body" style="color: green">
+        <div class="toast-body" style="color: green;">
             Annotation successfully saved.
         </div>
     </div>
@@ -121,6 +161,9 @@
         $(this).hide()
     })
 </script>
+<!-- DEPENDENCIES -->
+<!-- <script src="https://unpkg.com/split.js/dist/split.min.js"></script> -->
+<!-- <script src="split"></script> -->
 <!-- <script src="https://unpkg.com/split.js/dist/split.min.js"></script> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.2/split.min.js"
     integrity="sha512-to2k78YjoNUq8+hnJS8AwFg/nrLRFLdYYalb18SlcsFRXavCOTfBF3lNyplKkLJeB8YjKVTb1FPHGSy9sXfSdg=="
@@ -132,7 +175,7 @@
     } else {
         sizes = [50, 50] // default sizes
     }
-    Split(['#mainContainer', '#sidebarContainer'], {
+    var sidebarSplit = Split(['#sidebarContainer', '#mainContainer'], {
         gutterSize: 8,
         sizes,
         cursor: 'col-resize',
