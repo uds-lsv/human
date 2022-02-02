@@ -5,6 +5,47 @@ body {
     height: 100%;
 }
 
+.point-top {
+    /* optional for progressbar */
+    border-bottom: 10px solid #375a7f;
+    border-right: 11px solid transparent;
+    border-left: 11px solid transparent;
+    border-top: none;
+}
+
+.point-bottom {
+    /* optional for progressbar */
+    border-top: 10px solid #375a7f;
+    border-right: 11px solid transparent;
+    border-left: 11px solid transparent;
+    border-bottom: none;
+}
+
+.progress-bar-vertical {
+    height: 100%;
+    flex: 0 0 15px;
+    flex-direction: column;
+    min-width: 15px;
+    width: 20px;
+    min-height: 100px;
+    margin-right: 10px;
+    float: left;
+    display: -webkit-box; /* OLD - iOS 6-, Safari 3.1-6, BB7 */
+    display: -ms-flexbox; /* TWEENER - IE 10 */
+    display: -webkit-flex; /* NEW - Safari 6.1+. iOS 7.1+, BB10 */
+    display: flex; /* NEW, Spec - Firefox, Chrome, Opera */
+    align-items: flex-end;
+    -webkit-align-items: flex-end; /* Safari 7.0+ */
+}
+
+.progress-bar-vertical .progress-bar {
+    width: 100%;
+    height: 0;
+    -webkit-transition: height 0.6s ease;
+    -o-transition: height 0.6s ease;
+    transition: height 0.6s ease;
+}
+
 .contentContainer {
     display: flex;
     flex-direction: column;
@@ -12,6 +53,12 @@ body {
     width: 100%;
     /* height: 80%; */
     height: calc(100% - 70px);
+}
+
+#bodyContainer {
+    padding: 2px;
+    display: flex;
+    /* // height: 100%; */
 }
 
 .mainContainer {
@@ -32,6 +79,7 @@ body {
 .sidebarContainer {
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     padding: 10px;
     width: 30%;
     height: 100%;
@@ -67,10 +115,12 @@ body {
     padding: 0 3px;
 }
 
-::-webkit-scrollbar {
+/* TODO: test in firefox */
+/* ::-webkit-scrollbar {
     -webkit-appearance: none;
     width: 7px;
-}
+} */
+
 ::-webkit-scrollbar-thumb {
     border-radius: 4px;
     background-color: rgba(0, 0, 0, 0.5);
@@ -82,11 +132,21 @@ body {
 }
 
 .question {
-    font-weight: bolder;
+    /* font-weight: bolder;
+    font-size: larger; */
+    /* // height: 1.6em; */
+    width: 100%;
+}
+
+.hide-overflow {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .answer {
     display: flex;
+    flex: 0 0 30px;
     align-items: center;
     justify-content: space-evenly;
 }

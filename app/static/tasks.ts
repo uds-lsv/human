@@ -1,10 +1,9 @@
-import { automaton } from './start'
-import { loadFullSizePDF } from './services/pdf'
 import { Task, nextState } from './services/automaton'
 import { Data } from './data'
 import { add_spans, cleanPaperProjects } from './utils'
 import {
     loadPicture,
+    loadPDF,
     loadWords,
     showAnnotatePicture,
     showLabelBBoxes,
