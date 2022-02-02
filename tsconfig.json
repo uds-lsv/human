@@ -8,6 +8,6 @@
         "esModuleInterop": true,
         "resolveJsonModule": true
     },
-    "include": ["./app/**/*.ts"],
+    "include": ["./client/**/*.ts"],
     "exclude": ["node_modules", "output"]
 }

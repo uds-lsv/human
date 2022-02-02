@@ -4,12 +4,19 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 
 module.exports = {
-    entry: './app/static/start.ts',
+    entry: './client/src/start.ts',
     optimization: {
         splitChunks: {
             cacheGroups: {
                 styles: {
-                    name: 'styles',
+                    name(module, chunks, cacheGroupKey) {
+                        const moduleFileName = module
+                            .identifier()
+                            .split('/')
+                            .reduceRight((item) => item)
+                            .split('|')[0]
+                        return `${moduleFileName}`
+                    },
                     type: 'css/mini-extract',
                     chunks: 'all',
                     enforce: true,
@@ -19,10 +26,19 @@ module.exports = {
         minimizer: [
             // For webpack@5 you can use the `...` syntax to extend existing minimizers (i.e. `terser-webpack-plugin`), uncomment the next line
             // `...`,
-            new CssMinimizerPlugin(),
+            new CssMinimizerPlugin({
+                minimizerOptions: {
+                    preset: [
+                        'default',
+                        {
+                            discardComments: { removeAll: true },
+                        },
+                    ],
+                },
+            }),
         ],
     },
-    plugins: [new MiniCssExtractPlugin({ filename: 'app.css' })],
+    plugins: [new MiniCssExtractPlugin({ filename: '[name]' })],
     module: {
         rules: [
             {
@@ -41,7 +57,12 @@ module.exports = {
                     {
                         loader: MiniCssExtractPlugin.loader,
                     },
-                    'css-loader',
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            import: false, //prevents @import to go into a separate file
+                        },
+                    },
                 ],
             },
         ],
