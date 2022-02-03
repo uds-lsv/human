@@ -1,12 +1,8 @@
-screen -d -m bash -c 'pip install -e ./app/ ;
+screen -dL -m bash -c '
 wait && pkill gunicorn ;
 
-if [ -f "~/miniconda3/etc/profile.d/conda.sh" ]; then
-                        . "~/miniconda3/etc/profile.d/conda.sh"
-                                                    CONDA_CHANGEPS1=false conda activate human
-fi
 
-gunicorn -b <YOUR-IP-ADDRESS> -w 3 --log-level=debug start >> server.log'
-
+gunicorn -b 0.0.0.0:3002 -w 3 --log-level=debug --log-file server.log --capture-output start
+'
 
 echo "Started the server"

@@ -40,12 +40,14 @@ class PaperTools {
     /**
      * Provides move tools for Polygons, Bounding Boxes (rectangles) and their corner points
      * @param rectangle :boolean
-     *  Polygons:
+     *
+     * Polygons:
      *  - move
      *  - delete
      *  - add points
      *  - move points
      *  - delete points
+     *
      *  Bounding Box:
      *  - move
      *  - delete
@@ -72,14 +74,14 @@ class PaperTools {
                     event.point,
                     hitOptions
                 )
-                console.log(hitResult)
+                // console.log(hitResult)
 
                 if (hitResult) {
                     if (hitResult.type == 'stroke') {
                         // clicked on line segment between 2 points
                         if (this.selectedPath == hitResult.item) {
-                            // add new segment on shift click
-                            if (event.modifiers.shift) {
+                            // add new segment on shift click for polygons
+                            if (event.modifiers.shift && rectangle) {
                                 if (selectedSegment) {
                                     selectedSegment.selected = false
                                 }
@@ -264,6 +266,9 @@ class PaperTools {
 
 /**
  * Wrapper to register tools to create and modify polygons
+ * and display in controls
+ *
+ * Pen, Path, Move, Zoom
  */
 class PaperPolygonTools extends PaperTools {
     constructor(state, data) {
@@ -453,6 +458,12 @@ class PaperPolygonTools extends PaperTools {
     }
 }
 
+/**
+ * Wrapper to register tools to create and modify bounding boxes
+ * and display in controls
+ *
+ * Add rectangle, Move, Zoom
+ */
 class PaperBoundingBoxTools extends PaperTools {
     constructor(state, data) {
         super()
@@ -469,6 +480,9 @@ class PaperBoundingBoxTools extends PaperTools {
         this.setupToolButtons()
     }
 
+    /**
+     * Add Paper tool with which a user can add rectangles via drag and drop.
+     */
     setupBoundingBoxTool() {
         const tool = new paperMain.Tool()
 
@@ -508,8 +522,13 @@ class PaperBoundingBoxTools extends PaperTools {
             this.selectedPath = null
         }
     }
+
+    /**
+     * Add buttons for tools and put them in #controls container
+     *
+     * Bounding box has two tools - adding and editing rectangles
+     */
     setupToolButtons() {
-        // controls in bottom container
         const buttonContainer = $(
             '<div style="display: flex; justify-content: space-evenly"></div>'
         )
@@ -551,11 +570,15 @@ class PaperBoundingBoxTools extends PaperTools {
             buttonContainer.append(button)
         })
         this.toolButtons[0].addClass('active')
-        // this.buttonContainer = buttonContainer
     }
 }
 
-function setupMain(src): Promise<void> {
+/**
+ * Draws and scales image and sets up paper project
+ * @param src image source string
+ * @returns Promise<void> when image is setup with paper
+ */
+function setupMain(src: string): Promise<void> {
     return new Promise((resolve, reject) => {
         let image = new Image()
 
@@ -602,12 +625,15 @@ function setupMain(src): Promise<void> {
             }
             resolve()
         }
-        // image.src = URL + '/api/getpicture';
         // load image
         image.src = src
     })
 }
-
+/**
+ * Picture Polygon Task
+ * Add polygon with paper
+ * Tools: pen, path, move, zoom
+ */
 export class PicturePolygonTask implements Task {
     tools
     constructor(state, data) {
@@ -663,11 +689,6 @@ export class PicturePolygonTask implements Task {
                     case '3':
                         this.tools.activatetool(2)
                         break
-                    // case '4':
-                    //     this.tools.activatetool(3)
-                    //     break
-                    // case '5':
-                    //     this.tools.activatetool(4)
                     case 'Enter':
                         console.log('enter pressed')
                         if (event.shiftKey) {
@@ -688,6 +709,13 @@ export class PicturePolygonTask implements Task {
         $('#answer').empty()
     }
 }
+
+/**
+ * Picture Bounding Box Task
+ * Add Rectangles with paper
+ *
+ * Tools: Add Rectangle, move, zoom
+ */
 
 export class PictureBBoxesTask implements Task {
     tools
@@ -745,11 +773,6 @@ export class PictureBBoxesTask implements Task {
                     case '3':
                         this.tools.activatetool(2)
                         break
-                    // case '4':
-                    //     this.tools.activatetool(3)
-                    //     break
-                    // case '5':
-                    //     this.tools.activatetool(4)
                     case 'Enter':
                         console.log('enter pressed')
                         if (event.shiftKey) {
