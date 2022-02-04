@@ -113,12 +113,12 @@ export class SelectTask implements Task {
             form.append(formgroup)
 
             // label element
-            const label = $('<label for="{0}"></label>'.format(['form' + i]))
+            const label = $(`<label for="${'form' + i}"></label>`)
             // radio input element with running id so it can be accessed later in onClick event handler
             const option = $(
-                '<input type="radio" name="radios" value="{0}" id="{1}" >'.format(
-                    [options[i], 'form' + i]
-                )
+                `<input type="radio" name="radios" value="${options[i]}" id="${
+                    'form' + i
+                }" >`
             )
 
             // append option first and label text second to the label tag
@@ -169,12 +169,12 @@ export class CheckmarkTask implements Task {
             let formgroup = $('<div class="radio"></div>')
             form.append(formgroup)
             // label element
-            let label = $('<label for="{0}"></label>'.format(['form' + i]))
+            let label = $(`<label for="${'form' + i}"></label>`)
             // checkbox input element
             let option = $(
-                '<input type="checkbox" name="radios" value="{0}" id="{1}">'.format(
-                    [options[i], 'form' + i]
-                )
+                `<input type="checkbox" name="radios" value="${
+                    options[i]
+                }" id="${'form' + i}">`
             )
             // append option first and label text second to the label tag
             $(label).append(option)
@@ -340,9 +340,7 @@ export class LabelTextTask implements Task {
         for (let i = 0; i < options.length; i++) {
             $('#color-bar').append(
                 $(
-                    "<button style='background-color: {0}; width: {1}%'>{2}</button>".format(
-                        [colors[i], width.toString(), options[i]]
-                    )
+                    `<button style='background-color: ${colors[i]}; width: ${width}%'>${options[i]}</button>`
                 ).on('click', (ev) => {
                     this.activateOnClick(options[i], colors[i])
                 })
