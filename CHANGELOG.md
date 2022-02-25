@@ -1,12 +1,13 @@
 # Changelog
 
-## 2.0.1 (tbd)
+## 2.0.1 (25-02-2022)
 
 ### Added
 
 -   `flask create-upload-file` automatically create a upload file containing filepaths from a directory
 -   Polygon Task: Draw and modify polygons on an image.
--   new examples for annotation protocols
+-   New examples for annotation protocols
+-   Freetext task allowing input of an arbitrary string
 
 ### Removed
 
