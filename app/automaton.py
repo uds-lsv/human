@@ -60,11 +60,11 @@ class AnnotationAutomaton(Machine):
         
 
     def write_to_db(self, **kwargs):
-        print('write to db', self.annotations)
-        self.to_start()
-        return
+        # print('write to db', self.annotations)
+        # self.to_start()
+        # return
         data = self.annotations
-        # copy of write to db
+        # copy of write to db in routes.py
         if not data:
                 return "No Annotations"
         else:
@@ -94,7 +94,7 @@ class AnnotationAutomaton(Machine):
             # Unconditionally set. If the user completed an annotation, it was current_annotation.
             db.execute("UPDATE user SET current_annotation = 0 WHERE id = ?", (current_user.get_id(),))
 
-            # db.commit() # TODO comment in again
+            db.commit() # TODO comment in again
             # transition to start
             self.to_start()
 
