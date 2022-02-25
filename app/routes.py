@@ -766,7 +766,7 @@ def home():
     Route for home page
     """
     current_app.logger.debug("from / (home_page)")
-    return render_template('annotation_page.html', user=current_user.username, admin=current_user.admin)
+    return render_template('annotation_page.html', user=current_user.username, admin=current_user.admin, reverse=current_app.config['SIDEBAR'])
 
 
 ########## MISC Functions

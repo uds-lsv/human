@@ -9,19 +9,17 @@ HUMAN is an annotation server that stands for...
 
 # Try our [DEMO](http://human.lsv.uni-saarland.de)!
 
-
-
 ## Installation and Setup
 
 The only requirement is a working version of python 3.9.x. Using anaconda or [https://docs.conda.io/en/latest/miniconda.html](miniconda) for a python environment is highly recommended.
 
 The setup consists of 5 parts:
+
 1. [Python environment](#python-environment)
 2. [Database setup](#database-setup)
 3. [Annotation protocol](#annotation-protocol)
 4. [Deploy server](#deploy-server)
 5. [Add data](#add-data)
-
 
 ### Python environment
 
@@ -71,20 +69,23 @@ flask run reset-annotations
 
 This will reset the annotations table in the database and is necessary to properly save annotations after a change in the protocol.
 
-
 ### Deploy server
 
 To run a server you have 2 possibilities:
 
 #### 1. Run locally on your machine
-Locally you can start a server  with
+
+Locally you can start a server with
+
 ```sh
-flask start
+flask run
 ```
+
 and visit http://127.0.0.1:5000 in your favorite browser and login with your admin account.
 However it is very ill advised to use this with an open port in a production environment.
 
 #### 2. Deploy in a production environment
+
 When running HUMAN in a production environment on a server we recommend using gunicorn (included in the environment). First, you should set a secure SECRET_KEY in config.py. The script `start_server.sh` should take care of starting the server.
 
 For docker refer to the [https://github.com/uds-lsv/human/wiki/Docker/](wiki).

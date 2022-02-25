@@ -1,36 +1,31 @@
-DROP TABLE IF EXISTS user;
-DROP TABLE IF EXISTS data;
-DROP TABLE IF EXISTS annotations;
-DROP TABLE IF EXISTS options;
-
 CREATE TABLE IF NOT EXISTS user
 (
-id integer primary key autoincrement not null,
-username text not null,
-email text not null,
-given_name text not null,
-surname text not null,
-password text not null,
-user_type text not null,
-is_approved text not null,
-annotated text not null,
-current_annotation integer not null default 0,
+id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+username TEXT NOT NULL,
+email TEXT NOT NULL,
+given_name TEXT NOT NULL,
+surname TEXT NOT NULL,
+password TEXT NOT NULL,
+user_type TEXT NOT NULL,
+is_approved TEXT NOT NULL,
+annotated TEXT NOT NULL,
+current_annotation INTEGER NOT NULL DEFAULT 0,
 automaton blob);
 
 CREATE TABLE IF NOT EXISTS data
 (
-id integer primary key autoincrement not null,
-content text not null,
-context text,
-meta text,
-annotation_count integer not null default 0);
+id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+content TEXT NOT NULL,
+context TEXT,
+meta TEXT,
+annotation_count INTEGER NOT NULL DEFAULT 0);
 
 CREATE TABLE IF NOT EXISTS annotations
 (
-id integer primary key autoincrement not null,
-data_id integer not null,
-user_id integer not null,
-timestamp timestamp default (strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime')) not null,
+id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+data_id INTEGER NOT NULL REFERENCES data,
+user_id INTEGER NOT NULL REFERENCES user,
+timestamp timestamp DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime')) NOT NULL,
 timings
 );
 

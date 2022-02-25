@@ -12,6 +12,7 @@ import {
     LabelBBoxesTask,
     showText,
     MultilabelBBoxTask,
+    FreetextTask,
 } from '../tasks'
 import { PictureBBoxesTask, PicturePolygonTask } from '../imageTasks'
 
@@ -105,6 +106,9 @@ export async function nextState(trigger, data) {
                     break
                 case 'choosePage':
                     task = new ChoosePageTask(state, data)
+                    break
+                case 'freeText':
+                    task = new FreetextTask(state, data)
                     break
                 case 'labelPicture':
                     // loadPicture()

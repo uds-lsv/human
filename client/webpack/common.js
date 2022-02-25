@@ -4,7 +4,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 
 module.exports = {
-    entry: './client/src/start.ts',
+    entry: './src/start.ts',
     optimization: {
         splitChunks: {
             cacheGroups: {
@@ -72,7 +72,7 @@ module.exports = {
     },
     output: {
         filename: 'bundle.js',
-        path: path.resolve(__dirname, '../app/static/dist'),
+        path: path.resolve(__dirname, '../../app/static/dist'),
         clean: true,
     },
     stats: {

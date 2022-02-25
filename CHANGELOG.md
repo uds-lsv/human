@@ -1,8 +1,13 @@
 # Changelog
 
-## 2.0.1 (tbd)
+## 2.0.1 (25-02-2022)
 
 ### Added
+
+-   `flask create-upload-file` automatically create a upload file containing filepaths from a directory
+-   Polygon Task: Draw and modify polygons on an image.
+-   New examples for annotation protocols
+-   Freetext task allowing input of an arbitrary string
 
 ### Removed
 
@@ -12,6 +17,11 @@
 -   node is only required for development from now on
     -   dist folder contains minified js and css
     -   when developing client side node is still needed for webpack
+-   transfer source code out of static folder
+    -   client source code is now in separate /client folder
+    -   moved package.json and webpack scripts to /client
+    -   npm scripts have to be started from /client
+    -   transpiled, minified js and css files and assets remain in /app/static/dist
 
 ## 2.0.0 (13-01-2022)
 

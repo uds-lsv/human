@@ -47,15 +47,22 @@ export async function showText() {
     $('.comment-content').empty()
     $('.context-content').empty()
     $('.gutter-vertical').remove()
-    Split(['#contentContainer', '#bottomContainer'], {
-        sizes: [50, 50],
-        direction: 'vertical',
-        gutterSize: 8,
-        cursor: 'row-resize',
-    })
+
     let text = add_spans(Data.data['content'])
     $('.comment-content').append(text)
-    $('.context-content').append(Data.data['context'])
+    if (Data.data['context'] == ' ') {
+        console.log('aaaaa')
+        $('#contentContainer').css('height', '100%')
+        $('#bottomContainer').hide()
+    } else {
+        Split(['#contentContainer', '#bottomContainer'], {
+            sizes: [50, 50],
+            direction: 'vertical',
+            gutterSize: 8,
+            cursor: 'row-resize',
+        })
+        $('.context-content').append(Data.data['context'])
+    }
 }
 
 /**
@@ -68,7 +75,7 @@ export class BooleanTask implements Task {
 
     async onEntry(question) {
         // await loadWords()
-        console.log('enter boolean task')
+        // $('#controls').hide()
         $('#question').append(question)
         let yes = $('<button class="btn btn-primary">Yes</button>')
         yes.on('click', (event) => {
@@ -89,6 +96,7 @@ export class BooleanTask implements Task {
     }
     async onExit() {
         $('#question').empty()
+        $('#controls').show()
         $('#answer').empty()
     }
 }
@@ -104,34 +112,42 @@ export class SelectTask implements Task {
     async onEntry(question: string, answer: string = 'Continue', options) {
         $('#question').append(question) // append question text
 
-        var form = $('<div class="radio"></div>')
-        $('#answer').append(form) // append form to answer
+        const form = $('<div style="padding:5px"></div>')
+        $('#controls').append(form)
 
         // build radio buttons from options list
         for (let i = 0; i < options.length; i++) {
-            const formgroup = $('<div class="radio"></div>')
+            const formgroup = $('<div class="form-check"></div>')
             form.append(formgroup)
 
-            // label element
-            const label = $('<label for="{0}"></label>'.format(['form' + i]))
             // radio input element with running id so it can be accessed later in onClick event handler
             const option = $(
-                '<input type="radio" name="radios" value="{0}" id="{1}" >'.format(
-                    [options[i], 'form' + i]
-                )
+                `<input class="form-check-input" type="radio" name="radios" value="${
+                    options[i]
+                }" id="${'form' + i}">`
+            )
+
+            // label element
+            const label = $(
+                `<label class="form-check-label" for="${'form' + i}" >${
+                    options[i]
+                }</label>`
             )
 
             // append option first and label text second to the label tag
-            $(label).append(option)
-            $(label).append(options[i])
+            // $(label).append(option)
+            // $(label).append(options[i])
+            $(formgroup).append(option)
             $(formgroup).append(label) // append everything to group
         }
-        let button = $('<button type="button" class="btn btn-primary"></button') // next button
-        button.append(answer) // append text
-        form.append(button)
+        const answer_b = $(
+            `<button type="button" class="btn btn-primary">${answer}</button>`
+        ) // next button
+        $('#answer').append(answer_b)
+
         // on click for button
-        button.on('click', (event) => {
-            button.off('click')
+        answer_b.on('click', (event) => {
+            answer_b.off('click')
             // get checked radio button and run statemachine NEXT with its value
             for (let i = 0; i < options.length; i++) {
                 // console.log($('#form' + i))
@@ -146,6 +162,7 @@ export class SelectTask implements Task {
     }
     async onExit() {
         $('#question').empty()
+        $('#controls').empty()
         $('#answer').empty()
     }
 }
@@ -161,50 +178,86 @@ export class CheckmarkTask implements Task {
     async onEntry(question: string, answer: string = 'Continue', options) {
         $('#question').append(question) // append question text
 
-        var form = $('<div class="radio"></div>')
-        $('#answer').append(form) // append form to answer
-
+        // add checkboxes to controls
+        const form = $('<div style="padding:5px"></div>')
+        $('#controls').append(form)
         // build radio buttons from options list
         for (let i = 0; i < options.length; i++) {
-            let formgroup = $('<div class="radio"></div>')
+            const formgroup = $('<div class="form-check"></div>')
             form.append(formgroup)
+
             // label element
-            let label = $('<label for="{0}"></label>'.format(['form' + i]))
-            // checkbox input element
-            let option = $(
-                '<input type="checkbox" name="radios" value="{0}" id="{1}">'.format(
-                    [options[i], 'form' + i]
-                )
+            const option = $(
+                `<input class="form-check-input" type="checkbox" name="radios" value="${
+                    options[i]
+                }" id="${'form' + i}">`
+            )
+            // label element
+            const label = $(
+                `<label class="form-check-label" for="${'form' + i}" >${
+                    options[i]
+                }</label>`
             )
             // append option first and label text second to the label tag
-            $(label).append(option)
-            $(label).append(options[i])
+            $(formgroup).append(option)
             $(formgroup).append(label) // append everything to group
         }
-        let button = $('<button type="button" class="btn btn-primary"></button') // next button
-        button.append(answer) // append text
-        form.append(button)
+
+        // add next button
+        const answer_b = $(
+            `<button type="button" class="btn btn-primary">${answer}</button>`
+        )
+        $('#answer').append(answer_b)
         // on click for button
-        button.on('click', (event) => {
-            button.off('click')
+        answer_b.on('click', (event) => {
+            answer_b.off('click')
             let checkedVals = [] // for checkboxes
 
-            // get checked radio button and run statemachine next with its value
+            // get checked checkboxes and run statemachine next with its value
             for (let i = 0; i < options.length; i++) {
                 if ((<HTMLInputElement>$('#form' + i)[0]).checked) {
-                    // next($('#form' + i).val());
-                    // break;
-                    checkedVals.push($('#form' + i).val()) // for checkboxes
+                    checkedVals.push($('#form' + i).val())
                 }
             }
             nextState('NEXT', {
-                annotation: checkedVals, // TODO: see SelectTask, why is this here?
-                // annotation: JSON.stringify(checkedVals),
-            }) // for checkboxes
+                annotation: checkedVals,
+            })
         })
     }
     async onExit() {
         $('#question').empty()
+        $('#controls').empty()
+        $('#answer').empty()
+    }
+}
+
+export class FreetextTask implements Task {
+    constructor(state, data) {
+        this.onEntry(state['question'], state['answer'])
+    }
+    async onEntry(question: string, answer: string = 'Continue') {
+        $('#question').append(question)
+        const textarea = $(
+            '<textarea id="textarea" rows="10" cols="50" style="width:100%;"></textarea>'
+        )
+        $('#controls').append(textarea)
+
+        const button = $(
+            '<button type="button" class="btn btn-primary"></button'
+        ) // next button
+        button.append(answer) // append text
+        button.on('click', (event) => {
+            button.off('click')
+            nextState('NEXT', {
+                annotation: textarea.val(),
+            })
+        })
+        $('#answer').append(button)
+    }
+
+    async onExit() {
+        $('#question').empty()
+        $('#controls').empty()
         $('#answer').empty()
     }
 }
@@ -288,7 +341,7 @@ export class LabelTextTask implements Task {
             options = state['options']
         } else {
             console.log(data)
-            options = JSON.parse(data['annotation'])
+            options = data['annotation']
         }
         this.onEntry(state['question'], state['answer'], options)
     }
@@ -340,9 +393,7 @@ export class LabelTextTask implements Task {
         for (let i = 0; i < options.length; i++) {
             $('#color-bar').append(
                 $(
-                    "<button style='background-color: {0}; width: {1}%'>{2}</button>".format(
-                        [colors[i], width.toString(), options[i]]
-                    )
+                    `<button style='background-color: ${colors[i]}; width: ${width}%'>${options[i]}</button>`
                 ).on('click', (ev) => {
                     this.activateOnClick(options[i], colors[i])
                 })
