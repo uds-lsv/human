@@ -645,13 +645,11 @@ export class PicturePolygonTask implements Task {
     async onEntry(question: string, answer: string = 'Continue') {
         await loadPicture()
         $('#question').append(question)
-        const yes = $(
-            '<button class="btn btn-primary btn-block" style="margin: 10px 0 10px 0;position: relative">' +
-                answer +
-                '</button>'
+        const answer_button = $(
+            `<button id="answer_button" class="btn btn-primary btn-block" style="margin: 10px 0 10px 0;position: relative">${answer}</button>`
         )
-        yes.on('click', () => {
-            yes.off('click')
+        answer_button.on('click', () => {
+            answer_button.attr('disabled')
             let scaled_polygons = []
             paperMain.project.activeLayer.children.forEach((child) => {
                 if (child instanceof paperMain.Path) {
@@ -671,7 +669,7 @@ export class PicturePolygonTask implements Task {
             data['annotation'] = scaled_polygons
             nextState('NEXT', data) // 2nd arg passed to backend
         })
-        $('#answer').append(yes)
+        $('#answer').append(answer_button)
         await setupMain(Data['picture'])
         this.setupHotKeys()
     }
@@ -729,13 +727,11 @@ export class PictureBBoxesTask implements Task {
     async onEntry(question: string, answer: string = 'Continue') {
         await loadPicture()
         $('#question').append(question)
-        const yes = $(
-            '<button class="btn btn-primary btn-block" style="margin: 10px 0 10px 0;position: relative">' +
-                answer +
-                '</button>'
+        const answer_button = $(
+            `<button id="answer_button" class="btn btn-primary btn-block" style="margin: 10px 0 10px 0;position: relative">${answer}</button>`
         )
-        yes.on('click', () => {
-            yes.off('click')
+        answer_button.on('click', () => {
+            answer_button.attr('disabled')
             let scaled_polygons = []
             paperMain.project.activeLayer.children.forEach((child) => {
                 if (child instanceof paperMain.Path) {
@@ -755,7 +751,7 @@ export class PictureBBoxesTask implements Task {
             data['annotation'] = scaled_polygons
             nextState('NEXT', data) // 2nd arg passed to backend
         })
-        $('#answer').append(yes)
+        $('#answer').append(answer_button)
         await setupMain(Data['picture'])
         this.setupHotKeys()
     }

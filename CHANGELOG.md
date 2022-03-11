@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.2 (TBD)
+
+### Added
+
+-   Validation scripts via api.py
+    -   protocol state option: `check_validity_call: <validation-function>`
+    -   validation-function has to correspond to a function name in app/api.py that takes the automaton and the annotation as arguments.
+
+### Removed
+
+### Changed
+
 ## 2.0.1 (25-02-2022)
 
 ### Added

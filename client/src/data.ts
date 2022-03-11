@@ -19,6 +19,7 @@ class DefaultDict {
 
 export class Data {
     static data = undefined
+    static state = undefined
     static text: string = ''
     static content: string = ''
     static context: string = ''
@@ -35,6 +36,7 @@ export class Data {
     static current_task: Task = undefined
     static reset() {
         Data.data = undefined
+        Data.state = undefined
         Data.text = ''
         Data.context = ''
         Data.picture = undefined

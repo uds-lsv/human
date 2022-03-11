@@ -21,7 +21,7 @@ The setup consists of 5 parts:
 4. [Deploy server](#deploy-server)
 5. [Add data](#add-data)
 
-### Python environment
+### 1. Python environment
 
 First install the python environment.
 
@@ -43,7 +43,7 @@ OR install from requirements.txt with pip or whatever you fancy.
 pip install -r requirements.txt
 ```
 
-### Database setup
+### 2. Database setup
 
 First initialize the database with
 
@@ -57,19 +57,19 @@ Then add an admin account with
 flask add-admin
 ```
 
-### Annotation protocol
+### 3. Annotation protocol
 
 Write your custom annotation protocol into protocol.yml. Refer to the [wiki](https://github.com/uds-lsv/human/wiki) for documentation on how to do this and see our example protocols (under `/examples`) for inspiration.
 
 Whenever you change any state names in protocol.yml, afterwards be sure to run
 
 ```sh
-flask run reset-annotations
+flask reset-annotations
 ```
 
 This will reset the annotations table in the database and is necessary to properly save annotations after a change in the protocol.
 
-### Deploy server
+### 4. Deploy server
 
 To run a server you have 2 possibilities:
 
@@ -90,7 +90,7 @@ When running HUMAN in a production environment on a server we recommend using gu
 
 For docker refer to the [https://github.com/uds-lsv/human/wiki/Docker/](wiki).
 
-### Adding data
+### 5. Adding data
 
 To add a file with data, start the server, log in with your admin account, and go to "Data Console". There you can upload the file.
 Be sure that it is a tab separated file with the three columns "content", "context" and "meta".
@@ -99,22 +99,26 @@ When you want to display files you can use "Upload Folder" in "Data Console" and
 
 # Try our Examples!
 
-WIP
+After the setup you can try these examples.
 
-<!-- Picture Annotation:
+First always reset the database with `flask reset-database`
 
-1. Copy and rename `/example/protocol_example_picture.json` to `/protocol.json`
-2. Run `setup.sh`
-3. Log in with your administrator account and upload the folder `/example/picture`
-4. Upload the file `/example/data_example_picture.csv`
-5. Go back to home and start annotating.
+### Picture Annotation
 
-Text Annotation:
+1. Copy `/example/protocol_image.yml` to `/protocol.yml`
+2. Run `flask reset-annotations`
+3. Log in with your administrator account and go to the upload console
+4. Upload folder `/example/picture`
+5. Upload file `/example/data_example_picture.csv`
+6. Go back to home page and start annotating.
 
-1. Copy and rename `/example/protocol_example_text.json` to `/protocol.json`
-2. Run `setup.sh`
-3. Log in with your administrator account and upload the file `/example/data_example_text.csv`
-4. Go back to home and start annotating. -->
+### Text Annotation
+
+1. Copy `/example/protocol_text.yml` to `/protocol.yml`
+2. Run `flask reset-annotations`
+3. Log in with your administrator account and go to the upload console
+4. Upload file `/example/data_example_text.csv`
+5. Go back to home page and start annotating.
 
 # Development
 

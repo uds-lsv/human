@@ -50,8 +50,8 @@ export async function showText() {
 
     let text = add_spans(Data.data['content'])
     $('.comment-content').append(text)
-    if (Data.data['context'] == ' ') {
-        console.log('aaaaa')
+
+    if (Data.data['context'] == ' ' || Data.data['context'] == '') {
         $('#contentContainer').css('height', '100%')
         $('#bottomContainer').hide()
     } else {
@@ -77,19 +77,23 @@ export class BooleanTask implements Task {
         // await loadWords()
         // $('#controls').hide()
         $('#question').append(question)
-        let yes = $('<button class="btn btn-primary">Yes</button>')
+        let yes = $(
+            '<button id="answer_button" class="btn btn-primary">Yes</button>'
+        )
         yes.on('click', (event) => {
-            yes.off('click')
+            yes.attr('disabled')
+
             // send yes
-            this.onExit()
             nextState('YES', { annotation: 1 })
         })
         $('#answer').append(yes)
-        let no = $('<button class="btn btn-primary">No</button>')
+        let no = $(
+            '<button id="answer_button" class="btn btn-primary">No</button>'
+        )
         no.on('click', (event) => {
-            no.off('click')
+            no.attr('disabled')
+
             // send no
-            this.onExit()
             nextState('NO', { annotation: 0 })
         })
         $('#answer').append(no)
@@ -140,14 +144,14 @@ export class SelectTask implements Task {
             $(formgroup).append(option)
             $(formgroup).append(label) // append everything to group
         }
-        const answer_b = $(
-            `<button type="button" class="btn btn-primary">${answer}</button>`
+        const answer_button = $(
+            `<button id="answer_button" type="button" class="btn btn-primary">${answer}</button>`
         ) // next button
-        $('#answer').append(answer_b)
+        $('#answer').append(answer_button)
 
         // on click for button
-        answer_b.on('click', (event) => {
-            answer_b.off('click')
+        answer_button.on('click', (event) => {
+            answer_button.attr('disabled')
             // get checked radio button and run statemachine NEXT with its value
             for (let i = 0; i < options.length; i++) {
                 // console.log($('#form' + i))
@@ -204,13 +208,13 @@ export class CheckmarkTask implements Task {
         }
 
         // add next button
-        const answer_b = $(
-            `<button type="button" class="btn btn-primary">${answer}</button>`
+        const answer_button = $(
+            `<button id="answer_button" type="button" class="btn btn-primary">${answer}</button>`
         )
-        $('#answer').append(answer_b)
+        $('#answer').append(answer_button)
         // on click for button
-        answer_b.on('click', (event) => {
-            answer_b.off('click')
+        answer_button.on('click', (event) => {
+            answer_button.attr('disabled')
             let checkedVals = [] // for checkboxes
 
             // get checked checkboxes and run statemachine next with its value
@@ -242,17 +246,17 @@ export class FreetextTask implements Task {
         )
         $('#controls').append(textarea)
 
-        const button = $(
-            '<button type="button" class="btn btn-primary"></button'
+        const answer_button = $(
+            '<button id="answer_button" type="button" class="btn btn-primary"></button'
         ) // next button
-        button.append(answer) // append text
-        button.on('click', (event) => {
-            button.off('click')
+        answer_button.append(answer) // append text
+        answer_button.on('click', (event) => {
+            answer_button.attr('disabled', 'disabled')
             nextState('NEXT', {
                 annotation: textarea.val(),
             })
         })
-        $('#answer').append(button)
+        $('#answer').append(answer_button)
     }
 
     async onExit() {
@@ -273,10 +277,12 @@ export class ChoosePageTask implements Task {
 
     async onEntry(question: string, answer: string = 'Correct Page') {
         $('#question').append(question)
-        let yes = $('<button class="btn btn-primary"></button>')
-        yes.append(answer)
-        yes.on('click', async (e) => {
-            yes.off('click')
+        let answer_button = $(
+            '<button id="answer_button" class="btn btn-primary"></button>'
+        )
+        answer_button.append(answer)
+        answer_button.on('click', async (e) => {
+            answer_button.attr('disabled')
             nextState(
                 'NEXT',
                 await new Promise((resolve, reject) => {
@@ -300,7 +306,7 @@ export class ChoosePageTask implements Task {
                 })
             )
         })
-        $('#answer').append(yes)
+        $('#answer').append(answer_button)
         PDFService.showPDF(Data.pdf)
     }
     async onExit() {
@@ -320,10 +326,12 @@ export class ReadTask implements Task {
     async onEntry(question: string, answer: string = 'Continue') {
         $('#question').append(question)
         let answer_button = $(
-            '<button class="btn btn-primary">' + answer + '</button>'
+            '<button id="answer_button" class="btn btn-primary">' +
+                answer +
+                '</button>'
         )
         answer_button.on('click', (event) => {
-            answer_button.off('click')
+            answer_button.attr('disabled')
             nextState('NEXT', {})
         })
         $('#answer').append(answer_button)
@@ -399,19 +407,20 @@ export class LabelTextTask implements Task {
                 })
             )
         }
-        const button = $(
-            '<button type="button" class="btn btn-primary"></button>'
+        const answer_button = $(
+            '<button id="answer_button" type="button" class="btn btn-primary"></button>'
         ) // next button
-        button.append(answer)
-        button.on('click', (event) => {
-            $('.comment-content').off('click tap')
+        answer_button.append(answer)
+        answer_button.on('click', (event) => {
+            // $('.comment-content').off('click tap')
+            answer_button.attr('disabled')
             const markers_copy = JSON.stringify(this.markers)
             nextState('NEXT', { annotation: markers_copy })
         })
         // $('#question').empty();
         // $('#answer').empty();
         $('#question').append(question)
-        $('#answer').append(button)
+        $('#answer').append(answer_button)
     }
     async onExit() {
         $('#question').empty()
