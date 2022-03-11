@@ -82,7 +82,7 @@ def load_user_by_name(username):
         uid,username,email,fname,lname,password,user_type,is_approved,annotated = db.execute(
             'SELECT id,username,email,given_name,surname,password,user_type,is_approved,annotated FROM user WHERE username = ?', (username,)
             ).fetchone()
-        user = User(uid,username,email,fname,lname,password,user_type,is_approved,annotated)
+        user = User(uid,username,email,fname,lname,password,user_type,is_approved,annotated, None)
     except Exception as e:
         app.logger.error("Error occurred while loading the user {}".format(username))
         app.logger.error("Error occurred while loading the user error:".format(str(e)))
