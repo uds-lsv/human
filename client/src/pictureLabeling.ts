@@ -421,17 +421,19 @@ export function showMultilabelBBox(
         // controls in right side container
         $('#question').append(question)
 
-        let yes = $('<button class="btn btn-primary"></button>')
-        yes.append(answer)
-        yes.on('click', () => {
-            yes.off('click')
+        const answer_button = $(
+            '<button id="answer_button" class="btn btn-primary"></button>'
+        )
+        answer_button.append(answer)
+        answer_button.on('click', () => {
+            answer_button.attr('disabled')
             setAnnotation(multilabelBBoxTask)
             buttonContainer.remove()
             nextState('next', {
                 annotation: multilabelBBoxTask.annotations,
             })
         })
-        $('#answer').empty().append(yes)
+        $('#answer').empty().append(answer_button)
 
         if (Data.active >= 1) {
             let back = $('<button class="btn btn-primary"></button>')
@@ -528,10 +530,10 @@ export function showAnnotatePicture(
         }
         // add buttons
         $('#question').append(question)
-        let yes = $('<button class="btn btn-primary"></button>')
-        yes.append(answer)
-        yes.on('click', () => {
-            yes.off('click')
+        let answer_button = $('<button class="btn btn-primary"></button>')
+        answer_button.append(answer)
+        answer_button.on('click', () => {
+            answer_button.attr('disabled')
             rescaleGuiBBoxes()
             const scaledbboxes = extractBBoxes(layer)
                 .sort(BBox.sortBBoxArray)
@@ -540,7 +542,7 @@ export function showAnnotatePicture(
                 })
             nextState('next', { annotation: scaledbboxes })
         })
-        $('#answer').append(yes)
+        $('#answer').append(answer_button)
     })
 }
 
@@ -740,12 +742,14 @@ class LabelBBoxTask extends Task {
 
         setupAutocompleteList(predicted, this)
 
-        let yes = $('<button class="btn btn-primary"></button>')
+        const answer_button = $(
+            '<button id="answer_button" class="btn btn-primary"></button>'
+        )
 
         if (index < Data.predicted_labels.length - 1) {
-            yes.append('Next')
-            yes.on('click', () => {
-                yes.off('click')
+            answer_button.append('Next')
+            answer_button.on('click', () => {
+                answer_button.attr('disabled')
                 const self = this
                 $('#input-item, .word-list-item').each(function () {
                     if ($(this).hasClass('active')) {
@@ -760,14 +764,14 @@ class LabelBBoxTask extends Task {
                 this.setCurrentIndex(index + 1)
             })
         } else {
-            yes.append('Finish')
-            yes.on('click', () =>
+            answer_button.append('Finish')
+            answer_button.on('click', () =>
                 nextState('next', {
                     annotation: this.annotations,
                 })
             )
         }
-        $('#answer').empty().append(yes)
+        $('#answer').empty().append(answer_button)
     }
     drawBBoxLabels() {}
 

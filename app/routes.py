@@ -50,6 +50,20 @@ def trigger_transition():
         response = automaton.get_response()
     return response
 
+@login_required
+@app.route('/api/check_validity', methods=["POST", "OPTIONS"])
+def check_validity():
+    if not request.is_json:
+        return "Unexpected Parameters"
+    automaton: AnnotationAutomaton = current_user.automaton
+    req = request.json
+    api_call = getattr(api, req['check_validity_call'])
+    api_ret = api_call(automaton, req)
+    if type(api_ret) != dict:
+        raise error_handler.AutomatonError('API call did not return dict type')
+    return jsonify(api_ret)
+
+@login_required
 @app.route('/api/callAPI', methods=["POST", "OPTIONS"])
 def call_api():
     """

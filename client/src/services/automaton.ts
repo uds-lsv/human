@@ -16,9 +16,41 @@ import {
 } from '../tasks'
 import { PictureBBoxesTask, PicturePolygonTask } from '../imageTasks'
 
-export async function nextState(trigger, data) {
+export async function nextState(trigger, data, skip_validation = false) {
     // wrap to catch all GUI errors in one place
     try {
+        // call validation function on server
+        if (
+            Data.state?.hasOwnProperty('check_validity_call') &&
+            !skip_validation
+        ) {
+            const validity_response = await Service.fetchpost(
+                '/api/check_validity',
+                'json',
+                JSON.stringify({
+                    check_validity_call: Data.state['check_validity_call'],
+                    data,
+                })
+            )
+            const resp = await validity_response.json()
+            if (resp['type'] == 'OK') {
+                // do nothing
+            } else if (resp['type'] == 'WARNING') {
+                $('#answer_button').removeAttr('disabled')
+                showValidationModal(resp['type'], resp['message'], () => {
+                    nextState(trigger, data, true)
+                })
+                return
+            } else if (resp['type'] == 'ERROR') {
+                $('#answer_button').removeAttr('disabled')
+                showValidationModal(resp['type'], resp['message'])
+                return
+            } else {
+                // do nothing
+            }
+        }
+
+        // clean up former task
         Data.current_task?.onExit()
         console.log(trigger)
         console.log(data)
@@ -43,6 +75,7 @@ export async function nextState(trigger, data) {
             const data = JSON.parse(<string>fd.get('data'))
             console.log(state)
             console.log(data)
+            Data.state = state
             window['state'] = state
             const type = state['type']
             let task: Task
@@ -132,8 +165,6 @@ export async function nextState(trigger, data) {
                     throw Error('Unknown Annotation type: ' + type)
             }
             Data.current_task = task
-
-            // triggerState(Data['type'])
         } else {
             throw Error('Unsupported content type')
         }
@@ -141,6 +172,37 @@ export async function nextState(trigger, data) {
         console.error(error)
         alert(error.message)
     }
+}
+
+function showValidationModal(head, message, callback?) {
+    const footer = $('<div class="modal-footer"></div>')
+    const body = $('<div class="modal-body"></div>')
+    const header = $('<div class="modal-header"></div>')
+    const modal = $(
+        '<div id="validation_modal" class="modal" tabindex="-1" role="dialog"></div>'
+    )
+    const dialog = $('<div class="modal-dialog" role="document"></div>')
+    const content = $('<div class="modal-content"></div>')
+    modal.append(dialog)
+    dialog.append(content)
+    content.append(header)
+    content.append(body)
+    content.append(footer)
+
+    const dismiss = $(
+        '<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>'
+    )
+    footer.append(dismiss)
+    if (callback) {
+        const button = $(
+            '<button type="button" class="btn btn-primary" data-dismiss="modal">Save annotation anyway</button>'
+        )
+        button.on('click', callback(modal))
+        footer.append(button)
+    }
+    header.append(head)
+    body.append(message)
+    modal.modal()
 }
 
 export interface Task {
