@@ -51,7 +51,7 @@ export async function nextState(trigger, data, skip_validation = false) {
         }
 
         // clean up former task
-        Data.current_task?.onExit()
+        await Data.current_task?.onExit()
         console.log(trigger)
         console.log(data)
         const response = await Service.fetchpost(
@@ -195,9 +195,9 @@ function showValidationModal(head, message, callback?) {
     footer.append(dismiss)
     if (callback) {
         const button = $(
-            '<button type="button" class="btn btn-primary" data-dismiss="modal">Save annotation anyway</button>'
+            '<button type="button" class="btn btn-primary" data-dismiss="modal">Continue anyway</button>'
         )
-        button.on('click', callback(modal))
+        button.on('click', callback)
         footer.append(button)
     }
     header.append(head)
