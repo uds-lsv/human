@@ -8,7 +8,7 @@ pandas==1.2.4
 Pillow==9.0.0
 python-dotenv==0.19.2
 requests-toolbelt==0.9.1
-ruamel.yaml==0.17.20
+ruamel.yaml==0.17.21
 tables==3.7.0
 transitions==0.8.10
 urllib3>=1.26.5
