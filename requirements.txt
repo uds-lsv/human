@@ -5,7 +5,7 @@ Flask-Cors==6.0.0
 Flask-Login==0.5.0
 gunicorn==23.0.0
 pandas==1.2.4
-Pillow==12.1.1
+Pillow==12.2.0
 python-dotenv==0.19.2
 requests-toolbelt==0.9.1
 ruamel.yaml==0.17.21
